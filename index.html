@@ -260,12 +260,18 @@ a:hover { color: var(--gold); }
 
 /* Responsive */
 @media (max-width: 600px) {
-  .cycle-numbers { gap: 16px; }
-  .cycle-sep { font-size: 24px; }
+  .cycle-numbers { gap: 12px; }
+  .cycle-num { font-size: clamp(36px, 8vw, 56px); }
+  .cycle-sep { font-size: 20px; }
   .facts-grid { grid-template-columns: repeat(2, 1fr); }
   .pages-grid { grid-template-columns: 1fr; }
   .cta { padding: 12px 20px; font-size: 14px; }
   .section { padding: 60px 16px; }
+}
+@media (max-width: 400px) {
+  .cycle-num { font-size: 32px; }
+  .pages-grid { grid-template-columns: 1fr; }
+  .facts-grid { grid-template-columns: 1fr; }
 }
 </style>
 </head>
@@ -324,7 +330,7 @@ a:hover { color: var(--gold); }
     </div>
     <div class="fact-card">
       <div class="fact-value">260</div>
-      <div class="fact-label">order of &sigma;<br><span style="font-size:11px;opacity:0.7">&sigma;&sup2;&sup6;&sup0; = identity</span></div>
+      <div class="fact-label">order of &sigma;<br><span style="font-size:11px;opacity:0.7">σ²⁶⁰ = identity</span></div>
     </div>
     <div class="fact-card">
       <div class="fact-value">3.349</div>
