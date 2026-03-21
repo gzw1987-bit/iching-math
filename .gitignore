@@ -6,3 +6,7 @@ __pycache__/
 *.swp
 *.swo
 sufficiently-detailed-spec-cn.html
+paper/outreach-emails.md
+engine-architecture.html
+engine-architecture.md
+deep-diagnostic.html
