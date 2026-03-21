@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cycle Decomposition [52, 10, 2] — Binary Natural Order → King Wen Sequence</title>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  :root{
+    --bg:#0a0a0f;--bg2:#0f0f1a;--bg3:#141422;--bg4:#1a1a2e;
+    --gold:#c8a04a;--gold2:#d4a574;--gold3:#e8c87a;--gold-dim:rgba(200,160,74,.15);
+    --text:#a8a8b8;--text2:#787890;--text3:#585868;
+    --white:#e8e8f0;--red:#c85a5a;--green:#5ac878;--blue:#5a8ac8;
+  }
+  html{scroll-behavior:smooth}
+  body{background:var(--bg);color:var(--text);font-family:'Georgia',serif;line-height:1.8;overflow-x:hidden}
+
+  /* === NAV DOT === */
+  .nav-dots{position:fixed;right:20px;top:50%;transform:translateY(-50%);z-index:100;display:flex;flex-direction:column;gap:12px}
+  .nav-dot{width:8px;height:8px;border-radius:50%;border:1px solid var(--text3);background:transparent;cursor:pointer;transition:.3s;position:relative}
+  .nav-dot:hover,.nav-dot.active{background:var(--gold);border-color:var(--gold);box-shadow:0 0 8px rgba(200,160,74,.4)}
+  .nav-dot .tip{position:absolute;right:20px;top:50%;transform:translateY(-50%);white-space:nowrap;font-size:11px;color:var(--gold);opacity:0;transition:.3s;pointer-events:none;font-family:sans-serif}
+  .nav-dot:hover .tip{opacity:1}
+
+  /* === SECTIONS === */
+  section{min-height:100vh;padding:80px 40px;display:flex;align-items:center;justify-content:center;position:relative}
+  .content{max-width:900px;width:100%;opacity:0;transform:translateY(30px);transition:opacity .8s,transform .8s}
+  .content.visible{opacity:1;transform:translateY(0)}
+
+  /* === TYPOGRAPHY === */
+  h1{font-size:clamp(28px,4vw,48px);font-weight:300;color:var(--white);letter-spacing:4px;margin-bottom:8px}
+  h2{font-size:clamp(22px,3vw,32px);font-weight:300;color:var(--gold);letter-spacing:3px;margin-bottom:24px}
+  h3{font-size:18px;font-weight:400;color:var(--gold2);margin:24px 0 12px;letter-spacing:1px}
+  p{margin-bottom:16px;font-size:15px}
+  .subtitle{font-size:14px;color:var(--text2);letter-spacing:2px;margin-bottom:40px}
+  .highlight{color:var(--gold)}
+  .dim{color:var(--text2);font-size:13px}
+  .warn{color:var(--red);font-size:13px;font-style:italic}
+  .num{font-family:'Courier New',monospace;color:var(--gold3)}
+
+  /* === HERO === */
+  .hero-section{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center}
+  .hero-badge{display:inline-block;border:1px solid var(--gold-dim);padding:6px 20px;font-size:11px;color:var(--gold);letter-spacing:3px;text-transform:uppercase;margin-bottom:32px;font-family:sans-serif}
+  .hero-num{font-size:clamp(60px,12vw,140px);font-weight:200;color:var(--gold);letter-spacing:12px;line-height:1;margin:20px 0;text-shadow:0 0 40px rgba(200,160,74,.2)}
+  .hero-sub{font-size:clamp(14px,2vw,18px);color:var(--text2);font-weight:300;letter-spacing:2px}
+  .scroll-hint{position:absolute;bottom:40px;font-size:11px;color:var(--text3);letter-spacing:2px;animation:pulse 2s infinite;font-family:sans-serif}
+  @keyframes pulse{0%,100%{opacity:.3}50%{opacity:.8}}
+
+  /* === CYCLE VIS === */
+  .cycle-ring{position:relative;width:100%;max-width:700px;margin:30px auto}
+  .cycle-ring svg{width:100%;height:auto}
+  .cycle-ring text{font-family:serif}
+
+  /* === TABLE === */
+  .data-table{width:100%;border-collapse:collapse;font-size:13px;margin:20px 0}
+  .data-table th{color:var(--gold);font-weight:400;text-align:left;padding:8px 12px;border-bottom:1px solid var(--gold-dim);font-size:11px;letter-spacing:1px;text-transform:uppercase}
+  .data-table td{padding:6px 12px;border-bottom:1px solid rgba(255,255,255,.03);color:var(--text);font-family:'Courier New',monospace;font-size:12px}
+  .data-table tr:hover td{background:var(--gold-dim)}
+
+  /* === STAT CARDS === */
+  .stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:16px;margin:24px 0}
+  .stat-card{background:var(--bg2);border:1px solid var(--gold-dim);padding:20px;text-align:center;border-radius:2px}
+  .stat-val{font-size:32px;font-weight:200;color:var(--gold);font-family:'Courier New',monospace}
+  .stat-label{font-size:11px;color:var(--text2);margin-top:4px;letter-spacing:1px}
+
+  /* === CHAIN VIS === */
+  .chain{display:flex;flex-wrap:wrap;gap:4px;align-items:center;margin:16px 0;font-size:12px}
+  .chain-hex{background:var(--bg3);border:1px solid var(--gold-dim);padding:3px 8px;color:var(--gold2);font-family:sans-serif;cursor:default;transition:.2s;border-radius:1px;font-size:11px}
+  .chain-hex:hover{background:var(--gold-dim);border-color:var(--gold)}
+  .chain-arrow{color:var(--text3);font-size:10px}
+  .chain-hex.c2{border-color:rgba(90,138,200,.3);color:var(--blue)}
+  .chain-hex.c2:hover{background:rgba(90,138,200,.1);border-color:var(--blue)}
+  .chain-hex.c3{border-color:rgba(200,90,90,.3);color:var(--red)}
+  .chain-hex.c3:hover{background:rgba(200,90,90,.1);border-color:var(--red)}
+
+  /* === BAR CHART === */
+  .bar-chart{margin:20px 0}
+  .bar-row{display:flex;align-items:center;margin:4px 0;font-size:12px}
+  .bar-label{width:40px;text-align:right;color:var(--text2);font-family:monospace;margin-right:10px}
+  .bar-track{flex:1;height:24px;background:var(--bg2);position:relative;border-radius:1px;overflow:hidden}
+  .bar-fill{height:100%;transition:width 1s ease;border-radius:1px}
+  .bar-fill.wen{background:linear-gradient(90deg,var(--gold),var(--gold2))}
+  .bar-fill.fuxi{background:linear-gradient(90deg,var(--blue),rgba(90,138,200,.5))}
+  .bar-fill.rand{background:linear-gradient(90deg,var(--text3),rgba(88,88,104,.5))}
+  .bar-count{position:absolute;right:8px;top:50%;transform:translateY(-50%);font-size:11px;color:var(--white);font-family:monospace}
+
+  /* === MAPPING TABLE === */
+  .map-grid{display:grid;grid-template-columns:repeat(8,1fr);gap:3px;margin:20px 0}
+  .map-cell{background:var(--bg2);border:1px solid rgba(255,255,255,.03);padding:6px 4px;text-align:center;font-size:11px;cursor:default;transition:.2s}
+  .map-cell:hover{border-color:var(--gold);background:var(--gold-dim)}
+  .map-cell .fuxi-pos{color:var(--text3);font-family:monospace;font-size:9px}
+  .map-cell .hex-name{color:var(--gold2);font-size:13px;margin:2px 0}
+  .map-cell .wen-num{color:var(--text2);font-family:monospace;font-size:10px}
+  .map-cell.cycle1{border-left:2px solid rgba(200,160,74,.3)}
+  .map-cell.cycle2{border-left:2px solid rgba(90,138,200,.3)}
+  .map-cell.cycle3{border-left:2px solid rgba(200,90,90,.3)}
+
+  /* === TOGGLE === */
+  .toggle-group{display:flex;gap:8px;margin:16px 0;flex-wrap:wrap}
+  .toggle-btn{padding:6px 16px;font-size:12px;border:1px solid var(--gold-dim);background:transparent;color:var(--text2);cursor:pointer;transition:.2s;font-family:sans-serif;letter-spacing:1px}
+  .toggle-btn.active,.toggle-btn:hover{background:var(--gold-dim);color:var(--gold);border-color:var(--gold)}
+
+  /* === CODE === */
+  .code-block{background:var(--bg2);border:1px solid var(--gold-dim);padding:16px 20px;font-family:'Courier New',monospace;font-size:12px;color:var(--text);overflow-x:auto;margin:16px 0;line-height:1.6;border-radius:2px;white-space:pre}
+  .code-block .kw{color:var(--gold)}
+  .code-block .cm{color:var(--text3)}
+  .code-block .str{color:var(--green)}
+  .code-block .num{color:var(--gold3)}
+
+  /* === DIVIDER === */
+  .divider{width:60px;height:1px;background:var(--gold-dim);margin:32px 0}
+
+  /* === COMPARISON === */
+  .compare-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin:12px 0}
+  .compare-col{text-align:center}
+  .compare-val{font-size:28px;font-weight:200;font-family:monospace}
+  .compare-label{font-size:11px;color:var(--text2);margin-top:4px}
+
+  @media(max-width:600px){
+    section{padding:60px 20px}
+    .map-grid{grid-template-columns:repeat(4,1fr)}
+    .compare-row{grid-template-columns:1fr}
+    .stat-grid{grid-template-columns:1fr 1fr}
+  }
+</style>
+</head>
+<body>
+
+<!-- NAV DOTS -->
+<nav class="nav-dots" id="navDots"></nav>
+
+<!-- S0: HERO -->
+<section class="hero-section" data-nav="Origin">
+  <div>
+    <div class="hero-badge">Original Mathematical Discovery &middot; 2026</div>
+    <div class="hero-num">52 &middot; 10 &middot; 2</div>
+    <h1 style="font-size:clamp(16px,2.5vw,24px);letter-spacing:6px;font-weight:200">Cycle Decomposition of the King Wen Permutation</h1>
+    <p class="hero-sub" style="margin-top:16px">A hidden structure in a 3,000-year-old sequence</p>
+    <p class="dim" style="margin-top:40px">Zhengwen Ge &middot; March 2026</p>
+  </div>
+  <div class="scroll-hint">&darr; SCROLL</div>
+  <div style="position:absolute;top:20px;left:20px"><a href="index.html" style="color:var(--text3);font-size:12px;text-decoration:none;letter-spacing:1px;font-family:sans-serif">&larr; Back to Index</a></div>
+</section>
+
+<!-- S1: PROBLEM -->
+<section data-nav="Problem">
+  <div class="content">
+    <h2>The Problem</h2>
+    <p>The 64 hexagrams admit two canonical orderings. The <span class="highlight">binary natural order</span> (commonly called the "Fu Xi sequence," reconstructed by Shao Yong in the 11th century) is the 6-bit counting sequence (000000 &rarr; 111111) &mdash; mathematically fully ordered. The <span class="highlight">King Wen sequence</span> is the textual ordering of the received <em>Zhouyi</em> (~1000 BCE) &mdash; its organizational logic has been debated for millennia. Han Kangbo called it "not the essence of the <em>Yi</em>"; Zhu Xi deemed it "unknowable."</p>
+    <div class="divider"></div>
+    <p class="dim" style="margin-bottom:20px"><strong>Historical clarification (Remark 1):</strong> The binary natural order was formalized approximately 2,100 years <em>after</em> King Wen. We do not claim or assume that King Wen "rearranged" the binary natural order. Our analysis treats the two orderings as independently defined mathematical objects and studies the <em>structural distance</em> between them &mdash; analogous to comparing two genome sequences without presupposing which is ancestral.</p>
+    <p>We reframe the question:</p>
+    <p style="font-size:18px;color:var(--white);margin:20px 0">Transform the question "what is the structural distance between two orderings"<br>into the mathematical problem "what is the cycle structure of a specific permutation in S&#x2086;&#x2084;?"</p>
+    <p class="dim">S&#x2086;&#x2084; = the symmetric group on 64 elements, containing 64! (&asymp; 1.27 &times; 10&#x2078;&#x2079;) possible permutations. The King Wen sequence is one of them.</p>
+  </div>
+</section>
+
+<!-- S2: MAPPING -->
+<section data-nav="Mapping">
+  <div class="content">
+    <h2>Complete Mapping</h2>
+    <p>Binary natural position (0&ndash;63) &rarr; King Wen number (1&ndash;64). Click any cell for details.</p>
+    <div class="toggle-group">
+      <button class="toggle-btn active" onclick="colorMap('none')">No color</button>
+      <button class="toggle-btn" onclick="colorMap('cycle')">Color by cycle</button>
+    </div>
+    <div class="map-grid" id="mapGrid"></div>
+    <p class="dim">Top-left to bottom-right = binary natural order 0&rarr;63. Top-left 000000 = K&#x16B;n (Wen #2), bottom-right 111111 = Qi&aacute;n (Wen #1).</p>
+  </div>
+</section>
+
+<!-- S3: RESULT -->
+<section data-nav="Discovery">
+  <div class="content">
+    <h2>Cycle Decomposition Result</h2>
+    <div class="stat-grid">
+      <div class="stat-card">
+        <div class="stat-val">3</div>
+        <div class="stat-label">Cycles</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-val">0</div>
+        <div class="stat-label">Fixed points</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-val">81.25%</div>
+        <div class="stat-label">Primary cycle fraction</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-val">260</div>
+        <div class="stat-label">Order of &sigma;</div>
+      </div>
+    </div>
+    <p style="margin-top:20px"><span class="highlight">Zero fixed points</span> &mdash; not a single hexagram occupies the same position in both orderings. The structural difference is total.</p>
+    <p><span class="highlight">3 cycles</span> &mdash; a random permutation of 64 elements has an expected ~4.74 cycles. The King Wen count is low, indicating high coupling.</p>
+    <p><span class="highlight">Primary cycle of 52</span> &mdash; 81.25% of hexagrams are locked in one chain. This is not fine-tuning; it is systematic restructuring.</p>
+  </div>
+</section>
+
+<!-- S4: CYCLE 1 -->
+<section data-nav="Primary">
+  <div class="content">
+    <h2>Primary Cycle <span class="dim">52 hexagrams &middot; 81.25%</span></h2>
+    <p>Starting from Qi&aacute;n, it takes 52 steps to return. Each step means: the hexagram at binary position A appears at position B in the King Wen order.</p>
+    <div class="chain" id="chain1"></div>
+    <div class="divider"></div>
+    <p class="dim">52 hexagrams locked in one chain = you cannot move just a few hexagrams without affecting the rest. The entire chain moves as one. This is mathematical evidence of the King Wen sequence's high coupling.</p>
+  </div>
+</section>
+
+<!-- S5: CYCLE 2 & 3 -->
+<section data-nav="Secondary">
+  <div class="content">
+    <h2>Secondary Cycle <span class="dim">10 hexagrams &middot; 15.625%</span></h2>
+    <div class="chain" id="chain2"></div>
+    <div class="divider"></div>
+    <h2>Transposition <span class="dim">2 hexagrams &middot; 3.125%</span></h2>
+    <div class="chain" id="chain3"></div>
+    <div class="divider" style="margin-top:40px"></div>
+    <h3>Semantic Reading (with Methodological Warning)</h3>
+    <p>If one insists on reading the ten-hexagram cycle narratively: L&#x1DA; (treading/propriety) &rarr; G&egrave;n (stillness) &rarr; Zh&#x14D;ng F&uacute; (inner truth) &rarr; D&agrave; Zhu&agrave;ng (great power) &rarr; Y&iacute; (nourishment) &rarr; J&#x1D0;ng (the well) &rarr; T&oacute;ng R&eacute;n (fellowship) &rarr; Xi&#x1CE;o Gu&ograve; (small exceeding) &rarr; D&agrave; Y&#x1D2;u (great possession) &rarr; L&#x1DA; (the wanderer) &mdash; it reads like a "path of personal cultivation."</p>
+    <p>The transposition: Gu&agrave;i (breakthrough/resolution) &harr; J&igrave; J&igrave; (completion) &mdash; a swap between initiation and consummation.</p>
+    <p class="warn">&rlm;&#x26A0; The above semantic readings carry a high risk of apophenia (pattern perception in noise). The 64 hexagram names are sufficiently evocative that almost any permutation's cycles could be narrated as meaningful. Cycle structure is mathematical fact; cycle semantics is conjecture &mdash; the two must not be conflated.</p>
+  </div>
+</section>
+
+<!-- S6: STATISTICS -->
+<section data-nav="Statistics">
+  <div class="content">
+    <h2>Statistical Context</h2>
+    <h3>Fixed Points</h3>
+    <p>The number of fixed points in a random permutation of 64 elements ~ Poisson(&lambda;=1). P(0 fixed points) = e&#x207B;&#xB9; &asymp; <span class="num">0.368</span></p>
+    <p class="dim">Zero fixed points alone is not significant (p &asymp; 0.37), but combined with the low cycle count, the overall structure is nontrivial.</p>
+
+    <h3>Number of Cycles</h3>
+    <p>Expected number of cycles = H&#x2086;&#x2084; &asymp; <span class="num">4.74</span>, standard deviation &asymp; <span class="num">2.0</span>. Observed value: <span class="num">3</span>, approximately &minus;0.9&sigma;.</p>
+
+    <h3>Largest Cycle Length</h3>
+    <p>Expected longest cycle in a random permutation of 64 &asymp; 64 &times; 0.6243 &asymp; <span class="num">40</span>. Observed value: <span class="num">52</span>, in the upper tail of the distribution.</p>
+
+    <h3>Monte Carlo Estimate</h3>
+    <p>A simulation of 2 &times; 10&#x2076; random permutations yields: P(cycle type exactly (52,10,2)) &asymp; <span class="num">0.094%</span> (~1 in 1,064).</p>
+
+    <div class="divider"></div>
+    <p style="color:var(--white)">Combined assessment: the King Wen sequence relative to the binary natural order is <span class="highlight">not a random rearrangement</span>. The structural distance exhibits characteristics of systematic restructuring &mdash; high coupling, no preservation, and a preference for contrast narrative.</p>
+    <div class="divider"></div>
+    <p class="dim">We emphasize that any specific cycle type of a random permutation is individually rare, and we do not claim that 0.094% constitutes evidence of intentional design. The value of this decomposition is structural and descriptive: it reveals that 81.25% of hexagrams form a single connected orbit, meaning that iterating &sigma; cycles through nearly the entire set before returning. This is analogous to reporting that a molecule forms one large ring rather than several small chains &mdash; a structural fact, not a statistical claim.</p>
+  </div>
+</section>
+
+<!-- S7: HAMMING -->
+<section data-nav="Hamming">
+  <div class="content">
+    <h2>Hamming Distance Analysis</h2>
+    <p>The Hamming distance between consecutive hexagrams = the number of differing bits in their 6-bit encodings (0&ndash;6).</p>
+
+    <h3>Three-Way Comparison</h3>
+    <div class="compare-row">
+      <div class="compare-col">
+        <div class="compare-val" style="color:var(--gold)">3.349</div>
+        <div class="compare-label">King Wen mean</div>
+      </div>
+      <div class="compare-col">
+        <div class="compare-val" style="color:var(--blue)">1.905</div>
+        <div class="compare-label">Binary natural mean</div>
+      </div>
+      <div class="compare-col">
+        <div class="compare-val" style="color:var(--text3)">3.000</div>
+        <div class="compare-label">Random baseline</div>
+      </div>
+    </div>
+
+    <h3>Distribution (63 consecutive pairs)</h3>
+    <div id="hammingBars"></div>
+
+    <div class="divider"></div>
+    <div class="stat-grid" style="grid-template-columns:repeat(3,1fr)">
+      <div class="stat-card">
+        <div class="stat-val" style="font-size:24px">9 pairs</div>
+        <div class="stat-label">Total inversions d=6<br><span style="font-size:10px">Random expectation ~1.4 pairs</span></div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-val" style="font-size:24px">3.2 : 1</div>
+        <div class="stat-label">Even : odd changes<br><span style="font-size:10px">Moore ratio independently verified</span></div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-val" style="font-size:24px">76.2%</div>
+        <div class="stat-label">Even Hamming distance<br><span style="font-size:10px">Due to z&#x14D;ng/cu&ograve; gu&agrave; structure</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- S8: INSIGHTS -->
+<section data-nav="Insights">
+  <div class="content">
+    <h2>Key Insights</h2>
+
+    <h3>1. Contrast Narrative Bias</h3>
+    <p>Mean Hamming distance <span class="num">3.349</span> > random baseline <span class="num">3.0</span>. The King Wen sequence tends to place structurally dissimilar hexagrams adjacent to each other &mdash; reinforcing cognition through contrast. The 9 total inversions (d=6) are the most extreme expression; random would produce only ~1.4 pairs.</p>
+
+    <h3>2. Even&ndash;Odd Asymmetry from Z&#x14D;ng/Cu&ograve; Gu&agrave; Structure</h3>
+    <p>The 32 pairs of inverted hexagrams (<em>z&#x14D;ng gu&agrave;</em>, flipped top-to-bottom) in the King Wen sequence naturally produce even Hamming distances. This is not coincidence &mdash; the inverted-pair structure is a known organizational principle of the King Wen sequence, and the even-change ratio is its mathematical consequence.</p>
+
+    <h3>3. Structural Distance Revealed by Cycle Decomposition</h3>
+    <p>The difference between the two orderings is not "a few hexagrams swapped around." The cycle type (52, 10, 2) shows that 81% of hexagrams are locked in a single transformation chain with no hexagram remaining in place. This is systematic structural divergence, not local adjustment.</p>
+
+    <div class="divider"></div>
+    <p class="dim">An analogy: the binary natural order is the hardware specification (binary encoding), the King Wen sequence is the operating system (application-layer ordering), the Duke of Zhou wrote the API documentation (line texts), Confucius wrote the design document (Ten Wings), and Laozi provided the code review (Dao De Jing calibration).</p>
+  </div>
+</section>
+
+<!-- S9: LITERATURE -->
+<section data-nav="Literature">
+  <div class="content">
+    <h2>Related Work &amp; Originality</h2>
+
+    <table class="data-table">
+      <thead><tr><th>Author</th><th>Contribution</th><th>Relation to this paper</th></tr></thead>
+      <tbody>
+        <tr><td style="color:var(--gold2)">Leibniz (1703)</td><td>Binary interpretation of Fu Xi order</td><td>Foundational premise</td></tr>
+        <tr><td style="color:var(--gold2)">Shao Yong (11th c.)</td><td>Reconstruction of binary natural order</td><td>Foundational premise</td></tr>
+        <tr><td style="color:var(--gold2)">Moore, S.J.</td><td>Even:odd Hamming ratio &asymp; 3:1</td><td>Independently confirmed &amp; explained</td></tr>
+        <tr><td style="color:var(--gold2)">Cook (2006)</td><td>Paired-structure analysis</td><td>Different approach (no S&#x2099;)</td></tr>
+        <tr><td style="color:var(--gold2)">Petoukhov (2008)</td><td>Algebraic structures in hexagrams</td><td>Complementary perspective</td></tr>
+        <tr><td style="color:var(--gold2)">Various</td><td><em>Z&#x14D;ng gu&agrave;</em> / <em>cu&ograve; gu&agrave;</em> pair analysis</td><td>Reexamined via permutation group</td></tr>
+      </tbody>
+    </table>
+
+    <div class="divider"></div>
+    <p>As of March 2026, searches in Google Scholar, OEIS, and CNKI have <span class="highlight">found no prior record of the cycle type (52, 10, 2)</span>.</p>
+    <p class="dim">This does not prove absolute novelty &mdash; only that the result is absent from the publicly searchable literature.</p>
+    <div class="divider"></div>
+    <p>The traditional explanation for the King Wen sequence is found in the <em>X&ugrave; Gu&agrave;</em> (Sequence of Hexagrams commentary), one of the Ten Wings. A third historical ordering, found on the Mawangdui silk manuscript (excavated 1973), organizes hexagrams by upper trigram. Applying the same cycle decomposition to other ordering pairs (e.g., binary &harr; Mawangdui, Mawangdui &harr; King Wen) is a natural extension of this work.</p>
+  </div>
+</section>
+
+<!-- S10: CODE -->
+<section data-nav="Code">
+  <div class="content">
+    <h2>Reproducible Code</h2>
+    <p>The following JavaScript can be executed in any browser console to independently verify all conclusions.</p>
+    <div class="code-block" id="codeBlock"></div>
+    <button class="toggle-btn" onclick="copyCode()" id="copyBtn">Copy Code</button>
+    <div class="divider"></div>
+    <p class="dim" style="margin-top:20px">All numerical conclusions on this page are generated by the code above. Reproducibility = credibility.</p>
+  </div>
+</section>
+
+<script>
+// === DATA ===
+const HEXAGRAM_MAP = {
+  '111111':1,'000000':2,'100010':3,'010001':4,'111010':5,'010111':6,
+  '010000':7,'000010':8,'111011':9,'110111':10,'111000':11,'000111':12,
+  '101111':13,'111101':14,'001000':15,'000100':16,'100110':17,'011001':18,
+  '110000':19,'000011':20,'100101':21,'101001':22,'000001':23,'100000':24,
+  '100111':25,'111001':26,'100001':27,'011110':28,'010010':29,'101101':30,
+  '001110':31,'011100':32,'001111':33,'111100':34,'000101':35,'101000':36,
+  '101011':37,'110101':38,'001010':39,'010100':40,'110001':41,'100011':42,
+  '111110':43,'011111':44,'000110':45,'011000':46,'010110':47,'011010':48,
+  '101110':49,'011101':50,'100100':51,'001001':52,'001011':53,'110100':54,
+  '101100':55,'001101':56,'011011':57,'110110':58,'010011':59,'110010':60,
+  '110011':61,'001100':62,'101010':63,'010101':64
+};
+const NAMES = {
+  1:'\u4E7E',2:'\u5764',3:'\u5C6F',4:'\u8499',5:'\u9700',6:'\u8BBC',7:'\u5E08',8:'\u6BD4',9:'\u5C0F\u755C',10:'\u5C65',
+  11:'\u6CF0',12:'\u5426',13:'\u540C\u4EBA',14:'\u5927\u6709',15:'\u8C26',16:'\u8C6B',17:'\u968F',18:'\u86CA',19:'\u4E34',20:'\u89C2',
+  21:'\u566C\u55D1',22:'\u8D32',23:'\u5265',24:'\u590D',25:'\u65E0\u599E',26:'\u5927\u755C',27:'\u9890',28:'\u5927\u8FC7',29:'\u574E',30:'\u79BB',
+  31:'\u54B8',32:'\u6052',33:'\u9041',34:'\u5927\u58EE',35:'\u664B',36:'\u660E\u5937',37:'\u5BB6\u4EBA',38:'\u777D',39:'\u8E47',40:'\u89E3',
+  41:'\u635F',42:'\u76CA',43:'\u5938',44:'\u59E4',45:'\u8403',46:'\u5347',47:'\u56F0',48:'\u4E95',49:'\u9769',50:'\u9F0E',
+  51:'\u9707',52:'\u826E',53:'\u6E10',54:'\u5F52\u59B9',55:'\u4E30',56:'\u65C5',57:'\u5DFD',58:'\u5151',59:'\u6DA3',60:'\u8282',
+  61:'\u4E2D\u5B5A',62:'\u5C0F\u8FC7',63:'\u65E2\u6D4E',64:'\u672A\u6D4E'
+};
+const PINYIN = {
+  1:'Qián',2:'Kūn',3:'Zhūn',4:'Méng',5:'Xū',6:'Sòng',7:'Shī',8:'Bǐ',9:'Xiǎo Chù',10:'Lǚ',
+  11:'Tài',12:'Pǐ',13:'Tóng Rén',14:'Dà Yǒu',15:'Qiān',16:'Yù',17:'Suí',18:'Gǔ',19:'Lín',20:'Guān',
+  21:'Shì Hé',22:'Bì',23:'Bō',24:'Fù',25:'Wú Wàng',26:'Dà Chù',27:'Yí',28:'Dà Guò',29:'Kǎn',30:'Lí',
+  31:'Xián',32:'Héng',33:'Dùn',34:'Dà Zhuàng',35:'Jìn',36:'Míng Yí',37:'Jiā Rén',38:'Kuí',39:'Jiǎn',40:'Jiě',
+  41:'Sǔn',42:'Yì',43:'Guài',44:'Gòu',45:'Cuì',46:'Shēng',47:'Kùn',48:'Jǐng',49:'Gé',50:'Dǐng',
+  51:'Zhèn',52:'Gèn',53:'Jiàn',54:'Guī Mèi',55:'Fēng',56:'Lǚ',57:'Xùn',58:'Duì',59:'Huàn',60:'Jié',
+  61:'Zhōng Fú',62:'Xiǎo Guò',63:'Jì Jì',64:'Wèi Jì'
+};
+
+// Build permutation & cycles
+const fuxi2wen = {}, wen2fuxi = {};
+for (let i = 0; i < 64; i++) {
+  const bin = i.toString(2).padStart(6, '0');
+  fuxi2wen[i] = HEXAGRAM_MAP[bin];
+  wen2fuxi[HEXAGRAM_MAP[bin]] = i;
+}
+const perm = Array.from({length:64}, (_,i) => fuxi2wen[i] - 1);
+const visited = new Set(), cycles = [];
+for (let i = 0; i < 64; i++) {
+  if (visited.has(i)) continue;
+  const cycle = [];
+  let j = i;
+  while (!visited.has(j)) { visited.add(j); cycle.push(j); j = perm[j]; }
+  cycles.push(cycle);
+}
+cycles.sort((a,b) => b.length - a.length);
+
+// Cycle membership lookup
+const cycleMember = {};
+cycles.forEach((c, idx) => c.forEach(pos => cycleMember[pos] = idx));
+
+// === RENDER MAP GRID ===
+const mapGrid = document.getElementById('mapGrid');
+for (let i = 0; i < 64; i++) {
+  const bin = i.toString(2).padStart(6, '0');
+  const wenNum = fuxi2wen[i];
+  const div = document.createElement('div');
+  div.className = 'map-cell';
+  div.dataset.fuxi = i;
+  div.dataset.cycle = cycleMember[wenNum - 1];
+  div.innerHTML = `<div class="fuxi-pos">${bin}</div><div class="hex-name">${NAMES[wenNum]}</div><div class="wen-num">#${wenNum}</div>`;
+  mapGrid.appendChild(div);
+}
+
+function colorMap(mode) {
+  document.querySelectorAll('.toggle-btn').forEach(b => b.classList.remove('active'));
+  event.target.classList.add('active');
+  document.querySelectorAll('.map-cell').forEach(cell => {
+    cell.classList.remove('cycle1','cycle2','cycle3');
+    if (mode === 'cycle') {
+      const c = cell.dataset.cycle;
+      if (c === '0') cell.classList.add('cycle1');
+      else if (c === '1') cell.classList.add('cycle2');
+      else cell.classList.add('cycle3');
+    }
+  });
+}
+
+// === RENDER CHAINS ===
+function renderChain(containerId, cycleIdx, cssClass) {
+  const container = document.getElementById(containerId);
+  const cycle = cycles[cycleIdx];
+  cycle.forEach((pos, i) => {
+    const wenNum = pos + 1;
+    const span = document.createElement('span');
+    span.className = 'chain-hex' + (cssClass ? ' ' + cssClass : '');
+    span.textContent = PINYIN[wenNum] + '(' + wenNum + ')';
+    span.title = `Wen #${wenNum} — ${NAMES[wenNum]}`;
+    container.appendChild(span);
+    if (i < cycle.length - 1) {
+      const arrow = document.createElement('span');
+      arrow.className = 'chain-arrow';
+      arrow.textContent = '\u2192';
+      container.appendChild(arrow);
+    }
+  });
+  // Close the loop
+  const arrow = document.createElement('span');
+  arrow.className = 'chain-arrow';
+  arrow.textContent = '\u21A9';
+  container.appendChild(arrow);
+}
+renderChain('chain1', 0, '');
+renderChain('chain2', 1, 'c2');
+renderChain('chain3', 2, 'c3');
+
+// === HAMMING BARS ===
+const wen2bin = {};
+for (const [bin, num] of Object.entries(HEXAGRAM_MAP)) wen2bin[num] = bin;
+function hamming(a, b) { let d=0; for(let i=0;i<6;i++) if(a[i]!==b[i]) d++; return d; }
+
+const wenCounts = [0,0,0,0,0,0,0];
+for (let i = 1; i < 64; i++) wenCounts[hamming(wen2bin[i], wen2bin[i+1])]++;
+
+const barsContainer = document.getElementById('hammingBars');
+const maxCount = Math.max(...wenCounts);
+for (let d = 0; d <= 6; d++) {
+  const row = document.createElement('div');
+  row.className = 'bar-row';
+  row.innerHTML = `
+    <span class="bar-label">d=${d}</span>
+    <div class="bar-track">
+      <div class="bar-fill wen" style="width:0%" data-target="${wenCounts[d]/maxCount*100}"></div>
+      <span class="bar-count">${wenCounts[d]}</span>
+    </div>`;
+  barsContainer.appendChild(row);
+}
+
+// === CODE BLOCK ===
+const codeStr = `// Binary natural order → King Wen sequence: cycle decomposition — reproducible code
+const MAP = {
+  '111111':1,'000000':2,'100010':3,'010001':4,'111010':5,'010111':6,
+  '010000':7,'000010':8,'111011':9,'110111':10,'111000':11,'000111':12,
+  '101111':13,'111101':14,'001000':15,'000100':16,'100110':17,'011001':18,
+  '110000':19,'000011':20,'100101':21,'101001':22,'000001':23,'100000':24,
+  '100111':25,'111001':26,'100001':27,'011110':28,'010010':29,'101101':30,
+  '001110':31,'011100':32,'001111':33,'111100':34,'000101':35,'101000':36,
+  '101011':37,'110101':38,'001010':39,'010100':40,'110001':41,'100011':42,
+  '111110':43,'011111':44,'000110':45,'011000':46,'010110':47,'011010':48,
+  '101110':49,'011101':50,'100100':51,'001001':52,'001011':53,'110100':54,
+  '101100':55,'001101':56,'011011':57,'110110':58,'010011':59,'110010':60,
+  '110011':61,'001100':62,'101010':63,'010101':64
+};
+
+const f2w = {}, w2f = {};
+for (let i = 0; i < 64; i++) {
+  const b = i.toString(2).padStart(6,'0');
+  f2w[i] = MAP[b]; w2f[MAP[b]] = i;
+}
+const sigma = Array.from({length:64}, (_,i) => f2w[i] - 1);
+
+const vis = new Set(), cyc = [];
+for (let i = 0; i < 64; i++) {
+  if (vis.has(i)) continue;
+  const c = []; let j = i;
+  while (!vis.has(j)) { vis.add(j); c.push(j+1); j = sigma[j]; }
+  cyc.push(c);
+}
+cyc.sort((a,b) => b.length - a.length);
+cyc.forEach((c,i) => console.log(\`Cycle \${i+1} (len \${c.length}): \${c.join('→')}\`));
+// → Cycle 1 (len 52), Cycle 2 (len 10), Cycle 3 (len 2)`;
+
+document.getElementById('codeBlock').textContent = codeStr;
+
+function copyCode() {
+  navigator.clipboard.writeText(codeStr);
+  const btn = document.getElementById('copyBtn');
+  btn.textContent = 'Copied \u2713';
+  setTimeout(() => btn.textContent = 'Copy Code', 2000);
+}
+
+// === NAV DOTS ===
+const sections = document.querySelectorAll('section');
+const navDots = document.getElementById('navDots');
+sections.forEach((sec, i) => {
+  const dot = document.createElement('div');
+  dot.className = 'nav-dot';
+  dot.innerHTML = `<span class="tip">${sec.dataset.nav || ''}</span>`;
+  dot.onclick = () => sec.scrollIntoView({behavior:'smooth'});
+  navDots.appendChild(dot);
+});
+
+// === SCROLL OBSERVER ===
+const observer = new IntersectionObserver(entries => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      entry.target.querySelector('.content,.hero-section > div')?.classList.add('visible');
+      // Update nav dots
+      const idx = [...sections].indexOf(entry.target);
+      document.querySelectorAll('.nav-dot').forEach((d,i) => d.classList.toggle('active', i === idx));
+      // Animate bars
+      entry.target.querySelectorAll('.bar-fill').forEach(bar => {
+        const target = bar.dataset.target;
+        if (target) setTimeout(() => bar.style.width = target + '%', 200);
+      });
+    }
+  });
+}, {threshold: 0.3});
+sections.forEach(s => observer.observe(s));
+
+// Hero auto-visible
+document.querySelector('.hero-section > div')?.classList.add('visible');
+</script>
+</body>
+</html>

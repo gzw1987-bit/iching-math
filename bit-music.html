@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>64卦的声音：听见二进制</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;700;900&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#0f0f23;--bg2:#1a1a2e;--bronze:#d4a574;--gold:#f0c080;--cream:#e8d5b7;--text:#e0d6c8;--text2:#8a7f6f;--border:#2a2a3d;--green:#7ecba1;--red:#e07070;--blue:#a8d8ea;--purple:#c792ea}
+body{background:var(--bg);color:var(--text);font-family:'Noto Serif SC',serif;line-height:1.8}
+.container{max-width:900px;margin:0 auto;padding:24px}
+h1{font-size:clamp(22px,4vw,32px);font-weight:900;text-align:center;margin-bottom:8px;color:var(--gold)}
+.sub{font-size:14px;color:var(--text2);text-align:center;max-width:640px;margin:0 auto 32px}
+h2{font-size:20px;color:var(--bronze);margin-bottom:8px}
+.desc{font-size:13px;color:var(--text2);margin-bottom:16px}
+section{margin-bottom:48px;padding-bottom:48px;border-bottom:1px solid var(--border)}
+section:last-of-type{border-bottom:none}
+
+/* Player */
+.player{border:1px solid var(--border);border-radius:14px;background:var(--bg2);padding:20px;margin:16px 0}
+.player-label{font-size:14px;color:var(--cream);font-weight:700;margin-bottom:12px}
+.player-controls{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:12px}
+.play-btn{padding:8px 24px;border:2px solid var(--gold);background:none;color:var(--gold);border-radius:8px;cursor:pointer;font-family:inherit;font-size:14px;font-weight:700;transition:all 0.2s}
+.play-btn:hover{background:rgba(240,192,128,0.1)}
+.play-btn.playing{background:var(--gold);color:var(--bg)}
+.order-btn{padding:6px 14px;border:1px solid var(--border);border-radius:6px;background:none;color:var(--text2);cursor:pointer;font-family:inherit;font-size:12px;transition:all 0.2s}
+.order-btn:hover,.order-btn.active{border-color:var(--bronze);color:var(--bronze)}
+.slider-row{display:flex;align-items:center;gap:12px;font-size:12px;color:var(--text2);margin-top:8px}
+.slider-row input[type=range]{flex:1;accent-color:var(--bronze)}
+.slider-row label{min-width:60px}
+
+/* Visualizer */
+.visualizer{height:200px;border:1px solid var(--border);border-radius:10px;background:var(--bg);position:relative;overflow:hidden;margin:12px 0}
+.viz-canvas{width:100%;height:100%}
+.viz-progress{position:absolute;top:0;left:0;height:100%;background:rgba(212,165,116,0.06);pointer-events:none;transition:width 0.1s linear}
+.viz-current{position:absolute;bottom:8px;left:50%;transform:translateX(-50%);font-size:16px;color:var(--gold);font-weight:900;pointer-events:none}
+
+/* Scale info */
+.scale-info{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0;font-size:11px}
+.scale-note{padding:3px 10px;border-radius:4px;border:1px solid var(--border);background:var(--bg2)}
+.scale-note .note-name{color:var(--gold);font-weight:700}
+.scale-note .note-freq{color:var(--text2)}
+
+/* Mode descriptions */
+.mode-card{padding:14px;border:1px solid var(--border);border-radius:10px;background:var(--bg2);margin:8px 0;font-size:13px}
+.mode-card h3{font-size:15px;color:var(--gold);margin-bottom:6px}
+
+.insight{padding:12px;border-left:3px solid var(--gold);background:rgba(212,165,116,0.04);border-radius:0 8px 8px 0;font-size:13px;color:var(--cream);margin:16px 0}
+.insight strong{color:var(--gold)}
+.back-link{display:inline-block;margin-bottom:20px;color:var(--text2);text-decoration:none;font-size:13px}
+.back-link:hover{color:var(--bronze)}
+</style>
+</head>
+<body>
+<div class="container">
+<a class="back-link" href="index.html">&larr; 返回</a>
+<h1>听见64卦：二进制变成音乐</h1>
+<div class="sub">每个卦有6个爻（bit），每个bit对应一个音符。64卦×6音符=384个音符的旋律。<br>不同的排列方式产出完全不同的"曲子"——用耳朵识别眼睛看不到的模式。</div>
+
+<!-- Mode 1: Melodic -->
+<section>
+  <h2>模式一：旋律 — 6爻 → 6音阶</h2>
+  <div class="desc">阴(0)=低音，阳(1)=高音。6个爻位映射到中国五声音阶+一个八度音的6个音高。每个卦变成一段6音符的短旋律。</div>
+
+  <div class="scale-info">
+    <div class="scale-note"><span class="note-name">初爻 0</span> <span class="note-freq">宫 C4 262Hz</span></div>
+    <div class="scale-note"><span class="note-name">初爻 1</span> <span class="note-freq">商 D4 294Hz</span></div>
+    <div class="scale-note"><span class="note-name">二爻 0</span> <span class="note-freq">角 E4 330Hz</span></div>
+    <div class="scale-note"><span class="note-name">二爻 1</span> <span class="note-freq">徵 G4 392Hz</span></div>
+    <div class="scale-note"><span class="note-name">三爻 0</span> <span class="note-freq">羽 A4 440Hz</span></div>
+    <div class="scale-note"><span class="note-name">三爻 1</span> <span class="note-freq">宫 C5 523Hz</span></div>
+    <div class="scale-note"><span class="note-name">四爻 0</span> <span class="note-freq">商 D5 587Hz</span></div>
+    <div class="scale-note"><span class="note-name">四爻 1</span> <span class="note-freq">角 E5 659Hz</span></div>
+    <div class="scale-note"><span class="note-name">五爻 0</span> <span class="note-freq">徵 G5 784Hz</span></div>
+    <div class="scale-note"><span class="note-name">五爻 1</span> <span class="note-freq">羽 A5 880Hz</span></div>
+    <div class="scale-note"><span class="note-name">上爻 0</span> <span class="note-freq">宫 C6 1047Hz</span></div>
+    <div class="scale-note"><span class="note-name">上爻 1</span> <span class="note-freq">商 D6 1175Hz</span></div>
+  </div>
+
+  <div class="player">
+    <div class="player-controls">
+      <button class="play-btn" id="play1" onclick="togglePlay('melody')">&#9654; 播放</button>
+      <button class="order-btn active" data-mode="melody" data-order="wen" onclick="setOrder('melody','wen',this)">文王序</button>
+      <button class="order-btn" data-mode="melody" data-order="nat" onclick="setOrder('melody','nat',this)">自然序</button>
+      <button class="order-btn" data-mode="melody" data-order="gray" onclick="setOrder('melody','gray',this)">格雷码</button>
+      <button class="order-btn" data-mode="melody" data-order="yang" onclick="setOrder('melody','yang',this)">阳爻递增</button>
+    </div>
+    <div class="slider-row">
+      <label>速度</label>
+      <input type="range" id="speed1" min="60" max="600" value="200">
+      <span id="speed1-val">200</span> BPM
+    </div>
+    <div class="visualizer">
+      <canvas class="viz-canvas" id="viz1"></canvas>
+      <div class="viz-progress" id="prog1"></div>
+      <div class="viz-current" id="cur1"></div>
+    </div>
+  </div>
+
+  <div class="insight"><strong>听的时候注意：</strong>自然序听起来像一段规律的、逐渐上升的音阶练习。文王序听起来像一段充满跳跃和对比的即兴演奏。格雷码极其平滑——因为每步只变一个音。<strong>你能听到文王的"叙事张力"吗？</strong></div>
+</section>
+
+<!-- Mode 2: Chord -->
+<section>
+  <h2>模式二：和弦 — 每卦6个音同时响</h2>
+  <div class="desc">不是依次播放6个音——而是6个音同时响。每个卦变成一个和弦。阳爻多的卦听起来"亮"（高频多），阴爻多的听起来"暗"（低频多）。坤=全低音和弦，乾=全高音和弦。</div>
+
+  <div class="player">
+    <div class="player-controls">
+      <button class="play-btn" id="play2" onclick="togglePlay('chord')">&#9654; 播放</button>
+      <button class="order-btn active" data-mode="chord" data-order="wen" onclick="setOrder('chord','wen',this)">文王序</button>
+      <button class="order-btn" data-mode="chord" data-order="nat" onclick="setOrder('chord','nat',this)">自然序</button>
+      <button class="order-btn" data-mode="chord" data-order="yang" onclick="setOrder('chord','yang',this)">阳爻递增</button>
+    </div>
+    <div class="slider-row">
+      <label>速度</label>
+      <input type="range" id="speed2" min="30" max="240" value="80">
+      <span id="speed2-val">80</span> BPM
+    </div>
+    <div class="visualizer">
+      <canvas class="viz-canvas" id="viz2"></canvas>
+      <div class="viz-progress" id="prog2"></div>
+      <div class="viz-current" id="cur2"></div>
+    </div>
+  </div>
+
+  <div class="insight"><strong>听的时候注意：</strong>按阳爻递增排列时，你会听到从"最暗"到"最亮"的渐变——一段从坤到乾的光谱。文王序的前两个和弦——乾(全亮)然后坤(全暗)——是全曲最大的对比，开篇就给你最强的冲击。</div>
+</section>
+
+<!-- Mode 3: Rhythm -->
+<section>
+  <h2>模式三：节奏 — 阳=击鼓，阴=静音</h2>
+  <div class="desc">不是音高——是节奏。阳(1)=一声鼓点，阴(0)=静默。每个卦是一小节6拍的节奏型。乾=全击（XXXXXX），坤=全静（......），其他卦是各种切分节奏。</div>
+
+  <div class="player">
+    <div class="player-controls">
+      <button class="play-btn" id="play3" onclick="togglePlay('rhythm')">&#9654; 播放</button>
+      <button class="order-btn active" data-mode="rhythm" data-order="wen" onclick="setOrder('rhythm','wen',this)">文王序</button>
+      <button class="order-btn" data-mode="rhythm" data-order="nat" onclick="setOrder('rhythm','nat',this)">自然序</button>
+      <button class="order-btn" data-mode="rhythm" data-order="gray" onclick="setOrder('rhythm','gray',this)">格雷码</button>
+    </div>
+    <div class="slider-row">
+      <label>速度</label>
+      <input type="range" id="speed3" min="100" max="800" value="360">
+      <span id="speed3-val">360</span> BPM
+    </div>
+    <div class="visualizer">
+      <canvas class="viz-canvas" id="viz3"></canvas>
+      <div class="viz-progress" id="prog3"></div>
+      <div class="viz-current" id="cur3"></div>
+    </div>
+  </div>
+
+  <div class="insight"><strong>听的时候注意：</strong>自然序的节奏从极稀疏（坤附近）到极密集（乾附近）——像一个加速的心跳。文王序的节奏跳来跳去——密集和稀疏交替出现——这就是文王叙事的"呼吸节奏"。</div>
+</section>
+
+</div>
+
+<script>
+const HEXAGRAM_MAP={'111111':1,'000000':2,'100010':3,'010001':4,'111010':5,'010111':6,'010000':7,'000010':8,'111011':9,'110111':10,'111000':11,'000111':12,'101111':13,'111101':14,'001000':15,'000100':16,'100110':17,'011001':18,'110000':19,'000011':20,'100101':21,'101001':22,'000001':23,'100000':24,'100111':25,'111001':26,'100001':27,'011110':28,'010010':29,'101101':30,'001110':31,'011100':32,'001111':33,'111100':34,'000101':35,'101000':36,'101011':37,'110101':38,'001010':39,'010100':40,'110001':41,'100011':42,'111110':43,'011111':44,'000110':45,'011000':46,'010110':47,'011010':48,'101110':49,'011101':50,'100100':51,'001001':52,'001011':53,'110100':54,'101100':55,'001101':56,'011011':57,'110110':58,'010011':59,'110010':60,'110011':61,'001100':62,'101010':63,'010101':64};
+const HN={1:'乾',2:'坤',3:'屯',4:'蒙',5:'需',6:'讼',7:'师',8:'比',9:'小畜',10:'履',11:'泰',12:'否',13:'同人',14:'大有',15:'谦',16:'豫',17:'随',18:'蛊',19:'临',20:'观',21:'噬嗑',22:'贲',23:'剥',24:'复',25:'无妄',26:'大畜',27:'颐',28:'大过',29:'坎',30:'离',31:'咸',32:'恒',33:'遁',34:'大壮',35:'晋',36:'明夷',37:'家人',38:'睽',39:'蹇',40:'解',41:'损',42:'益',43:'夬',44:'姤',45:'萃',46:'升',47:'困',48:'井',49:'革',50:'鼎',51:'震',52:'艮',53:'渐',54:'归妹',55:'丰',56:'旅',57:'巽',58:'兑',59:'涣',60:'节',61:'中孚',62:'小过',63:'既济',64:'未济'};
+const n2b={};for(const[b,n]of Object.entries(HEXAGRAM_MAP))n2b[n]=b;
+const ALL=[];for(let i=0;i<64;i++)ALL.push(i.toString(2).padStart(6,'0'));
+
+function wenOrder(){const r=[];for(let n=1;n<=64;n++)r.push(n2b[n]);return r;}
+function natOrder(){return ALL.slice().sort((a,b)=>parseInt(a,2)-parseInt(b,2));}
+function yangOrder(){return ALL.slice().sort((a,b)=>{const ya=a.split('').filter(c=>c==='1').length;const yb=b.split('').filter(c=>c==='1').length;return ya-yb||parseInt(a,2)-parseInt(b,2);});}
+function grayOrder(){const g=[];for(let i=0;i<64;i++){const v=i^(i>>1);g.push(v.toString(2).padStart(6,'0'));}return g;}
+
+// Audio context (lazy init)
+let audioCtx = null;
+function getAudio() {
+  if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  return audioCtx;
+}
+
+// Pentatonic scale frequencies for each yao position × yin/yang
+// Position 0-5 (bottom to top), value 0 or 1
+const MELODY_FREQ = [
+  [262, 294],   // 初爻: C4 / D4 (宫/商)
+  [330, 392],   // 二爻: E4 / G4 (角/徵)
+  [440, 523],   // 三爻: A4 / C5 (羽/宫')
+  [587, 659],   // 四爻: D5 / E5 (商'/角')
+  [784, 880],   // 五爻: G5 / A5 (徵'/羽')
+  [1047, 1175], // 上爻: C6 / D6 (宫''/商'')
+];
+
+// State
+const state = {
+  melody: { order: wenOrder(), playing: false, timer: null, idx: 0 },
+  chord:  { order: wenOrder(), playing: false, timer: null, idx: 0 },
+  rhythm: { order: wenOrder(), playing: false, timer: null, idx: 0 },
+};
+
+function setOrder(mode, key, btn) {
+  const fns = { wen: wenOrder, nat: natOrder, gray: grayOrder, yang: yangOrder };
+  state[mode].order = fns[key]();
+  state[mode].idx = 0;
+  // Update button states
+  document.querySelectorAll(`.order-btn[data-mode="${mode}"]`).forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  drawViz(mode);
+  if (state[mode].playing) { stopMode(mode); playMode(mode); }
+}
+
+// Speed slider updates
+['1','2','3'].forEach(n => {
+  const sl = document.getElementById('speed' + n);
+  const val = document.getElementById('speed' + n + '-val');
+  sl.addEventListener('input', () => { val.textContent = sl.value; });
+});
+
+function togglePlay(mode) {
+  if (state[mode].playing) stopMode(mode);
+  else playMode(mode);
+}
+
+function stopMode(mode) {
+  state[mode].playing = false;
+  clearTimeout(state[mode].timer);
+  const btnId = mode === 'melody' ? 'play1' : mode === 'chord' ? 'play2' : 'play3';
+  document.getElementById(btnId).classList.remove('playing');
+  document.getElementById(btnId).innerHTML = '&#9654; 播放';
+}
+
+function playMode(mode) {
+  const ctx = getAudio();
+  state[mode].playing = true;
+  state[mode].idx = 0;
+  const btnId = mode === 'melody' ? 'play1' : mode === 'chord' ? 'play2' : 'play3';
+  document.getElementById(btnId).classList.add('playing');
+  document.getElementById(btnId).innerHTML = '&#9724; 停止';
+
+  function tick() {
+    if (!state[mode].playing) return;
+    const order = state[mode].order;
+    const idx = state[mode].idx;
+    if (idx >= order.length) { stopMode(mode); return; }
+
+    const bin = order[idx];
+    const num = HEXAGRAM_MAP[bin] || 0;
+    const name = num ? HN[num] : '?';
+
+    // Update current display
+    const curId = mode === 'melody' ? 'cur1' : mode === 'chord' ? 'cur2' : 'cur3';
+    document.getElementById(curId).textContent = `#${num} ${name}`;
+
+    // Update progress
+    const progId = mode === 'melody' ? 'prog1' : mode === 'chord' ? 'prog2' : 'prog3';
+    document.getElementById(progId).style.width = ((idx + 1) / order.length * 100) + '%';
+
+    // Play sound based on mode
+    if (mode === 'melody') playMelody(ctx, bin);
+    else if (mode === 'chord') playChord(ctx, bin);
+    else if (mode === 'rhythm') playRhythm(ctx, bin);
+
+    // Highlight in visualizer
+    highlightViz(mode, idx);
+
+    state[mode].idx++;
+    const speedId = mode === 'melody' ? 'speed1' : mode === 'chord' ? 'speed2' : 'speed3';
+    const bpm = parseInt(document.getElementById(speedId).value);
+
+    if (mode === 'melody') {
+      // 6 notes per hexagram
+      state[mode].timer = setTimeout(tick, (60000 / bpm) * 6);
+    } else {
+      state[mode].timer = setTimeout(tick, 60000 / bpm);
+    }
+  }
+  tick();
+}
+
+function playMelody(ctx, bin) {
+  const bpm = parseInt(document.getElementById('speed1').value);
+  const noteDur = 60 / bpm * 0.8;
+
+  for (let i = 0; i < 6; i++) {
+    const freq = MELODY_FREQ[i][parseInt(bin[i])];
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = 'sine';
+    osc.frequency.value = freq;
+    gain.gain.value = 0.08;
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + (i + 1) * (60 / bpm) * 0.9);
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.start(ctx.currentTime + i * (60 / bpm));
+    osc.stop(ctx.currentTime + (i + 1) * (60 / bpm));
+  }
+}
+
+function playChord(ctx, bin) {
+  const bpm = parseInt(document.getElementById('speed2').value);
+  const dur = 60 / bpm * 0.9;
+
+  for (let i = 0; i < 6; i++) {
+    const freq = MELODY_FREQ[i][parseInt(bin[i])];
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = 'triangle';
+    osc.frequency.value = freq;
+    gain.gain.value = 0.05;
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + dur);
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.start(ctx.currentTime);
+    osc.stop(ctx.currentTime + dur + 0.1);
+  }
+}
+
+function playRhythm(ctx, bin) {
+  const bpm = parseInt(document.getElementById('speed3').value);
+  const beatDur = 60 / bpm;
+
+  for (let i = 0; i < 6; i++) {
+    if (bin[i] === '1') {
+      // Drum hit using noise burst
+      const bufSize = ctx.sampleRate * 0.05;
+      const buf = ctx.createBuffer(1, bufSize, ctx.sampleRate);
+      const data = buf.getChannelData(0);
+      for (let s = 0; s < bufSize; s++) {
+        data[s] = (Math.random() * 2 - 1) * Math.exp(-s / (bufSize * 0.2));
+      }
+      const src = ctx.createBufferSource();
+      src.buffer = buf;
+      const gain = ctx.createGain();
+      // Higher positions = higher pitch drum
+      const filter = ctx.createBiquadFilter();
+      filter.type = 'bandpass';
+      filter.frequency.value = 200 + i * 150;
+      filter.Q.value = 2;
+      gain.gain.value = 0.3;
+      src.connect(filter);
+      filter.connect(gain);
+      gain.connect(ctx.destination);
+      src.start(ctx.currentTime + i * beatDur);
+    }
+  }
+}
+
+// ═══ Visualizer Drawing ═══
+function drawViz(mode) {
+  const canvasId = mode === 'melody' ? 'viz1' : mode === 'chord' ? 'viz2' : 'viz3';
+  const canvas = document.getElementById(canvasId);
+  const dpr = window.devicePixelRatio || 1;
+  const rect = canvas.getBoundingClientRect();
+  canvas.width = rect.width * dpr;
+  canvas.height = rect.height * dpr;
+  const ctx = canvas.getContext('2d');
+  ctx.scale(dpr, dpr);
+  const w = rect.width, h = rect.height;
+  const order = state[mode].order;
+
+  ctx.fillStyle = '#0f0f23';
+  ctx.fillRect(0, 0, w, h);
+
+  if (mode === 'melody' || mode === 'rhythm') {
+    // Draw each hexagram as 6 vertical bars
+    const hexW = w / order.length;
+    order.forEach((bin, i) => {
+      for (let y = 0; y < 6; y++) {
+        const isYang = bin[y] === '1';
+        const cy = h - (y + 0.5) * (h / 6);
+        const barH = h / 6 - 2;
+        if (mode === 'melody') {
+          const brightness = isYang ? 0.7 : 0.2;
+          ctx.fillStyle = `rgba(212,165,116,${brightness})`;
+          ctx.fillRect(i * hexW, cy - barH / 2, hexW - 1, barH);
+        } else {
+          // Rhythm: show dots
+          if (isYang) {
+            ctx.fillStyle = 'rgba(232,213,183,0.6)';
+            ctx.beginPath();
+            ctx.arc(i * hexW + hexW / 2, cy, 3, 0, Math.PI * 2);
+            ctx.fill();
+          }
+        }
+      }
+    });
+  } else if (mode === 'chord') {
+    // Draw each hexagram as a colored column
+    const hexW = w / order.length;
+    order.forEach((bin, i) => {
+      const yang = bin.split('').filter(c => c === '1').length;
+      const brightness = yang / 6;
+      const r = Math.round(60 + brightness * 180);
+      const g = Math.round(40 + brightness * 140);
+      const b2 = Math.round(80 + (1 - brightness) * 60);
+      ctx.fillStyle = `rgb(${r},${g},${b2})`;
+      ctx.fillRect(i * hexW, h * (1 - brightness), hexW - 1, h * brightness);
+    });
+  }
+}
+
+function highlightViz(mode, idx) {
+  // Simple highlight by redrawing with a bright column
+  drawViz(mode);
+  const canvasId = mode === 'melody' ? 'viz1' : mode === 'chord' ? 'viz2' : 'viz3';
+  const canvas = document.getElementById(canvasId);
+  const ctx = canvas.getContext('2d');
+  const dpr = window.devicePixelRatio || 1;
+  const w = canvas.width / dpr;
+  const h = canvas.height / dpr;
+  const order = state[mode].order;
+  const hexW = w / order.length;
+
+  ctx.fillStyle = 'rgba(240,192,128,0.15)';
+  ctx.fillRect(idx * hexW, 0, hexW, h);
+}
+
+// Initial draw
+['melody', 'chord', 'rhythm'].forEach(m => setTimeout(() => drawViz(m), 100));
+window.addEventListener('resize', () => {
+  ['melody', 'chord', 'rhythm'].forEach(m => drawViz(m));
+});
+</script>
+</body>
+</html>

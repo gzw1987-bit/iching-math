@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The King Wen Permutation: [52, 10, 2]</title>
+<meta name="description" content="A hidden group-theoretic structure in the I Ching hexagram sequence, discovered through cycle decomposition in S₆₄">
+<meta property="og:title" content="The King Wen Permutation: [52, 10, 2]">
+<meta property="og:description" content="A hidden group-theoretic structure in the I Ching hexagram sequence, discovered through cycle decomposition in S₆₄">
+<meta property="og:type" content="website">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;700;900&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --bg: #0f0f23;
+  --bg2: #1a1a2e;
+  --bg3: #16162b;
+  --bronze: #d4a574;
+  --gold: #f0c080;
+  --cream: #e8d5b7;
+  --cyan: #4ecdc4;
+  --red: #e06060;
+  --text: #e0d6c8;
+  --text2: #8a7f6f;
+  --border: #2a2a3d;
+}
+html { scroll-behavior: smooth; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Noto Serif SC', Georgia, serif;
+  line-height: 1.8;
+  overflow-x: hidden;
+}
+a { color: var(--bronze); text-decoration: none; transition: color 0.2s; }
+a:hover { color: var(--gold); }
+
+/* Hero */
+.hero {
+  min-height: 100vh;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  padding: 60px 20px 80px;
+  text-align: center;
+  position: relative;
+}
+.hero::after {
+  content: '';
+  position: absolute; bottom: 0; left: 0; right: 0;
+  height: 120px;
+  background: linear-gradient(transparent, var(--bg));
+}
+.hero-title {
+  font-size: clamp(32px, 6vw, 64px);
+  font-weight: 900;
+  background: linear-gradient(135deg, var(--bronze), var(--gold), var(--cream));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin-bottom: 12px;
+  letter-spacing: 0.02em;
+}
+.hero-subtitle {
+  font-size: clamp(14px, 2.2vw, 20px);
+  color: var(--text2);
+  max-width: 600px;
+  margin-bottom: 48px;
+  font-style: italic;
+}
+
+/* Cycle numbers */
+.cycle-numbers {
+  display: flex;
+  align-items: baseline;
+  gap: 32px;
+  margin-bottom: 40px;
+}
+.cycle-num {
+  font-size: clamp(56px, 10vw, 96px);
+  font-weight: 900;
+  line-height: 1;
+}
+.cycle-num.gold { color: var(--gold); text-shadow: 0 0 30px rgba(240,192,128,0.3); }
+.cycle-num.cyan { color: var(--cyan); text-shadow: 0 0 30px rgba(78,205,196,0.3); }
+.cycle-num.red { color: var(--red); text-shadow: 0 0 30px rgba(224,96,96,0.3); }
+.cycle-sep {
+  font-size: clamp(32px, 5vw, 56px);
+  color: var(--text2);
+  font-weight: 300;
+}
+.cycle-label {
+  display: block;
+  font-size: 13px;
+  color: var(--text2);
+  margin-top: 4px;
+  font-weight: 400;
+}
+
+/* Explanation */
+.hero-explain {
+  max-width: 680px;
+  font-size: clamp(13px, 1.6vw, 16px);
+  color: var(--text2);
+  line-height: 1.9;
+  margin-bottom: 40px;
+  text-align: left;
+  padding: 0 20px;
+}
+
+/* CTA buttons */
+.cta-group { display: flex; gap: 16px; flex-wrap: wrap; justify-content: center; }
+.cta {
+  display: inline-block;
+  padding: 14px 28px;
+  border-radius: 6px;
+  font-size: 15px;
+  font-weight: 700;
+  font-family: inherit;
+  transition: all 0.3s;
+  cursor: pointer;
+}
+.cta-primary {
+  background: var(--bronze);
+  color: var(--bg);
+}
+.cta-primary:hover { background: var(--gold); color: var(--bg); }
+.cta-secondary {
+  background: transparent;
+  color: var(--bronze);
+  border: 1.5px solid var(--bronze);
+}
+.cta-secondary:hover { background: rgba(212,165,116,0.1); color: var(--gold); border-color: var(--gold); }
+
+/* Section base */
+.section {
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 80px 20px;
+}
+.section-title {
+  font-size: clamp(22px, 3.5vw, 36px);
+  font-weight: 900;
+  color: var(--bronze);
+  margin-bottom: 8px;
+}
+.section-subtitle {
+  font-size: 14px;
+  color: var(--text2);
+  margin-bottom: 40px;
+}
+.divider {
+  width: 60px; height: 2px;
+  background: linear-gradient(90deg, var(--bronze), transparent);
+  margin: 0 auto 80px;
+}
+
+/* Facts grid */
+.facts-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 16px;
+  margin-bottom: 20px;
+}
+.fact-card {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 24px 16px;
+  text-align: center;
+  transition: border-color 0.3s, transform 0.3s;
+}
+.fact-card:hover { border-color: var(--bronze); transform: translateY(-2px); }
+.fact-value {
+  font-size: clamp(28px, 4vw, 40px);
+  font-weight: 900;
+  color: var(--gold);
+  line-height: 1.2;
+}
+.fact-label {
+  font-size: 12px;
+  color: var(--text2);
+  margin-top: 8px;
+  line-height: 1.5;
+}
+
+/* Pages grid */
+.category { margin-bottom: 56px; }
+.category-title {
+  font-size: clamp(16px, 2.5vw, 22px);
+  font-weight: 700;
+  color: var(--cream);
+  margin-bottom: 16px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border);
+}
+.pages-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 12px;
+}
+.page-card {
+  display: block;
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 16px 20px;
+  transition: all 0.3s;
+}
+.page-card:hover { border-color: var(--bronze); background: var(--bg3); }
+.page-card-name {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--cream);
+  margin-bottom: 4px;
+}
+.page-card-desc {
+  font-size: 12px;
+  color: var(--text2);
+  line-height: 1.6;
+}
+.tag-speculative {
+  display: inline-block;
+  font-size: 10px;
+  background: rgba(224,96,96,0.15);
+  color: var(--red);
+  border: 1px solid rgba(224,96,96,0.3);
+  border-radius: 3px;
+  padding: 1px 6px;
+  margin-left: 6px;
+  vertical-align: middle;
+  font-weight: 700;
+}
+
+/* Historical note */
+.hist-note {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 32px;
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--bronze);
+  border-radius: 4px;
+  font-size: 13px;
+  color: var(--text2);
+  line-height: 1.9;
+}
+.hist-note strong { color: var(--cream); }
+
+/* Footer */
+.footer {
+  text-align: center;
+  padding: 60px 20px 40px;
+  font-size: 13px;
+  color: var(--text2);
+  border-top: 1px solid var(--border);
+  max-width: 1080px;
+  margin: 0 auto;
+}
+.footer p { margin-bottom: 8px; }
+.footer-links { display: flex; gap: 20px; justify-content: center; margin-top: 12px; }
+
+/* Responsive */
+@media (max-width: 600px) {
+  .cycle-numbers { gap: 16px; }
+  .cycle-sep { font-size: 24px; }
+  .facts-grid { grid-template-columns: repeat(2, 1fr); }
+  .pages-grid { grid-template-columns: 1fr; }
+  .cta { padding: 12px 20px; font-size: 14px; }
+  .section { padding: 60px 16px; }
+}
+</style>
+</head>
+<body>
+
+<!-- ═══ HERO ═══ -->
+<section class="hero">
+  <h1 class="hero-title">The King Wen Permutation</h1>
+  <p class="hero-subtitle">A hidden mathematical structure in a 3,000-year-old Chinese text</p>
+
+  <div class="cycle-numbers">
+    <div>
+      <span class="cycle-num gold">52</span>
+      <span class="cycle-label">cycle</span>
+    </div>
+    <span class="cycle-sep">|</span>
+    <div>
+      <span class="cycle-num cyan">10</span>
+      <span class="cycle-label">cycle</span>
+    </div>
+    <span class="cycle-sep">|</span>
+    <div>
+      <span class="cycle-num red">2</span>
+      <span class="cycle-label">cycle</span>
+    </div>
+  </div>
+
+  <p class="hero-explain">
+    The 64 hexagrams of the I Ching have two canonical orderings: the binary natural order (0&ndash;63) and the King Wen sequence (~1000 BCE). Treating the map between them as a permutation in S&#x2086;&#x2084;, its cycle decomposition yields <strong style="color:var(--gold)">[52, 10, 2]</strong> with zero fixed points. 81% of hexagrams are locked in a single cycle. This structure has not been previously reported in the literature.
+  </p>
+
+  <div class="cta-group">
+    <a class="cta cta-primary" href="verify-permutation.html">Verify It Yourself &rarr;</a>
+    <a class="cta cta-secondary" href="paper-en.html">Read the Paper &rarr;</a>
+  </div>
+</section>
+
+<!-- ═══ KEY FACTS ═══ -->
+<div class="divider"></div>
+<section class="section">
+  <h2 class="section-title">Key Facts</h2>
+  <p class="section-subtitle">Properties of the King Wen permutation &sigma; &isin; S&#x2086;&#x2084;</p>
+
+  <div class="facts-grid">
+    <div class="fact-card">
+      <div class="fact-value">3</div>
+      <div class="fact-label">cycles<br><span style="font-size:11px;opacity:0.7">random expectation: 4.4</span></div>
+    </div>
+    <div class="fact-card">
+      <div class="fact-value">0</div>
+      <div class="fact-label">fixed points<br><span style="font-size:11px;opacity:0.7">no hexagram stays in place</span></div>
+    </div>
+    <div class="fact-card">
+      <div class="fact-value">81.25%</div>
+      <div class="fact-label">in one cycle<br><span style="font-size:11px;opacity:0.7">52 of 64</span></div>
+    </div>
+    <div class="fact-card">
+      <div class="fact-value">260</div>
+      <div class="fact-label">order of &sigma;<br><span style="font-size:11px;opacity:0.7">&sigma;&sup2;&sup6;&sup0; = identity</span></div>
+    </div>
+    <div class="fact-card">
+      <div class="fact-value">3.349</div>
+      <div class="fact-label">mean Hamming distance<br><span style="font-size:11px;opacity:0.7">random: 3.0</span></div>
+    </div>
+    <div class="fact-card">
+      <div class="fact-value">3.2:1</div>
+      <div class="fact-label">even:odd ratio<br><span style="font-size:11px;opacity:0.7">parity of cycle positions</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ INTERACTIVE PAGES ═══ -->
+<div class="divider"></div>
+<section class="section">
+  <h2 class="section-title">Interactive Pages</h2>
+  <p class="section-subtitle">22 explorations &mdash; everything runs client-side in your browser</p>
+
+  <!-- Category 1 -->
+  <div class="category">
+    <h3 class="category-title">The Discovery</h3>
+    <div class="pages-grid">
+      <a class="page-card" href="verify-permutation.html">
+        <div class="page-card-name">Verify Permutation</div>
+        <div class="page-card-desc">Verify the [52, 10, 2] cycle decomposition yourself</div>
+      </a>
+      <a class="page-card" href="algorithm-animation.html">
+        <div class="page-card-name">Algorithm Animation</div>
+        <div class="page-card-desc">Watch the algorithm trace cycles step by step</div>
+      </a>
+      <a class="page-card" href="paper-en.html">
+        <div class="page-card-name">Research Paper (English)</div>
+        <div class="page-card-desc">Full interactive paper with reproducible code</div>
+      </a>
+      <a class="page-card" href="permutation-cycle-paper.html">
+        <div class="page-card-name">Research Paper (Chinese)</div>
+        <div class="page-card-desc">中文交互式论文</div>
+      </a>
+    </div>
+  </div>
+
+  <!-- Category 2 -->
+  <div class="category">
+    <h3 class="category-title">The Journey</h3>
+    <div class="pages-grid">
+      <a class="page-card" href="derivation-journey.html">
+        <div class="page-card-name">Derivation Journey</div>
+        <div class="page-card-desc">13-stage interactive derivation: from Taiji to 384 line texts</div>
+      </a>
+      <a class="page-card" href="report.html">
+        <div class="page-card-name">Retrospective</div>
+        <div class="page-card-desc">Project retrospective: how we got here</div>
+      </a>
+      <a class="page-card" href="binary-yaoci.html">
+        <div class="page-card-name">Binary Line Texts</div>
+        <div class="page-card-desc">384 line texts in binary representation</div>
+      </a>
+    </div>
+  </div>
+
+  <!-- Category 3 -->
+  <div class="category">
+    <h3 class="category-title">Cross-Disciplinary</h3>
+    <div class="pages-grid">
+      <a class="page-card" href="genome-view.html">
+        <div class="page-card-name">Genome Rearrangement</div>
+        <div class="page-card-desc">Genome rearrangement analysis (Hannenhalli-Pevzner framework)</div>
+      </a>
+      <a class="page-card" href="game-theory.html">
+        <div class="page-card-name">Game Theory</div>
+        <div class="page-card-desc">Game theory &times; I Ching mapping</div>
+      </a>
+      <a class="page-card" href="four-minds.html">
+        <div class="page-card-name">Four Minds</div>
+        <div class="page-card-desc">Leibniz, von Neumann, Shannon, Petoukhov: independent convergence on binary &times; hexagram structures</div>
+      </a>
+      <a class="page-card" href="coupled-system.html">
+        <div class="page-card-name">Coupled System</div>
+        <div class="page-card-desc">Individual vs. institutional paradox engine</div>
+      </a>
+      <a class="page-card" href="coupled-cycles.html">
+        <div class="page-card-name">Coupled Cycles</div>
+        <div class="page-card-desc">Coupled cycle dynamics (early version)</div>
+      </a>
+      <a class="page-card" href="shang-timeline.html">
+        <div class="page-card-name">Shang Timeline</div>
+        <div class="page-card-desc">Shang Dynasty 600-year timeline correlation</div>
+      </a>
+    </div>
+  </div>
+
+  <!-- Category 4 -->
+  <div class="category">
+    <h3 class="category-title">Wave Analysis</h3>
+    <div class="pages-grid">
+      <a class="page-card" href="wave-compare.html">
+        <div class="page-card-name">Kondratieff Waves <span class="tag-speculative">speculative</span></div>
+        <div class="page-card-desc">Kondratieff waves &times; I Ching phase mapping &mdash; exploratory pattern comparison, not a causal claim</div>
+      </a>
+    </div>
+  </div>
+
+  <!-- Category 5 -->
+  <div class="category">
+    <h3 class="category-title">Binary Explorations</h3>
+    <div class="pages-grid">
+      <a class="page-card" href="bit-arrangements.html">
+        <div class="page-card-name">Bit Arrangements</div>
+        <div class="page-card-desc">Hexagram bit arrangement patterns</div>
+      </a>
+      <a class="page-card" href="bit-forms.html">
+        <div class="page-card-name">Bit Forms</div>
+        <div class="page-card-desc">Visual forms of binary structures</div>
+      </a>
+      <a class="page-card" href="bit-morse.html">
+        <div class="page-card-name">Bit &times; Morse</div>
+        <div class="page-card-desc">Hexagram binary mapped to Morse code</div>
+      </a>
+      <a class="page-card" href="bit-music.html">
+        <div class="page-card-name">Bit &times; Music</div>
+        <div class="page-card-desc">Hexagram binary mapped to musical notation</div>
+      </a>
+      <a class="page-card" href="bit-voltage.html">
+        <div class="page-card-name">Bit &times; Voltage</div>
+        <div class="page-card-desc">Hexagram binary as voltage signal waveforms</div>
+      </a>
+    </div>
+  </div>
+
+  <!-- Category 6 -->
+  <div class="category">
+    <h3 class="category-title">Architecture</h3>
+    <div class="pages-grid">
+      <a class="page-card" href="engine-architecture.html">
+        <div class="page-card-name">7-Layer Engine</div>
+        <div class="page-card-desc">7-layer interpretation engine architecture</div>
+      </a>
+      <a class="page-card" href="deep-diagnostic.html">
+        <div class="page-card-name">Deep Diagnostic</div>
+        <div class="page-card-desc">Deep diagnostic tool</div>
+      </a>
+      <a class="page-card" href="strategy-debate.html">
+        <div class="page-card-name">Strategy Debate</div>
+        <div class="page-card-desc">Four-role strategy brainstorm</div>
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ HISTORICAL NOTE ═══ -->
+<div class="divider"></div>
+<section class="section">
+  <div class="hist-note">
+    <strong>Historical Note:</strong> The binary natural order was formalized by Shao Yong (1011&ndash;1077 CE), approximately 2,000 years after King Wen. We do not claim King Wen "rearranged" the binary order. Our analysis measures the structural distance between two independently defined orderings.
+  </div>
+</section>
+
+<!-- ═══ FOOTER ═══ -->
+<footer class="footer">
+  <p>All computation runs in your browser. Zero dependencies. Zero tracking.</p>
+  <p>Zhengwen Ge &middot; 2026</p>
+  <div class="footer-links">
+    <a href="#">GitHub</a>
+    <a href="https://doi.org/10.5281/zenodo.19143997">Paper (DOI)</a>
+  </div>
+</footer>
+
+</body>
+</html>

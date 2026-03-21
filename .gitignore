@@ -1,0 +1,8 @@
+.claude/
+CLAUDE.md
+__pycache__/
+*.pyc
+.DS_Store
+*.swp
+*.swo
+sufficiently-detailed-spec-cn.html

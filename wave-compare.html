@@ -1,0 +1,2045 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>涛动周期 × 易经波形比对</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;700;900&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --bg: #0f0f23;
+  --bg2: #1a1a2e;
+  --bg3: #16162b;
+  --bronze: #d4a574;
+  --gold: #f0c080;
+  --cream: #e8d5b7;
+  --text: #e0d6c8;
+  --text2: #8a7f6f;
+  --border: #2a2a3d;
+  --wave-yi: #d4a574;
+  --wave-kd: #6fa8dc;
+  --phase-boom: rgba(76,175,80,0.12);
+  --phase-recess: rgba(255,193,7,0.10);
+  --phase-depress: rgba(244,67,54,0.10);
+  --phase-recover: rgba(33,150,243,0.10);
+}
+html { scroll-behavior: smooth; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Noto Serif SC', serif;
+  line-height: 1.8;
+  overflow-x: hidden;
+}
+
+/* ─── Header ─── */
+.header {
+  min-height: 100vh;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  text-align: center; padding: 40px 20px;
+  position: relative;
+}
+.header h1 {
+  font-size: clamp(36px, 7vw, 72px);
+  font-weight: 900;
+  background: linear-gradient(135deg, var(--bronze), var(--gold), var(--cream));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  background-clip: text; margin-bottom: 16px;
+}
+.header .sub {
+  font-size: clamp(14px, 2.5vw, 20px);
+  color: var(--text2); max-width: 600px; margin-bottom: 40px;
+}
+.header .tagline {
+  display: flex; gap: 32px; flex-wrap: wrap; justify-content: center;
+}
+.header .tag {
+  padding: 8px 20px; border: 1px solid var(--border);
+  border-radius: 24px; font-size: 14px; color: var(--text2);
+}
+.scroll-hint {
+  position: absolute; bottom: 40px;
+  animation: float 2s ease-in-out infinite;
+  color: var(--text2); font-size: 14px;
+}
+@keyframes float { 0%,100% { transform: translateY(0); } 50% { transform: translateY(8px); } }
+
+/* ─── Sections ─── */
+.section {
+  padding: 80px 20px;
+  max-width: 1200px; margin: 0 auto;
+}
+.section-title {
+  font-size: clamp(24px, 4vw, 40px);
+  font-weight: 900; color: var(--bronze);
+  margin-bottom: 8px; text-align: center;
+}
+.section-sub {
+  font-size: 16px; color: var(--text2);
+  text-align: center; margin-bottom: 48px; max-width: 640px; margin-left: auto; margin-right: auto;
+}
+.divider {
+  width: 1px; height: 80px; margin: 0 auto;
+  background: linear-gradient(to bottom, transparent, var(--bronze), transparent);
+}
+
+/* ─── Canvas containers ─── */
+.chart-wrap {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 32px 24px 24px;
+  margin-bottom: 40px;
+  position: relative;
+  overflow: hidden;
+}
+.chart-wrap::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--bronze), transparent);
+}
+.chart-label {
+  font-size: 14px; color: var(--bronze);
+  margin-bottom: 16px; font-weight: 700;
+  letter-spacing: 2px; text-transform: uppercase;
+}
+.chart-canvas {
+  width: 100%; height: auto;
+}
+
+/* ─── Legend ─── */
+.legend {
+  display: flex; gap: 24px; justify-content: center;
+  margin-bottom: 32px; flex-wrap: wrap;
+}
+.legend-item {
+  display: flex; align-items: center; gap: 8px;
+  font-size: 14px; color: var(--text2);
+}
+.legend-dot {
+  width: 12px; height: 12px; border-radius: 50%;
+}
+
+/* ─── Tooltip ─── */
+.tooltip {
+  position: fixed; pointer-events: none;
+  background: var(--bg3); border: 1px solid var(--bronze);
+  border-radius: 8px; padding: 12px 16px;
+  font-size: 13px; color: var(--text);
+  z-index: 1000; opacity: 0; transition: opacity 0.15s;
+  max-width: 280px; box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+}
+.tooltip.visible { opacity: 1; }
+.tooltip .tt-title { color: var(--bronze); font-weight: 700; margin-bottom: 4px; }
+
+/* ─── Hexagram display ─── */
+.hex-row {
+  display: flex; gap: 12px; justify-content: center;
+  flex-wrap: wrap; margin-top: 32px;
+}
+.hex-card {
+  width: 80px; text-align: center;
+  padding: 12px 8px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  transition: all 0.3s; cursor: default;
+}
+.hex-card:hover {
+  border-color: var(--bronze);
+  box-shadow: 0 0 16px rgba(212,165,116,0.2);
+  transform: translateY(-2px);
+}
+.hex-card .hex-symbol { font-size: 28px; margin-bottom: 4px; }
+.hex-card .hex-name { font-size: 13px; color: var(--cream); font-weight: 700; }
+.hex-card .hex-month { font-size: 11px; color: var(--text2); }
+.hex-card .hex-yang { font-size: 11px; color: var(--gold); margin-top: 2px; }
+
+/* ─── Nesting diagram ─── */
+.nest-wrap {
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 40px; margin-top: 40px;
+}
+@media (max-width: 768px) { .nest-wrap { grid-template-columns: 1fr; } }
+.nest-box {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 32px 24px;
+  position: relative; overflow: hidden;
+}
+.nest-box::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--bronze), transparent);
+}
+.nest-title {
+  font-size: 18px; font-weight: 900; color: var(--bronze);
+  margin-bottom: 20px; text-align: center;
+}
+
+/* ─── Phase mapping table ─── */
+.phase-table {
+  width: 100%; border-collapse: collapse;
+  margin-top: 40px;
+}
+.phase-table th {
+  padding: 12px 16px; text-align: left;
+  color: var(--bronze); font-weight: 700;
+  border-bottom: 1px solid var(--border);
+  font-size: 14px;
+}
+.phase-table td {
+  padding: 12px 16px;
+  border-bottom: 1px solid rgba(42,42,61,0.5);
+  font-size: 14px; color: var(--text);
+  vertical-align: top;
+}
+.phase-table tr:hover td {
+  background: rgba(212,165,116,0.05);
+}
+.phase-tag {
+  display: inline-block; padding: 2px 10px;
+  border-radius: 12px; font-size: 12px;
+  font-weight: 700;
+}
+
+/* ─── Controls ─── */
+.controls {
+  display: flex; gap: 12px; justify-content: center;
+  margin-bottom: 24px; flex-wrap: wrap;
+}
+.ctrl-btn {
+  padding: 8px 20px; border: 1px solid var(--border);
+  border-radius: 20px; background: transparent;
+  color: var(--text2); font-family: inherit;
+  font-size: 13px; cursor: pointer;
+  transition: all 0.3s;
+}
+.ctrl-btn:hover, .ctrl-btn.active {
+  border-color: var(--bronze); color: var(--bronze);
+  box-shadow: 0 0 12px rgba(212,165,116,0.15);
+}
+
+/* ─── Insight cards ─── */
+.insight-card {
+  display: flex; gap: 20px;
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 28px 24px;
+  margin-bottom: 20px;
+  position: relative; overflow: hidden;
+  transition: border-color 0.3s;
+}
+.insight-card:hover { border-color: rgba(212,165,116,0.3); }
+.insight-card::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1px;
+  background: linear-gradient(90deg, transparent, var(--bronze), transparent);
+}
+.insight-num {
+  font-size: 36px; font-weight: 900;
+  color: rgba(212,165,116,0.15);
+  line-height: 1; min-width: 52px;
+  font-family: 'Noto Serif SC', serif;
+}
+.insight-body { flex: 1; min-width: 0; }
+.insight-title {
+  font-size: 18px; font-weight: 900; color: var(--bronze);
+  margin-bottom: 8px; line-height: 1.4;
+}
+.insight-desc {
+  font-size: 14px; color: var(--text); line-height: 1.8;
+  margin-bottom: 8px;
+}
+.insight-table {
+  width: 100%; border-collapse: collapse; margin-top: 12px;
+}
+.insight-table th {
+  padding: 8px 12px; text-align: left; font-size: 12px;
+  color: var(--text2); border-bottom: 1px solid var(--border);
+  font-weight: 700;
+}
+.insight-table td {
+  padding: 8px 12px; font-size: 13px; color: var(--text);
+  border-bottom: 1px solid rgba(42,42,61,0.4);
+}
+.insight-highlight {
+  margin-top: 12px; padding: 14px 16px;
+  background: rgba(42,42,61,0.5);
+  border-left: 3px solid var(--bronze);
+  border-radius: 0 8px 8px 0;
+  font-size: 13px; color: var(--text); line-height: 1.8;
+}
+.insight-highlight-label {
+  font-size: 11px; font-weight: 700; color: var(--bronze);
+  margin-bottom: 4px; letter-spacing: 1px;
+}
+.insight-bars { margin-top: 12px; }
+.insight-bar-row {
+  display: flex; align-items: center; gap: 10px;
+  margin-bottom: 8px;
+}
+.insight-bar-label {
+  font-size: 12px; color: var(--text2); min-width: 90px; text-align: right;
+}
+.insight-bar-track {
+  flex: 1; height: 16px;
+  background: rgba(42,42,61,0.6);
+  border-radius: 8px; overflow: hidden;
+}
+.insight-bar-fill {
+  height: 100%; border-radius: 8px;
+  transition: width 0.8s ease;
+}
+.insight-bar-val {
+  font-size: 12px; color: var(--text2); min-width: 70px; font-weight: 700;
+}
+.timing-chip {
+  text-align: center; padding: 14px 18px;
+  border: 1px solid var(--border);
+  border-radius: 12px; min-width: 110px;
+  background: rgba(42,42,61,0.3);
+}
+@media (max-width: 768px) {
+  .insight-card { flex-direction: column; gap: 8px; }
+  .insight-num { font-size: 28px; }
+}
+
+/* ─── Part dividers ─── */
+.part-divider {
+  text-align: center; padding: 80px 20px 40px;
+}
+.part-num {
+  font-size: 72px; font-weight: 900; color: var(--bronze); opacity: 0.12;
+  line-height: 1; margin-bottom: 8px;
+}
+.part-title {
+  font-size: 28px; font-weight: 900; color: var(--bronze);
+  margin-bottom: 8px;
+}
+.part-sub {
+  font-size: 14px; color: var(--text2); max-width: 500px; margin: 0 auto;
+}
+
+/* ─── Nav dots ─── */
+.nav-dots {
+  position: fixed; right: 24px; top: 50%; transform: translateY(-50%);
+  z-index: 999; display: flex; flex-direction: column; gap: 0;
+}
+.nav-group { display: flex; flex-direction: column; gap: 10px; padding: 8px 0; }
+.nav-group + .nav-group { border-top: 1px solid rgba(212,165,116,0.15); }
+.nav-dot {
+  width: 10px; height: 10px; border-radius: 50%;
+  border: 1.5px solid var(--text2); background: transparent;
+  cursor: pointer; transition: all 0.3s; position: relative;
+  display: block; text-decoration: none;
+}
+.nav-dot.active { background: var(--bronze); border-color: var(--bronze); box-shadow: 0 0 8px var(--bronze); }
+.nav-dot::after {
+  content: attr(data-label); position: absolute; right: 20px; top: 50%; transform: translateY(-50%);
+  white-space: nowrap; font-size: 11px; color: var(--text2);
+  opacity: 0; transition: opacity 0.2s; pointer-events: none;
+  font-family: 'Noto Serif SC', serif;
+}
+.nav-dot:hover::after { opacity: 1; }
+@media (max-width: 900px) { .nav-dots { display: none; } }
+
+/* ─── Layer toggles ─── */
+.layer-toggles {
+  display: flex; gap: 12px; justify-content: center;
+  margin-bottom: 24px; flex-wrap: wrap;
+}
+.layer-btn {
+  padding: 8px 20px; border: 1px solid var(--border);
+  border-radius: 20px; background: transparent;
+  color: var(--text); font-family: inherit;
+  font-size: 13px; cursor: pointer; transition: all 0.3s;
+  display: flex; align-items: center; gap: 6px;
+}
+.layer-btn .dot { width: 8px; height: 8px; border-radius: 50%; transition: opacity 0.3s; }
+.layer-btn:hover { border-color: var(--bronze); }
+.layer-btn.active { border-color: rgba(212,165,116,0.4); }
+.layer-btn.off { opacity: 0.35; }
+.layer-btn.off .dot { opacity: 0.3; }
+
+/* ─── Wave 6 panel ─── */
+.wave6-bar {
+  display: flex; height: 36px; border-radius: 8px; overflow: hidden; margin: 16px 0;
+}
+.wave6-seg {
+  flex: 1; display: flex; align-items: center; justify-content: center;
+  font-size: 10px; font-weight: 700; color: rgba(255,255,255,0.8);
+  font-family: 'Noto Serif SC', serif;
+  border-right: 1px solid rgba(0,0,0,0.3);
+}
+.wave6-seg:last-child { border-right: none; }
+.wave6-years {
+  display: flex; font-size: 9px; color: var(--text2); margin-top: 4px;
+}
+.wave6-years span { flex: 1; text-align: center; }
+
+/* ─── Timeline hover crosshair ─── */
+.crosshair { pointer-events: none; }
+
+/* ─── Footer ─── */
+.footer {
+  text-align: center; padding: 60px 20px;
+  color: var(--text2); font-size: 13px;
+}
+</style>
+</head>
+<body>
+
+<!-- Tooltip -->
+<div class="tooltip" id="tooltip"></div>
+
+<!-- Header -->
+<div class="header">
+  <h1>涛动周期 × 易经</h1>
+  <div style="max-width:640px;margin:12px auto 16px;padding:10px 20px;background:rgba(255,193,7,0.08);border:1px solid rgba(255,193,7,0.25);border-radius:8px;font-size:13px;color:#c0a050;line-height:1.8;text-align:center;">&#9888; 本页内容为探索性推测，不属于正式数学论文的一部分。经济周期与卦序的对应关系未经严格验证。</div>
+  <div class="sub">周金涛康波理论与十二消息卦的波形结构比对——三层嵌套、阴阳交替、物极必反</div>
+  <div class="tagline">
+    <span class="tag">康德拉季耶夫长波 ~60年</span>
+    <span class="tag">十二消息卦 阴阳消长</span>
+    <span class="tag">三层嵌套同构</span>
+  </div>
+  <div class="scroll-hint">↓ 向下探索</div>
+</div>
+
+<!-- ══════════ Part I: 理论基础 ══════════ -->
+<div class="part-divider"><div class="part-num">壹</div><div class="part-title">理论基础</div><div class="part-sub">从十二消息卦的离散对称到康波的经验不对称</div></div>
+
+<!-- S1: 消息卦 -->
+<div class="section" id="theory-xiaoxi">
+  <div class="section-title">十二消息卦 · 阴阳消长波</div>
+  <div class="section-sub">坤至乾、乾至坤，阳爻从0递增至6再递减至0，形成完美对称的离散阶梯波</div>
+
+  <div class="chart-wrap">
+    <div class="chart-label">阳爻数量波形 (0-6)</div>
+    <svg id="svg-xiaoxi" class="chart-canvas" viewBox="0 0 1100 340"></svg>
+  </div>
+
+  <div class="hex-row" id="hex-cards"></div>
+</div>
+
+<div class="divider"></div>
+
+<!-- S2: 单周期叠加比对 -->
+<div class="section" id="theory-overlay">
+  <div class="section-title">波形叠加比对</div>
+  <div class="section-sub">将两种波形归一化后叠加——结构性同构清晰可见</div>
+
+  <div class="controls">
+    <button class="ctrl-btn active" data-mode="overlay">叠加</button>
+    <button class="ctrl-btn" data-mode="phase">相位对齐</button>
+    <button class="ctrl-btn" data-mode="diff">差值曲线</button>
+  </div>
+
+  <div class="legend">
+    <div class="legend-item">
+      <div class="legend-dot" style="background: var(--wave-yi);"></div>
+      <span>十二消息卦</span>
+    </div>
+    <div class="legend-item">
+      <div class="legend-dot" style="background: var(--wave-kd);"></div>
+      <span>康波</span>
+    </div>
+    <div class="legend-item" id="legend-diff" style="display:none;">
+      <div class="legend-dot" style="background: #e57373;"></div>
+      <span>差值（不对称度）</span>
+    </div>
+  </div>
+
+  <div class="chart-wrap">
+    <div class="chart-label">归一化叠加 (0-1)</div>
+    <svg id="svg-overlay" class="chart-canvas" viewBox="0 0 1100 380"></svg>
+  </div>
+</div>
+
+<div class="divider"></div>
+
+<!-- S3: 相位映射表 -->
+<div class="section" id="theory-phase">
+  <div class="section-title">相位 · 拐点映射</div>
+  <div class="section-sub">康波四相与消息卦关键节点的精确对应</div>
+
+  <table class="phase-table">
+    <thead>
+      <tr>
+        <th>康波相位</th>
+        <th>对应消息卦</th>
+        <th>卦象特征</th>
+        <th>经济特征</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="phase-tag" style="background:rgba(33,150,243,0.2);color:#6fa8dc;">回升</span></td>
+        <td>复 ☷☳ → 临 ☷☱</td>
+        <td>一阳来复，阳气初生但根基尚浅</td>
+        <td>新技术萌芽，经济触底反弹</td>
+      </tr>
+      <tr>
+        <td><span class="phase-tag" style="background:rgba(76,175,80,0.2);color:#81c784;">繁荣</span></td>
+        <td>泰 ☷☰ → 大壮 ☳☰ → 夬 ☱☰</td>
+        <td>天地交泰，阳盛而通达</td>
+        <td>技术扩散，产能扩张，资产价格上行</td>
+      </tr>
+      <tr>
+        <td><span class="phase-tag" style="background:rgba(255,193,7,0.2);color:#ffd54f;">衰退</span></td>
+        <td>乾 ☰☰ → 姤 ☴☰ → 遁 ☶☰</td>
+        <td>亢龙有悔，一阴潜入，二阴渐退</td>
+        <td>过度投资显现，增速放缓，通胀见顶</td>
+      </tr>
+      <tr>
+        <td><span class="phase-tag" style="background:rgba(244,67,54,0.2);color:#e57373;">萧条</span></td>
+        <td>否 ☰☷ → 观 ☴☷ → 剥 ☶☷</td>
+        <td>天地不交，阳气剥落殆尽</td>
+        <td>债务出清，资产暴跌，"万劫不复之年"</td>
+      </tr>
+      <tr>
+        <td><span class="phase-tag" style="background:rgba(156,39,176,0.15);color:#ba68c8;">转折</span></td>
+        <td>坤 ☷☷ → 复 ☷☳</td>
+        <td>物极必反，至暗时刻孕育一阳</td>
+        <td>新技术革命的前夜，"人生发财靠康波"</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="divider"></div>
+
+<!-- S4: 嵌套同构 -->
+<div class="section" id="theory-nesting">
+  <div class="section-title">三层嵌套同构</div>
+  <div class="section-sub">两套系统最深层的结构性相似——自相似的分形展开</div>
+
+  <div class="nest-wrap">
+    <div class="nest-box">
+      <div class="nest-title">涛动周期论</div>
+      <svg id="svg-nest-kd" class="chart-canvas" viewBox="0 0 480 320"></svg>
+    </div>
+    <div class="nest-box">
+      <div class="nest-title">易经</div>
+      <svg id="svg-nest-yi" class="chart-canvas" viewBox="0 0 480 320"></svg>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════ Part II: 实证验证 ══════════ -->
+<div class="part-divider"><div class="part-num">贰</div><div class="part-title">实证验证</div><div class="part-sub">246年经济数据与消息卦的三层时间线对照</div></div>
+
+<!-- S5: 三层全景时间线 -->
+<div class="section" id="verify-timeline" style="max-width:1440px;">
+  <div class="section-title">三层全景时间线 · 1780—2026</div>
+  <div class="section-sub">康波理论曲线 × DJIA实际走势 × 十二消息卦映射</div>
+
+  <div class="layer-toggles">
+    <button class="layer-btn active" data-layer="kd"><span class="dot" style="background:#6fa8dc;"></span>康波曲线</button>
+    <button class="layer-btn active" data-layer="stock"><span class="dot" style="background:#4caf50;"></span>股市DJIA</button>
+    <button class="layer-btn active" data-layer="yi"><span class="dot" style="background:#d4a574;"></span>消息卦</button>
+  </div>
+
+  <div class="chart-wrap" style="padding:32px 16px 16px; overflow-x:auto;">
+    <div class="chart-label">三层叠加 · 1780—2030</div>
+    <div style="min-width:1200px;">
+      <svg id="svg-merged" class="chart-canvas" viewBox="0 0 1440 520"></svg>
+    </div>
+  </div>
+
+  <div style="text-align:center;margin-top:16px;">
+    <div class="legend" style="margin-bottom:16px;">
+      <div class="legend-item"><div class="legend-dot" style="background:#6fa8dc;"></div><span>康波理论曲线</span></div>
+      <div class="legend-item"><div class="legend-dot" style="background:#4caf50;"></div><span>DJIA（对数标度）</span></div>
+      <div class="legend-item"><div class="legend-dot" style="background:#d4a574;"></div><span>消息卦阶梯</span></div>
+      <div class="legend-item"><div class="legend-dot" style="background:#e57373;"></div><span>2026 当下</span></div>
+    </div>
+    <div style="font-size:11px;color:var(--text2);max-width:800px;margin:0 auto;">
+      数据来源：DJIA历史数据为近似值（1896年前为经济活动代理指标）；康波周期划分参考周金涛《涛动周期论》；十二消息卦出自《易经》月卦传统。
+    </div>
+  </div>
+</div>
+
+<!-- ══════════ Part III: 结论与预测 ══════════ -->
+<div class="part-divider"><div class="part-num">叁</div><div class="part-title">结论与预测</div><div class="part-sub">从数据验证到未来推演</div></div>
+
+<!-- S6: 核心发现 -->
+<div class="section" id="conclusions-insights">
+  <div class="section-title">核心发现</div>
+  <div class="section-sub">五轮康波验证中浮现的关键模式</div>
+
+  <!-- 结论1：康波峰值=股灾预警器 -->
+  <div class="insight-card">
+    <div class="insight-num">01</div>
+    <div class="insight-body">
+      <div class="insight-title">康波峰值 = 股灾预警器（0-9年前置）</div>
+      <div class="insight-desc">每一轮康波峰值之后，无一例外出现重大股灾。从未缺席。</div>
+      <table class="insight-table">
+        <thead><tr><th>康波峰值</th><th>随后股灾</th><th>滞后</th><th>DJIA跌幅</th></tr></thead>
+        <tbody>
+          <tr><td>1815</td><td>1819 恐慌</td><td>4年</td><td>—</td></tr>
+          <tr><td>1873</td><td>1873 长萧条</td><td>0年</td><td>-50%+</td></tr>
+          <tr><td>1920</td><td>1929 大崩盘</td><td style="color:#e57373;font-weight:700;">9年</td><td style="color:#e57373;font-weight:700;">-89%</td></tr>
+          <tr><td>1966</td><td>1966-74 滞胀</td><td style="color:#81c784;">0年</td><td>-42%</td></tr>
+          <tr><td>2004</td><td>2008 次贷</td><td>4年</td><td>-54%</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- 结论2：致命悖论 -->
+  <div class="insight-card" style="border-color:rgba(229,115,115,0.3);">
+    <div class="insight-num" style="color:#e57373;">02</div>
+    <div class="insight-body">
+      <div class="insight-title" style="color:#e57373;">第五波的致命悖论：名义新高 vs 实质萧条</div>
+      <div class="insight-desc">
+        康波说2026处于萧条末期（观卦，阳×2），理论曲线接近谷底。但DJIA 40,000，名义处于历史最高区间。
+        <span style="color:var(--bronze);">蓝线在底部，绿线在顶部——两条曲线的剪刀差在第五波达到历史最大。</span>
+      </div>
+      <div class="insight-highlight">
+        <div class="insight-highlight-label">解释</div>
+        1971年脱离金本位后，法币无锚印钞系统性抬升名义价格。通胀调整后的实际DJIA，2000年的峰值直到2013年才真正被超越——与康波"萧条"叙事完全吻合。
+      </div>
+      <div style="margin-top:12px;padding:12px 16px;background:rgba(229,115,115,0.06);border-radius:8px;font-size:14px;color:var(--cream);text-align:center;">
+        名义价格说"繁荣"，实际购买力说"萧条"。<br>剪刀差 = 法币贬值的可视化。
+      </div>
+    </div>
+  </div>
+
+  <!-- 结论3：比例不变性 -->
+  <div class="insight-card">
+    <div class="insight-num">03</div>
+    <div class="insight-body">
+      <div class="insight-title">对数标度揭示"比例不变性"</div>
+      <div class="insight-desc">线性图上1929的381→41像小波浪，2020的36000→18000才算大事。对数标度下，每次崩盘的<strong>比例幅度</strong>惊人相似：</div>
+      <div class="insight-bars">
+        <div class="insight-bar-row">
+          <span class="insight-bar-label">1929→1932</span>
+          <div class="insight-bar-track"><div class="insight-bar-fill" style="width:100%;background:#e57373;"></div></div>
+          <span class="insight-bar-val" style="color:#e57373;">0.97 (异常)</span>
+        </div>
+        <div class="insight-bar-row">
+          <span class="insight-bar-label">1966→1974</span>
+          <div class="insight-bar-track"><div class="insight-bar-fill" style="width:24.7%;background:#6fa8dc;"></div></div>
+          <span class="insight-bar-val">0.24</span>
+        </div>
+        <div class="insight-bar-row">
+          <span class="insight-bar-label">2007→2009</span>
+          <div class="insight-bar-track"><div class="insight-bar-fill" style="width:35%;background:#6fa8dc;"></div></div>
+          <span class="insight-bar-val">0.34</span>
+        </div>
+        <div class="insight-bar-row">
+          <span class="insight-bar-label">2020 COVID</span>
+          <div class="insight-bar-track"><div class="insight-bar-fill" style="width:29.9%;background:#6fa8dc;"></div></div>
+          <span class="insight-bar-val">0.29</span>
+        </div>
+      </div>
+      <div class="insight-desc" style="margin-top:8px;">排除1929级联失效，市场的"恐慌深度"有结构性上限——大约跌掉一半（log₁₀ ≈ 0.3）。</div>
+    </div>
+  </div>
+
+  <!-- 结论4：萧条反弹陷阱 -->
+  <div class="insight-card">
+    <div class="insight-num">04</div>
+    <div class="insight-body">
+      <div class="insight-title">萧条反弹：反复出现的陷阱</div>
+      <div class="insight-desc">第4波和第5波的萧条阶段里，DJIA都出现<strong>先跌后涨再跌</strong>的模式——消息卦里对应否卦→观卦区间，"天地不交"期间的虚假繁荣。</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:12px;">
+        <div style="background:rgba(42,42,61,0.5);border-radius:8px;padding:14px;">
+          <div style="color:var(--bronze);font-size:12px;font-weight:700;margin-bottom:6px;">第4波萧条 (1974-1991)</div>
+          <div style="font-size:13px;color:var(--text);">1974底 → 1987涨到2722 → 1988回落 → 1990再跌</div>
+        </div>
+        <div style="background:rgba(42,42,61,0.5);border-radius:8px;padding:14px;">
+          <div style="color:var(--bronze);font-size:12px;font-weight:700;margin-bottom:6px;">第5波萧条 (2008-?)</div>
+          <div style="font-size:13px;color:var(--text);">2009底 → 2021涨到36338 → 2022回落 → 2026仍在高位</div>
+        </div>
+      </div>
+      <div style="margin-top:12px;font-size:13px;color:#ffd54f;text-align:center;">
+        萧条期的名义新高不是牛市起点，是 bear market rally 的尾声。
+      </div>
+    </div>
+  </div>
+
+  <!-- 结论5：领先/滞后切换 -->
+  <div class="insight-card">
+    <div class="insight-num">05</div>
+    <div class="insight-body">
+      <div class="insight-title">股市从"滞后指标"进化为"领先指标"</div>
+      <div class="insight-desc">市场效率的提升改变了股市与康波的时序关系：</div>
+      <div style="display:flex;align-items:center;gap:12px;margin-top:12px;flex-wrap:wrap;justify-content:center;">
+        <div class="timing-chip" style="border-color:rgba(229,115,115,0.4);">
+          <div style="font-size:11px;color:var(--text2);">第3波</div>
+          <div style="font-size:16px;font-weight:900;color:#e57373;">滞后9年</div>
+          <div style="font-size:10px;color:var(--text2);">信息不对称<br>散户入场慢</div>
+        </div>
+        <div style="color:var(--text2);font-size:20px;">→</div>
+        <div class="timing-chip" style="border-color:rgba(129,199,132,0.4);">
+          <div style="font-size:11px;color:var(--text2);">第4波</div>
+          <div style="font-size:16px;font-weight:900;color:#81c784;">完美同步</div>
+          <div style="font-size:10px;color:var(--text2);">战后制度成熟<br>市场效率提升</div>
+        </div>
+        <div style="color:var(--text2);font-size:20px;">→</div>
+        <div class="timing-chip" style="border-color:rgba(111,168,220,0.4);">
+          <div style="font-size:11px;color:var(--text2);">第5波</div>
+          <div style="font-size:16px;font-weight:900;color:#6fa8dc;">提前4年</div>
+          <div style="font-size:10px;color:var(--text2);">信息过载<br>市场定价过快</div>
+        </div>
+      </div>
+      <div style="margin-top:12px;font-size:13px;color:var(--text2);text-align:center;">
+        外推：第六波的股市底可能 <strong style="color:var(--cream);">早于</strong> 康波理论底部出现（2028前？）
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="divider"></div>
+
+<!-- S7: 2026精确定位 -->
+<div class="section" id="conclusions-2026">
+  <div class="section-title">2026 精确定位</div>
+  <div class="section-sub">观卦 ≠ 最底，但已到观察窗口</div>
+
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;max-width:800px;margin:0 auto;">
+    <div style="background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:20px;text-align:center;">
+      <div style="font-size:12px;color:var(--text2);margin-bottom:4px;">康波进度</div>
+      <div style="font-size:28px;font-weight:900;color:#e57373;">~90%</div>
+      <div style="font-size:12px;color:var(--text2);margin-top:4px;">第五波 · 萧条末期</div>
+    </div>
+    <div style="background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:20px;text-align:center;">
+      <div style="font-size:12px;color:var(--text2);margin-bottom:4px;">消息卦</div>
+      <div style="font-size:28px;font-weight:900;color:var(--bronze);">☴☷ 观卦</div>
+      <div style="font-size:12px;color:var(--text2);margin-top:4px;">阳×2</div>
+    </div>
+    <div style="background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:20px;text-align:center;">
+      <div style="font-size:12px;color:var(--text2);margin-bottom:4px;">剪刀差</div>
+      <div style="font-size:28px;font-weight:900;color:#4caf50;">历史最大</div>
+      <div style="font-size:12px;color:var(--text2);margin-top:4px;">名义高估风险</div>
+    </div>
+    <div style="background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:20px;text-align:center;">
+      <div style="font-size:12px;color:var(--text2);margin-bottom:4px;">下一阶段</div>
+      <div style="font-size:28px;font-weight:900;color:var(--cream);">剥→坤</div>
+      <div style="font-size:12px;color:var(--text2);margin-top:4px;">~2028-2030 真正谷底</div>
+    </div>
+  </div>
+
+  <div style="margin-top:24px;padding:20px;background:rgba(255,213,79,0.06);border:1px solid rgba(255,213,79,0.15);border-radius:12px;text-align:center;max-width:800px;margin-left:auto;margin-right:auto;">
+    <div style="font-size:16px;color:var(--cream);font-weight:700;line-height:1.8;">
+      观卦的操作含义：不是抄底的时候，是站高处观察全局的时候。<br>
+      <span style="color:#ffd54f;">下一个"复卦·一阳来复" ≈ 2030 —— "人生发财靠康波"的入场点。</span>
+    </div>
+  </div>
+
+  <div style="margin-top:20px;text-align:center;">
+    <div style="display:inline-block;background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:16px 32px;">
+      <div style="color:var(--text2);font-size:12px;margin-bottom:4px;">周金涛原话</div>
+      <div style="color:var(--gold);font-size:18px;font-weight:700;">"2025年，都能感受到"</div>
+    </div>
+  </div>
+</div>
+
+<div class="divider"></div>
+
+<!-- S8: 第六波推演 -->
+<div class="section" id="conclusions-wave6">
+  <div class="section-title">第六波推演 · AI与通用智能</div>
+  <div class="section-sub">基于康波结构外推的下一个60年</div>
+
+  <div style="max-width:800px;margin:0 auto;">
+    <table class="phase-table" style="margin-top:0;">
+      <thead><tr><th>波次</th><th>驱动技术 (GPT)</th><th>时间跨度</th></tr></thead>
+      <tbody>
+        <tr><td>第一波</td><td>蒸汽机</td><td>1780—1845</td></tr>
+        <tr><td>第二波</td><td>铁路</td><td>1845—1895</td></tr>
+        <tr><td>第三波</td><td>电气</td><td>1895—1945</td></tr>
+        <tr><td>第四波</td><td>汽车</td><td>1945—1991</td></tr>
+        <tr><td>第五波</td><td>互联网</td><td>1991—2030</td></tr>
+        <tr style="color:var(--bronze);font-weight:700;"><td>第六波</td><td>AI / AGI</td><td>2030—2090?</td></tr>
+      </tbody>
+    </table>
+
+    <div class="wave6-bar">
+      <div class="wave6-seg" style="background:rgba(33,150,243,0.5);">坤</div>
+      <div class="wave6-seg" style="background:rgba(33,150,243,0.6);">复</div>
+      <div class="wave6-seg" style="background:rgba(76,175,80,0.5);">临</div>
+      <div class="wave6-seg" style="background:rgba(76,175,80,0.55);">泰</div>
+      <div class="wave6-seg" style="background:rgba(76,175,80,0.6);">大壮</div>
+      <div class="wave6-seg" style="background:rgba(255,193,7,0.5);">夬</div>
+      <div class="wave6-seg" style="background:rgba(255,193,7,0.55);">乾</div>
+      <div class="wave6-seg" style="background:rgba(244,67,54,0.4);">姤</div>
+      <div class="wave6-seg" style="background:rgba(244,67,54,0.45);">遁</div>
+      <div class="wave6-seg" style="background:rgba(244,67,54,0.5);">否</div>
+      <div class="wave6-seg" style="background:rgba(244,67,54,0.55);">观</div>
+      <div class="wave6-seg" style="background:rgba(244,67,54,0.6);">剥</div>
+    </div>
+    <div class="wave6-years">
+      <span>2030</span><span>2035</span><span>2040</span><span>2045</span><span>2050</span><span>2055</span><span>2060</span><span>2065</span><span>2070</span><span>2075</span><span>2080</span><span>2090</span>
+    </div>
+
+    <div class="insight-highlight" style="margin-top:24px;">
+      <div class="insight-highlight-label">结构外推</div>
+      2026-2030的萧条末期 = AI基础设施建设期。正如1930年代萧条孕育了战后繁荣的工业基础。"人生发财靠康波"的下一个入场点 ≈ 2030
+    </div>
+
+    <div style="margin-top:16px;font-size:11px;color:var(--text2);text-align:center;font-style:italic;">
+      本推演基于结构外推，不构成投资建议。
+    </div>
+  </div>
+</div>
+
+<div class="divider"></div>
+
+<!-- S9: 核心洞见 -->
+<div class="section" id="conclusions-final">
+  <div class="section-title">核心洞见</div>
+  <div class="section-sub" style="max-width:720px; line-height:2.2;">
+    周金涛用现代经济数据"重新发现"了一个古老的结构——<br>
+    <span style="color:var(--bronze);font-weight:700;font-size:18px;">三层嵌套、阴阳交替、物极必反的波动模型。</span><br>
+    涛动周期论是易经波形在资本主义经济体中的一个特例实现。<br><br>
+    <span style="color:var(--text2);font-size:14px;">
+      十二消息卦的严格对称 vs 康波的经验不对称——差值曲线恰好量化了<br>
+      "人为因素"（技术创新、政策干预）对自然周期的扰动幅度。<br><br>
+      而第六波的AI/AGI，或许将成为人类首次有能力"观测并加速"康波转折的工具——<br>
+      周期依旧运转，但人与周期的关系正在改变。
+    </span>
+  </div>
+</div>
+
+<div class="footer">
+  涛动周期 × 易经 波形比对 · 2026<br>
+  <span style="font-size:11px;margin-top:8px;display:inline-block;">数据来源：DJIA历史数据为近似值（1896年前为经济活动代理指标）；康波周期划分参考周金涛《涛动周期论》；十二消息卦出自《易经》月卦传统。</span>
+</div>
+
+<!-- Nav dots -->
+<nav class="nav-dots" id="navDots">
+  <div class="nav-group">
+    <a class="nav-dot" href="#theory-xiaoxi" data-label="消息卦"></a>
+    <a class="nav-dot" href="#theory-overlay" data-label="波形叠加"></a>
+    <a class="nav-dot" href="#theory-phase" data-label="相位映射"></a>
+    <a class="nav-dot" href="#theory-nesting" data-label="嵌套同构"></a>
+  </div>
+  <div class="nav-group">
+    <a class="nav-dot" href="#verify-timeline" data-label="全景时间线"></a>
+  </div>
+  <div class="nav-group">
+    <a class="nav-dot" href="#conclusions-insights" data-label="核心发现"></a>
+    <a class="nav-dot" href="#conclusions-2026" data-label="2026定位"></a>
+    <a class="nav-dot" href="#conclusions-wave6" data-label="第六波"></a>
+    <a class="nav-dot" href="#conclusions-final" data-label="结论"></a>
+  </div>
+</nav>
+
+<script>
+// ═══════════════════════════════════════════
+// DATA
+// ═══════════════════════════════════════════
+
+const XIAOXI = [
+  { name: '坤',  symbol: '☷☷', yang: 0,  month: '十月',   season: '立冬', desc: '纯阴，万物收藏' },
+  { name: '复',  symbol: '☷☳', yang: 1,  month: '十一月', season: '冬至', desc: '一阳来复，生机初萌' },
+  { name: '临',  symbol: '☷☱', yang: 2,  month: '十二月', season: '大寒', desc: '二阳渐长，君临在即' },
+  { name: '泰',  symbol: '☷☰', yang: 3,  month: '正月',   season: '雨水', desc: '天地交泰，万物通达' },
+  { name: '大壮', symbol: '☳☰', yang: 4, month: '二月',   season: '春分', desc: '阳气壮盛，雷行天上' },
+  { name: '夬',  symbol: '☱☰', yang: 5,  month: '三月',   season: '谷雨', desc: '决去最后一阴' },
+  { name: '乾',  symbol: '☰☰', yang: 6,  month: '四月',   season: '小满', desc: '纯阳，刚健中正' },
+  { name: '姤',  symbol: '☴☰', yang: 5,  month: '五月',   season: '夏至', desc: '一阴初生，天风相遇' },
+  { name: '遁',  symbol: '☶☰', yang: 4,  month: '六月',   season: '大暑', desc: '二阴渐长，君子退遁' },
+  { name: '否',  symbol: '☰☷', yang: 3,  month: '七月',   season: '处暑', desc: '天地不交，万物不通' },
+  { name: '观',  symbol: '☴☷', yang: 2,  month: '八月',   season: '秋分', desc: '阳气衰微，观察审视' },
+  { name: '剥',  symbol: '☶☷', yang: 1,  month: '九月',   season: '霜降', desc: '仅剩一阳，硕果不食' },
+];
+
+// Kondratieff phases (normalized 0-1 over one cycle)
+// Asymmetric: boom longer, depression shorter
+const KD_PHASES = [
+  { name: '回升',   start: 0.00, end: 0.20, color: 'rgba(33,150,243,0.08)',  labelColor: '#6fa8dc' },
+  { name: '繁荣',   start: 0.20, end: 0.50, color: 'rgba(76,175,80,0.08)',   labelColor: '#81c784' },
+  { name: '衰退',   start: 0.50, end: 0.70, color: 'rgba(255,193,7,0.06)',   labelColor: '#ffd54f' },
+  { name: '萧条',   start: 0.70, end: 1.00, color: 'rgba(244,67,54,0.08)',   labelColor: '#e57373' },
+];
+
+const KD_WAVES = [
+  {
+    id: 1, name: '第一波', tech: '蒸汽机·纺织',
+    start: 1780, peak: 1815, end: 1845,
+    events: [
+      { year: 1784, label: '瓦特蒸汽机商用' },
+      { year: 1825, label: '第一次经济危机' },
+    ]
+  },
+  {
+    id: 2, name: '第二波', tech: '铁路·钢铁',
+    start: 1845, peak: 1873, end: 1895,
+    events: [
+      { year: 1848, label: '铁路狂潮' },
+      { year: 1873, label: '长萧条开始' },
+    ]
+  },
+  {
+    id: 3, name: '第三波', tech: '电气·化工',
+    start: 1895, peak: 1920, end: 1945,
+    events: [
+      { year: 1913, label: '电气化高峰' },
+      { year: 1929, label: '大萧条' },
+    ]
+  },
+  {
+    id: 4, name: '第四波', tech: '汽车·石化',
+    start: 1945, peak: 1966, end: 1991,
+    events: [
+      { year: 1966, label: '战后繁荣顶峰' },
+      { year: 1973, label: '石油危机' },
+      { year: 1982, label: '沃尔克衰退' },
+    ]
+  },
+  {
+    id: 5, name: '第五波', tech: '信息技术·互联网',
+    start: 1991, peak: 2004, end: 2030,
+    events: [
+      { year: 2000, label: '互联网泡沫' },
+      { year: 2008, label: '次贷危机' },
+      { year: 2019, label: '周金涛预言：万劫不复' },
+      { year: 2026, label: '← 当下', highlight: true },
+    ]
+  },
+];
+
+// US stock market historical data (log-scale visualization)
+const STOCK_DATA = [
+  [1780, 10],  [1792, 18],  [1797, 11],  [1802, 16],
+  [1815, 28],  [1819, 14],  [1825, 30],  [1829, 16],
+  [1835, 35],  [1837, 15],  [1843, 12],
+  [1845, 14],  [1848, 12],  [1853, 25],  [1857, 13],
+  [1862, 16],  [1865, 28],  [1869, 35],  [1873, 40],
+  [1877, 20],  [1884, 18],  [1890, 30],  [1893, 18],  [1895, 25],
+  [1896, 29],   [1899, 68],   [1903, 43],   [1906, 76],
+  [1907, 43],   [1909, 73],   [1913, 72],   [1914, 54],
+  [1916, 95],   [1917, 66],   [1919, 108],  [1921, 64],
+  [1924, 105],  [1926, 157],  [1928, 300],  [1929, 381],
+  [1930, 258],  [1931, 169],  [1932, 41],   [1933, 99],
+  [1935, 144],  [1937, 187],  [1938, 99],   [1939, 150],
+  [1941, 112],  [1942, 93],
+  [1945, 195],  [1946, 177],  [1949, 161],  [1952, 292],
+  [1954, 404],  [1956, 499],  [1958, 584],  [1961, 734],
+  [1962, 536],  [1965, 969],  [1966, 995],  [1968, 906],
+  [1970, 631],  [1971, 884],  [1973, 1052], [1974, 578],
+  [1976, 1005], [1978, 805],  [1980, 964],  [1981, 875],
+  [1982, 777],  [1983, 1259], [1985, 1546], [1987, 2722],
+  [1988, 2169], [1990, 2365],
+  [1991, 3169], [1993, 3754], [1995, 5117], [1997, 7908],
+  [1998, 9181], [2000, 11723],[2001, 9605], [2002, 7286],
+  [2003, 10454],[2005, 10717],[2007, 14164],[2008, 8776],
+  [2009, 6547], [2010, 11578],[2012, 13104],[2013, 16577],
+  [2015, 17425],[2016, 19763],[2017, 24719],[2018, 23327],
+  [2019, 28538],[2020, 18592],[2021, 36338],[2022, 28726],
+  [2023, 37690],[2024, 42544],[2025, 41938],[2026, 40200],
+];
+
+// ═══════════════════════════════════════════
+// DRAWING HELPERS
+// ═══════════════════════════════════════════
+
+function svgEl(tag, attrs = {}) {
+  const el = document.createElementNS('http://www.w3.org/2000/svg', tag);
+  for (const [k, v] of Object.entries(attrs)) el.setAttribute(k, v);
+  return el;
+}
+
+function drawGrid(svg, left, right, top, bottom, xSteps, ySteps, color = 'rgba(42,42,61,0.6)') {
+  const g = svgEl('g');
+  for (let i = 0; i <= xSteps; i++) {
+    const x = left + (right - left) * i / xSteps;
+    g.appendChild(svgEl('line', { x1: x, y1: top, x2: x, y2: bottom, stroke: color, 'stroke-width': 0.5 }));
+  }
+  for (let i = 0; i <= ySteps; i++) {
+    const y = top + (bottom - top) * i / ySteps;
+    g.appendChild(svgEl('line', { x1: left, y1: y, x2: right, y2: y, stroke: color, 'stroke-width': 0.5 }));
+  }
+  svg.appendChild(g);
+}
+
+function drawAxis(svg, left, right, top, bottom) {
+  const g = svgEl('g');
+  // x axis
+  g.appendChild(svgEl('line', {
+    x1: left, y1: bottom, x2: right, y2: bottom,
+    stroke: 'rgba(212,165,116,0.3)', 'stroke-width': 1
+  }));
+  // y axis
+  g.appendChild(svgEl('line', {
+    x1: left, y1: top, x2: left, y2: bottom,
+    stroke: 'rgba(212,165,116,0.3)', 'stroke-width': 1
+  }));
+  svg.appendChild(g);
+}
+
+// ═══════════════════════════════════════════
+// CHART 1: 十二消息卦
+// ═══════════════════════════════════════════
+
+function drawXiaoxi() {
+  const svg = document.getElementById('svg-xiaoxi');
+  const L = 80, R = 1060, T = 30, B = 290;
+  const W = R - L, H = B - T;
+
+  drawGrid(svg, L, R, T, B, 12, 6);
+  drawAxis(svg, L, R, T, B);
+
+  // Y labels
+  for (let i = 0; i <= 6; i++) {
+    const y = B - H * i / 6;
+    svg.appendChild(svgEl('text', {
+      x: L - 12, y: y + 4, fill: '#8a7f6f',
+      'font-size': 12, 'text-anchor': 'end', 'font-family': 'Noto Serif SC'
+    })).textContent = i;
+  }
+
+  // Staircase wave - step function
+  const g = svgEl('g');
+  let pathD = '';
+  const points = [];
+
+  for (let i = 0; i < 12; i++) {
+    const x1 = L + W * i / 12;
+    const x2 = L + W * (i + 1) / 12;
+    const y = B - H * XIAOXI[i].yang / 6;
+    if (i === 0) pathD = `M ${x1} ${y}`;
+    else pathD += ` L ${x1} ${y}`;
+    pathD += ` L ${x2} ${y}`;
+    points.push({ cx: (x1 + x2) / 2, cy: y, idx: i });
+  }
+
+  // Filled area
+  const areaPath = pathD + ` L ${R} ${B} L ${L} ${B} Z`;
+  g.appendChild(svgEl('path', {
+    d: areaPath,
+    fill: 'url(#grad-yi)', opacity: '0.3'
+  }));
+
+  // Line
+  g.appendChild(svgEl('path', {
+    d: pathD,
+    fill: 'none', stroke: '#d4a574', 'stroke-width': 2.5,
+    'stroke-linejoin': 'round'
+  }));
+
+  // Smooth sine overlay for comparison
+  let sinePath = '';
+  for (let i = 0; i <= 120; i++) {
+    const t = i / 120;
+    const x = L + W * t;
+    const val = 3 - 3 * Math.cos(2 * Math.PI * t); // peak at t=0.5 (aligned with 乾)
+    const y = B - H * val / 6;
+    sinePath += (i === 0 ? 'M' : 'L') + ` ${x} ${y}`;
+  }
+  g.appendChild(svgEl('path', {
+    d: sinePath,
+    fill: 'none', stroke: 'rgba(212,165,116,0.25)', 'stroke-width': 1,
+    'stroke-dasharray': '6 4'
+  }));
+
+  svg.appendChild(g);
+
+  // Data points
+  points.forEach(p => {
+    const circle = svgEl('circle', {
+      cx: p.cx, cy: p.cy, r: 5,
+      fill: '#d4a574', stroke: '#0f0f23', 'stroke-width': 2,
+      style: 'cursor:pointer;'
+    });
+    circle.addEventListener('mouseenter', e => showTooltip(e, XIAOXI[p.idx]));
+    circle.addEventListener('mouseleave', hideTooltip);
+    svg.appendChild(circle);
+
+    // X labels
+    const lbl = svgEl('text', {
+      x: p.cx, y: B + 20,
+      fill: '#8a7f6f', 'font-size': 11, 'text-anchor': 'middle',
+      'font-family': 'Noto Serif SC'
+    });
+    lbl.textContent = XIAOXI[p.idx].name;
+    svg.appendChild(lbl);
+  });
+
+  // Gradient defs
+  const defs = svgEl('defs');
+  const grad = svgEl('linearGradient', { id: 'grad-yi', x1: '0', y1: '0', x2: '0', y2: '1' });
+  grad.appendChild(svgEl('stop', { offset: '0%', 'stop-color': '#d4a574', 'stop-opacity': '0.4' }));
+  grad.appendChild(svgEl('stop', { offset: '100%', 'stop-color': '#d4a574', 'stop-opacity': '0.02' }));
+  defs.appendChild(grad);
+  svg.insertBefore(defs, svg.firstChild);
+}
+
+
+// ═══════════════════════════════════════════
+// CHART 2: 康波 (asymmetric wave function)
+// ═══════════════════════════════════════════
+
+function kdWaveAsym(t) {
+  const p = ((t % 1) + 1) % 1;
+  const peakPos = 0.42;
+  if (p < peakPos) {
+    return 0.5 - 0.5 * Math.cos(Math.PI * p / peakPos);
+  } else {
+    return 0.5 + 0.5 * Math.cos(Math.PI * (p - peakPos) / (1 - peakPos));
+  }
+}
+
+// Map a year to the 消息卦 index within its K-wave
+function yearToXiaoxiIdx(year, wave) {
+  const t = (year - wave.start) / (wave.end - wave.start);
+  return Math.min(Math.floor(t * 12), 11);
+}
+
+// ═══════════════════════════════════════════
+// MERGED TIMELINE (replaces drawKondra + drawTimeline)
+// ═══════════════════════════════════════════
+
+function drawMergedTimeline() {
+  const svg = document.getElementById('svg-merged');
+  if (!svg) return;
+  const L = 60, R = 1360, T = 50, B = 420;
+  const W = R - L, H = B - T;
+  const YS = 1780, YE = 2032, YSPAN = YE - YS;
+
+  function yearToX(y) { return L + W * (y - YS) / YSPAN; }
+  function kdAtYear(year) {
+    for (const w of KD_WAVES) {
+      if (year >= w.start && year <= w.end)
+        return kdWaveAsym((year - w.start) / (w.end - w.start));
+    }
+    return 0;
+  }
+  function yiValAtYear(year) {
+    for (const wave of KD_WAVES) {
+      if (year >= wave.start && year <= wave.end) {
+        const t = (year - wave.start) / (wave.end - wave.start);
+        const idx = Math.min(Math.floor(t * 12), 11);
+        return XIAOXI[idx].yang / 6;
+      }
+    }
+    return 0;
+  }
+
+  // Log scale for stocks
+  const logMin = Math.log10(8);
+  const logMax = Math.log10(50000);
+  const logRange = logMax - logMin;
+  function stockY(val) {
+    const logVal = Math.log10(Math.max(val, 1));
+    const norm = (logVal - logMin) / logRange;
+    return B - H * Math.max(0, Math.min(1, norm));
+  }
+
+  // ─── Gradient defs ───
+  const defs = svgEl('defs');
+  const gradKd = svgEl('linearGradient', { id: 'grad-mg-kd', x1: '0', y1: '0', x2: '0', y2: '1' });
+  gradKd.appendChild(svgEl('stop', { offset: '0%', 'stop-color': '#6fa8dc', 'stop-opacity': '0.3' }));
+  gradKd.appendChild(svgEl('stop', { offset: '100%', 'stop-color': '#6fa8dc', 'stop-opacity': '0.02' }));
+  defs.appendChild(gradKd);
+  const gradYi = svgEl('linearGradient', { id: 'grad-mg-yi', x1: '0', y1: '0', x2: '0', y2: '1' });
+  gradYi.appendChild(svgEl('stop', { offset: '0%', 'stop-color': '#d4a574', 'stop-opacity': '0.15' }));
+  gradYi.appendChild(svgEl('stop', { offset: '100%', 'stop-color': '#d4a574', 'stop-opacity': '0.01' }));
+  defs.appendChild(gradYi);
+  const gradStock = svgEl('linearGradient', { id: 'grad-mg-stock', x1: '0', y1: '0', x2: '0', y2: '1' });
+  gradStock.appendChild(svgEl('stop', { offset: '0%', 'stop-color': '#4caf50', 'stop-opacity': '0.15' }));
+  gradStock.appendChild(svgEl('stop', { offset: '100%', 'stop-color': '#4caf50', 'stop-opacity': '0.01' }));
+  defs.appendChild(gradStock);
+  svg.insertBefore(defs, svg.firstChild);
+
+  // ─── Shared: Phase backgrounds ───
+  KD_WAVES.forEach(wave => {
+    const x1 = yearToX(wave.start);
+    const ww = yearToX(wave.end) - x1;
+    [
+      { s: 0.00, e: 0.20, c: 'rgba(33,150,243,0.05)' },
+      { s: 0.20, e: 0.50, c: 'rgba(76,175,80,0.04)' },
+      { s: 0.50, e: 0.70, c: 'rgba(255,193,7,0.035)' },
+      { s: 0.70, e: 1.00, c: 'rgba(244,67,54,0.05)' },
+    ].forEach(ph => {
+      svg.appendChild(svgEl('rect', {
+        x: x1 + ww * ph.s, y: T, width: ww * (ph.e - ph.s), height: H, fill: ph.c
+      }));
+    });
+  });
+
+  // ─── Shared: Grid & axes ───
+  drawGrid(svg, L, R, T, B, Math.floor(YSPAN / 10), 6, 'rgba(42,42,61,0.25)');
+  drawAxis(svg, L, R, T, B);
+
+  // Decade labels
+  for (let yr = 1780; yr <= 2030; yr += 10) {
+    svg.appendChild(svgEl('text', {
+      x: yearToX(yr), y: B + 18,
+      fill: yr >= 2020 ? '#e57373' : '#8a7f6f',
+      'font-size': 10, 'text-anchor': 'middle', 'font-family': 'Noto Serif SC',
+      'font-weight': yr >= 2020 ? '700' : '400'
+    })).textContent = yr;
+  }
+  // Y labels (left axis - K-wave)
+  ['谷', '', '', '中', '', '', '峰'].forEach((l, i) => {
+    if (!l) return;
+    svg.appendChild(svgEl('text', {
+      x: L - 10, y: (B - H * i / 6) + 4, fill: '#8a7f6f',
+      'font-size': 12, 'text-anchor': 'end', 'font-family': 'Noto Serif SC'
+    })).textContent = l;
+  });
+
+  // ═══ LAYER: 消息卦 staircase ═══
+  const gYi = svgEl('g', { id: 'layer-yi' });
+  const envN = 1200;
+  let yiPath = '';
+  for (let i = 0; i <= envN; i++) {
+    const year = YS + YSPAN * i / envN;
+    const x = yearToX(year);
+    const y = B - H * yiValAtYear(year);
+    yiPath += (i === 0 ? 'M' : 'L') + ` ${x.toFixed(1)} ${y.toFixed(1)}`;
+  }
+  const yiArea = yiPath + ` L ${R} ${B} L ${L} ${B} Z`;
+  gYi.appendChild(svgEl('path', { d: yiArea, fill: 'url(#grad-mg-yi)', opacity: '0.6' }));
+  gYi.appendChild(svgEl('path', {
+    d: yiPath, fill: 'none', stroke: '#d4a574', 'stroke-width': 1.5, opacity: '0.6',
+    'stroke-linejoin': 'round'
+  }));
+
+  // Step labels per wave
+  KD_WAVES.forEach(wave => {
+    const x1 = yearToX(wave.start);
+    const ww = yearToX(wave.end) - x1;
+    if (ww / 12 > 14) {
+      for (let si = 0; si < 12; si++) {
+        const stepMid = x1 + ww * (si + 0.5) / 12;
+        const stepY = B - H * XIAOXI[si].yang / 6;
+        gYi.appendChild(svgEl('text', {
+          x: stepMid, y: stepY - 5,
+          fill: 'rgba(212,165,116,0.4)', 'font-size': ww / 12 > 22 ? 9 : 7,
+          'text-anchor': 'middle', 'font-family': 'Noto Serif SC'
+        })).textContent = XIAOXI[si].name;
+      }
+    }
+  });
+  svg.appendChild(gYi);
+
+  // ═══ LAYER: K-wave curve ═══
+  const gKd = svgEl('g', { id: 'layer-kd' });
+  const N = 1200;
+  let kdPath = '';
+  for (let i = 0; i <= N; i++) {
+    const year = YS + YSPAN * i / N;
+    const x = yearToX(year);
+    const y = B - H * kdAtYear(year);
+    kdPath += (i === 0 ? 'M' : 'L') + ` ${x.toFixed(1)} ${y.toFixed(1)}`;
+  }
+  const kdArea = kdPath + ` L ${R} ${B} L ${L} ${B} Z`;
+  gKd.appendChild(svgEl('path', { d: kdArea, fill: 'url(#grad-mg-kd)', opacity: '0.5' }));
+  gKd.appendChild(svgEl('path', {
+    d: kdPath, fill: 'none', stroke: '#6fa8dc', 'stroke-width': 2.5, opacity: '0.9'
+  }));
+
+  // Wave labels, peaks, boundaries
+  KD_WAVES.forEach((wave, wi) => {
+    const peakX = yearToX(wave.peak);
+    const x1 = yearToX(wave.start);
+    const peakT = (wave.peak - wave.start) / (wave.end - wave.start);
+
+    // Title + tech
+    gKd.appendChild(svgEl('text', {
+      x: peakX, y: T - 24,
+      fill: '#6fa8dc', 'font-size': 14, 'text-anchor': 'middle',
+      'font-family': 'Noto Serif SC', 'font-weight': '900', opacity: '0.85'
+    })).textContent = wave.name;
+    gKd.appendChild(svgEl('text', {
+      x: peakX, y: T - 8,
+      fill: '#8a7f6f', 'font-size': 11, 'text-anchor': 'middle',
+      'font-family': 'Noto Serif SC', opacity: '0.7'
+    })).textContent = wave.tech;
+
+    // Boundary line
+    if (wi > 0) {
+      gKd.appendChild(svgEl('line', {
+        x1: x1, y1: T, x2: x1, y2: B,
+        stroke: 'rgba(212,165,116,0.2)', 'stroke-width': 1, 'stroke-dasharray': '5 4'
+      }));
+      gKd.appendChild(svgEl('text', {
+        x: x1, y: B + 32,
+        fill: 'rgba(229,115,115,0.6)', 'font-size': 9, 'text-anchor': 'middle',
+        'font-family': 'Noto Serif SC'
+      })).textContent = wave.start;
+    }
+
+    // Peak dot
+    gKd.appendChild(svgEl('circle', {
+      cx: peakX, cy: B - H * kdWaveAsym(peakT), r: 5,
+      fill: '#81c784', stroke: '#0f0f23', 'stroke-width': 2
+    }));
+    gKd.appendChild(svgEl('text', {
+      x: peakX, y: B - H * kdWaveAsym(peakT) - 10,
+      fill: '#81c784', 'font-size': 10, 'text-anchor': 'middle',
+      'font-family': 'Noto Serif SC', opacity: '0.8'
+    })).textContent = wave.peak;
+
+    // Events (non-highlight)
+    wave.events.filter(ev => !ev.highlight).forEach(ev => {
+      const ex = yearToX(ev.year);
+      const evT = (ev.year - wave.start) / (wave.end - wave.start);
+      const evY = B - H * kdWaveAsym(evT);
+      gKd.appendChild(svgEl('line', {
+        x1: ex, y1: T, x2: ex, y2: B,
+        stroke: 'rgba(138,127,111,0.15)', 'stroke-width': 1, 'stroke-dasharray': '3 3'
+      }));
+      gKd.appendChild(svgEl('circle', {
+        cx: ex, cy: evY, r: 4,
+        fill: '#6fa8dc', stroke: '#0f0f23', 'stroke-width': 1.5
+      }));
+      const labelG = svgEl('g', { transform: `translate(${ex}, ${B + 28}) rotate(-50)` });
+      labelG.appendChild(Object.assign(svgEl('text', {
+        x: 0, y: 0, fill: '#8a7f6f',
+        'font-size': 9, 'font-weight': '400',
+        'text-anchor': 'end', 'font-family': 'Noto Serif SC'
+      }), { textContent: `${ev.year} ${ev.label}` }));
+      gKd.appendChild(labelG);
+    });
+  });
+
+  // Trough dots at wave boundaries
+  KD_WAVES.forEach(wave => {
+    const tx = yearToX(wave.start);
+    const circle = svgEl('circle', {
+      cx: tx, cy: B, r: 3.5,
+      fill: '#e57373', stroke: '#0f0f23', 'stroke-width': 1.5, opacity: '0.7'
+    });
+    circle.addEventListener('mouseenter', e => {
+      showTooltipRaw(e, `<div class="tt-title">第${wave.id}波起点 (波谷)</div>${wave.start}年 · ${wave.tech}`);
+    });
+    circle.addEventListener('mouseleave', hideTooltip);
+    gKd.appendChild(circle);
+  });
+
+  svg.appendChild(gKd);
+
+  // ═══ LAYER: Stock (DJIA log) ═══
+  const gStock = svgEl('g', { id: 'layer-stock' });
+
+  let stockPath = '';
+  STOCK_DATA.forEach((pt, i) => {
+    const x = yearToX(pt[0]);
+    const y = stockY(pt[1]);
+    stockPath += (i === 0 ? 'M' : 'L') + ` ${x.toFixed(1)} ${y.toFixed(1)}`;
+  });
+  const lastPt = STOCK_DATA[STOCK_DATA.length - 1];
+  const firstPt = STOCK_DATA[0];
+  const stockAreaPath = stockPath + ` L ${yearToX(lastPt[0]).toFixed(1)} ${B} L ${yearToX(firstPt[0]).toFixed(1)} ${B} Z`;
+  gStock.appendChild(svgEl('path', { d: stockAreaPath, fill: 'url(#grad-mg-stock)', opacity: '0.5' }));
+  gStock.appendChild(svgEl('path', {
+    d: stockPath, fill: 'none', stroke: '#4caf50', 'stroke-width': 1.8, opacity: '0.85',
+    'stroke-linejoin': 'round'
+  }));
+
+  // Stock annotations (crash/peak/bottom cards)
+  const stockAnnotations = [
+    { year: 1929, val: 381,   label: '大崩盘',     sub: 'DJIA 381→41',   type: 'crash',  kdPhase: '衰退→萧条', cardShift: -52 },
+    { year: 1932, val: 41,    label: '至暗时刻',    sub: 'DJIA 41',       type: 'bottom', kdPhase: '萧条底·坤卦', cardShift: 52 },
+    { year: 1966, val: 995,   label: '首触千点',    sub: 'DJIA 995',      type: 'peak',   kdPhase: '繁荣顶·乾卦' },
+    { year: 1974, val: 578,   label: '石油崩盘',    sub: 'DJIA 578',      type: 'crash',  kdPhase: '衰退·遁卦' },
+    { year: 2000, val: 11723, label: '互联网泡沫',  sub: 'DJIA 11,723',   type: 'peak',   kdPhase: '繁荣→衰退' },
+    { year: 2009, val: 6547,  label: '次贷危机底',  sub: 'DJIA 6,547',    type: 'bottom', kdPhase: '萧条·否卦' },
+    { year: 2021, val: 36338, label: '疫后大顶',    sub: 'DJIA 36,338',   type: 'peak',   kdPhase: '萧条反弹', cardShift: -58 },
+    { year: 2026, val: 40200, label: '当下',        sub: 'DJIA ~40,200',  type: 'now',    kdPhase: '萧条末·观卦', cardShift: 44 },
+  ];
+
+  const typeStyle = {
+    crash:  { color: '#ff6b6b', icon: '▼', dotR: 6 },
+    bottom: { color: '#e57373', icon: '◆', dotR: 7 },
+    peak:   { color: '#81c784', icon: '▲', dotR: 6 },
+    now:    { color: '#ffd54f', icon: '●', dotR: 8 },
+  };
+
+  stockAnnotations.forEach(sa => {
+    const x = yearToX(sa.year);
+    const y = stockY(sa.val);
+    const st = typeStyle[sa.type];
+
+    // Connecting line from stock dot to K-wave
+    const kdT = (() => {
+      for (const w of KD_WAVES) {
+        if (sa.year >= w.start && sa.year <= w.end)
+          return { t: (sa.year - w.start) / (w.end - w.start) };
+      }
+      return { t: 0 };
+    })();
+    const kdY = B - H * kdWaveAsym(kdT.t);
+    gStock.appendChild(svgEl('line', {
+      x1: x, y1: y, x2: x, y2: kdY,
+      stroke: st.color, 'stroke-width': 1, 'stroke-dasharray': '3 3', opacity: '0.4'
+    }));
+
+    // K-wave side: small diamond
+    gStock.appendChild(svgEl('circle', {
+      cx: x, cy: kdY, r: 3,
+      fill: st.color, stroke: '#0f0f23', 'stroke-width': 1, opacity: '0.6'
+    }));
+
+    // Stock side: prominent dot with glow
+    gStock.appendChild(svgEl('circle', {
+      cx: x, cy: y, r: st.dotR + 6,
+      fill: st.color, opacity: '0.08'
+    }));
+    gStock.appendChild(svgEl('circle', {
+      cx: x, cy: y, r: st.dotR + 3,
+      fill: st.color, opacity: '0.15'
+    }));
+    gStock.appendChild(svgEl('circle', {
+      cx: x, cy: y, r: st.dotR,
+      fill: st.color, stroke: '#0f0f23', 'stroke-width': 2,
+      style: 'cursor:pointer;'
+    }));
+
+    // Label card
+    const above = sa.type === 'peak' || sa.type === 'now';
+    const cardW = 100, cardH = 46;
+    const shift = sa.cardShift || 0;
+    let cardX = x - cardW / 2 + shift;
+    if (cardX + cardW > R + 40) cardX = R + 40 - cardW;
+    if (cardX < L) cardX = L + 4;
+    const cardY = above ? y - cardH - 14 : y + 14;
+
+    const cardG = svgEl('g', { style: 'cursor:pointer;' });
+    cardG.appendChild(svgEl('rect', {
+      x: cardX, y: cardY, width: cardW, height: cardH, rx: 6,
+      fill: 'rgba(15,15,35,0.92)', stroke: st.color, 'stroke-width': 1, opacity: '0.95'
+    }));
+
+    const arrowStartX = cardX + cardW / 2;
+    const arrowStartY = above ? cardY + cardH : cardY;
+    const arrowEndY = above ? y - st.dotR - 2 : y + st.dotR + 2;
+    cardG.appendChild(svgEl('line', {
+      x1: arrowStartX, y1: arrowStartY, x2: x, y2: arrowEndY,
+      stroke: st.color, 'stroke-width': 1, opacity: '0.5'
+    }));
+
+    const t1 = svgEl('text', {
+      x: cardX + cardW / 2, y: cardY + 16,
+      fill: st.color, 'font-size': 12, 'text-anchor': 'middle',
+      'font-family': 'Noto Serif SC', 'font-weight': '900'
+    });
+    t1.textContent = `${st.icon} ${sa.year} ${sa.label}`;
+    cardG.appendChild(t1);
+
+    const t2 = svgEl('text', {
+      x: cardX + cardW / 2, y: cardY + 30,
+      fill: '#e0d6c8', 'font-size': 10, 'text-anchor': 'middle',
+      'font-family': 'Noto Serif SC', opacity: '0.8'
+    });
+    t2.textContent = sa.sub;
+    cardG.appendChild(t2);
+
+    const t3 = svgEl('text', {
+      x: cardX + cardW / 2, y: cardY + 42,
+      fill: '#8a7f6f', 'font-size': 9, 'text-anchor': 'middle',
+      'font-family': 'Noto Serif SC'
+    });
+    t3.textContent = sa.kdPhase;
+    cardG.appendChild(t3);
+
+    gStock.appendChild(cardG);
+  });
+
+  svg.appendChild(gStock);
+
+  // ═══ Right Y-axis for stock (separate group for toggling) ═══
+  const gStockAxis = svgEl('g', { id: 'layer-stock-axis' });
+  const rAxisX = R + 8;
+  [10, 100, 1000, 10000, 40000].forEach(val => {
+    const y = stockY(val);
+    gStockAxis.appendChild(svgEl('line', {
+      x1: R, y1: y, x2: R + 5, y2: y,
+      stroke: 'rgba(76,175,80,0.4)', 'stroke-width': 1
+    }));
+    const label = val >= 10000 ? (val / 1000) + 'K' : val.toString();
+    gStockAxis.appendChild(svgEl('text', {
+      x: rAxisX + 2, y: y + 4, fill: 'rgba(76,175,80,0.7)',
+      'font-size': 10, 'text-anchor': 'start', 'font-family': 'Noto Serif SC'
+    })).textContent = label;
+    gStockAxis.appendChild(svgEl('line', {
+      x1: L, y1: y, x2: R, y2: y,
+      stroke: 'rgba(76,175,80,0.08)', 'stroke-width': 1, 'stroke-dasharray': '2 6'
+    }));
+  });
+  gStockAxis.appendChild(svgEl('line', {
+    x1: R, y1: T, x2: R, y2: B,
+    stroke: 'rgba(76,175,80,0.3)', 'stroke-width': 1
+  }));
+  gStockAxis.appendChild(svgEl('text', {
+    x: R + 8, y: T - 10, fill: 'rgba(76,175,80,0.8)',
+    'font-size': 11, 'text-anchor': 'start', 'font-family': 'Noto Serif SC', 'font-weight': '700'
+  })).textContent = 'DJIA ↑';
+  svg.appendChild(gStockAxis);
+
+  // ═══ 2026 marker (always visible, outside layer groups) ═══
+  const hlEvents = KD_WAVES.flatMap(w => w.events.filter(ev => ev.highlight).map(ev => ({ ...ev, wave: w })));
+  hlEvents.forEach(ev => {
+    const ex = yearToX(ev.year);
+    const evT = (ev.year - ev.wave.start) / (ev.wave.end - ev.wave.start);
+    const evY = B - H * kdWaveAsym(evT);
+
+    svg.appendChild(svgEl('line', {
+      x1: ex, y1: T, x2: ex, y2: B,
+      stroke: 'rgba(229,115,115,0.6)', 'stroke-width': 2
+    }));
+    svg.appendChild(svgEl('circle', {
+      cx: ex, cy: evY, r: 6,
+      fill: '#e57373', stroke: '#ff8a80', 'stroke-width': 2
+    }));
+
+    // Pulse animation
+    const pulse = svgEl('circle', { cx: ex, cy: evY, r: 6, fill: 'none', stroke: '#e57373', 'stroke-width': 1.5, opacity: '0.6' });
+    pulse.appendChild(svgEl('animate', { attributeName: 'r', from: '6', to: '20', dur: '2s', repeatCount: 'indefinite' }));
+    pulse.appendChild(svgEl('animate', { attributeName: 'opacity', from: '0.6', to: '0', dur: '2s', repeatCount: 'indefinite' }));
+    svg.appendChild(pulse);
+
+    // Info box
+    const guaIdx = yearToXiaoxiIdx(ev.year, ev.wave);
+    const gua = XIAOXI[guaIdx];
+    const boxX = ex > 1200 ? ex - 140 : ex + 14;
+    const boxY = evY - 64;
+    const fg = svgEl('g');
+    fg.appendChild(svgEl('rect', { x: boxX, y: boxY, width: 126, height: 56, rx: 6, fill: 'rgba(15,15,35,0.92)', stroke: '#e57373', 'stroke-width': 1 }));
+    const bt1 = svgEl('text', { x: boxX + 63, y: boxY + 22, fill: '#e57373', 'font-size': 14, 'text-anchor': 'middle', 'font-family': 'Noto Serif SC', 'font-weight': '900' });
+    bt1.textContent = `2026 · ${gua.symbol} ${gua.name}`;
+    fg.appendChild(bt1);
+    const bt2 = svgEl('text', { x: boxX + 63, y: boxY + 42, fill: '#8a7f6f', 'font-size': 11, 'text-anchor': 'middle', 'font-family': 'Noto Serif SC' });
+    bt2.textContent = `阳×${gua.yang} · ${gua.desc}`;
+    fg.appendChild(bt2);
+    svg.appendChild(fg);
+
+    // Rotated event label
+    const labelG = svgEl('g', { transform: `translate(${ex}, ${B + 28}) rotate(-45)` });
+    const evLabel = svgEl('text', {
+      x: 0, y: 0, fill: '#e57373', 'font-size': 11, 'font-weight': '700',
+      'text-anchor': 'end', 'font-family': 'Noto Serif SC'
+    });
+    evLabel.textContent = `${ev.year} ${ev.label}`;
+    labelG.appendChild(evLabel);
+    svg.appendChild(labelG);
+  });
+}
+
+// ═══════════════════════════════════════════
+// CHART 3: Overlay
+// ═══════════════════════════════════════════
+
+let overlayMode = 'overlay';
+
+function drawOverlay() {
+  const svg = document.getElementById('svg-overlay');
+  svg.innerHTML = '';
+  const L = 80, R = 1060, T = 30, B = 320;
+  const W = R - L, H = B - T;
+
+  // Phase backgrounds
+  const gPhase = svgEl('g');
+  KD_PHASES.forEach(ph => {
+    gPhase.appendChild(svgEl('rect', {
+      x: L + W * ph.start, y: T,
+      width: W * (ph.end - ph.start), height: H,
+      fill: ph.color
+    }));
+    const lbl = svgEl('text', {
+      x: L + W * (ph.start + ph.end) / 2, y: T + 16,
+      fill: ph.labelColor, 'font-size': 11, 'text-anchor': 'middle',
+      'font-family': 'Noto Serif SC', opacity: '0.6'
+    });
+    lbl.textContent = ph.name;
+    svg.appendChild(lbl);
+  });
+  svg.appendChild(gPhase);
+
+  drawGrid(svg, L, R, T, B, 12, 6, 'rgba(42,42,61,0.3)');
+  drawAxis(svg, L, R, T, B);
+
+  // Defs
+  const defs = svgEl('defs');
+  const g1 = svgEl('linearGradient', { id: 'grad-ov-yi', x1: '0', y1: '0', x2: '0', y2: '1' });
+  g1.appendChild(svgEl('stop', { offset: '0%', 'stop-color': '#d4a574', 'stop-opacity': '0.15' }));
+  g1.appendChild(svgEl('stop', { offset: '100%', 'stop-color': '#d4a574', 'stop-opacity': '0.02' }));
+  defs.appendChild(g1);
+  const g2 = svgEl('linearGradient', { id: 'grad-ov-kd', x1: '0', y1: '0', x2: '0', y2: '1' });
+  g2.appendChild(svgEl('stop', { offset: '0%', 'stop-color': '#6fa8dc', 'stop-opacity': '0.15' }));
+  g2.appendChild(svgEl('stop', { offset: '100%', 'stop-color': '#6fa8dc', 'stop-opacity': '0.02' }));
+  defs.appendChild(g2);
+  svg.insertBefore(defs, svg.firstChild);
+
+  const NN = 240;
+
+  // Yi wave
+  let yiPath = '';
+  for (let i = 0; i <= NN; i++) {
+    const t = i / NN;
+    const idx = Math.min(Math.floor(t * 12), 11);
+    const v = XIAOXI[idx].yang / 6;
+    const x = L + W * t;
+    const y = B - H * v;
+    yiPath += (i === 0 ? 'M' : 'L') + ` ${x.toFixed(1)} ${y.toFixed(1)}`;
+  }
+
+  // KD wave
+  let kdPath = '';
+  for (let i = 0; i <= NN; i++) {
+    const t = i / NN;
+    const v = kdWaveAsym(t);
+    const x = L + W * t;
+    const y = B - H * v;
+    kdPath += (i === 0 ? 'M' : 'L') + ` ${x.toFixed(1)} ${y.toFixed(1)}`;
+  }
+
+  const g = svgEl('g');
+
+  if (overlayMode === 'overlay' || overlayMode === 'phase') {
+    const phaseShift = overlayMode === 'phase' ? -0.08 : 0;
+
+    let yiPathShifted = '';
+    for (let i = 0; i <= NN; i++) {
+      const t = i / NN;
+      const tShifted = ((t - phaseShift) % 1 + 1) % 1;
+      const idx = Math.min(Math.floor(tShifted * 12), 11);
+      const v = XIAOXI[idx].yang / 6;
+      const x = L + W * t;
+      const y = B - H * v;
+      yiPathShifted += (i === 0 ? 'M' : 'L') + ` ${x.toFixed(1)} ${y.toFixed(1)}`;
+    }
+
+    const yiArea = yiPathShifted + ` L ${R} ${B} L ${L} ${B} Z`;
+    g.appendChild(svgEl('path', { d: yiArea, fill: 'url(#grad-ov-yi)', opacity: '0.5' }));
+    g.appendChild(svgEl('path', {
+      d: yiPathShifted, fill: 'none', stroke: '#d4a574', 'stroke-width': 2.5, 'stroke-linejoin': 'round'
+    }));
+
+    const kdArea = kdPath + ` L ${R} ${B} L ${L} ${B} Z`;
+    g.appendChild(svgEl('path', { d: kdArea, fill: 'url(#grad-ov-kd)', opacity: '0.5' }));
+    g.appendChild(svgEl('path', {
+      d: kdPath, fill: 'none', stroke: '#6fa8dc', 'stroke-width': 2.5
+    }));
+  }
+
+  if (overlayMode === 'diff') {
+    g.appendChild(svgEl('path', {
+      d: yiPath, fill: 'none', stroke: 'rgba(212,165,116,0.3)', 'stroke-width': 1.5, 'stroke-linejoin': 'round'
+    }));
+    g.appendChild(svgEl('path', {
+      d: kdPath, fill: 'none', stroke: 'rgba(111,168,220,0.3)', 'stroke-width': 1.5
+    }));
+
+    let diffPath = '';
+    const diffGrad = svgEl('linearGradient', { id: 'grad-diff', x1: '0', y1: '0', x2: '0', y2: '1' });
+    diffGrad.appendChild(svgEl('stop', { offset: '0%', 'stop-color': '#e57373', 'stop-opacity': '0.3' }));
+    diffGrad.appendChild(svgEl('stop', { offset: '100%', 'stop-color': '#e57373', 'stop-opacity': '0.02' }));
+    defs.appendChild(diffGrad);
+
+    const midY = T + H / 2;
+    for (let i = 0; i <= NN; i++) {
+      const t = i / NN;
+      const idx = Math.min(Math.floor(t * 12), 11);
+      const yiV = XIAOXI[idx].yang / 6;
+      const kdV = kdWaveAsym(t);
+      const diff = kdV - yiV;
+      const x = L + W * t;
+      const y = midY - diff * H * 0.45;
+      diffPath += (i === 0 ? 'M' : 'L') + ` ${x.toFixed(1)} ${y.toFixed(1)}`;
+    }
+
+    g.appendChild(svgEl('line', {
+      x1: L, y1: midY, x2: R, y2: midY,
+      stroke: 'rgba(229,115,115,0.3)', 'stroke-width': 1, 'stroke-dasharray': '4 4'
+    }));
+    g.appendChild(svgEl('text', {
+      x: L - 8, y: midY + 4, fill: '#e57373', 'font-size': 11,
+      'text-anchor': 'end', 'font-family': 'Noto Serif SC'
+    })).textContent = '0';
+
+    g.appendChild(svgEl('path', {
+      d: diffPath, fill: 'none', stroke: '#e57373', 'stroke-width': 2
+    }));
+  }
+
+  svg.appendChild(g);
+
+  // X labels
+  XIAOXI.forEach((x, i) => {
+    const xPos = L + W * (i + 0.5) / 12;
+    svg.appendChild(svgEl('text', {
+      x: xPos, y: B + 20,
+      fill: '#8a7f6f', 'font-size': 10, 'text-anchor': 'middle',
+      'font-family': 'Noto Serif SC'
+    })).textContent = x.name;
+  });
+
+  // Y labels
+  ['0', '', '0.5', '', '1'].forEach((l, i) => {
+    if (!l) return;
+    const y = B - H * i / 4;
+    svg.appendChild(svgEl('text', {
+      x: L - 12, y: y + 4, fill: '#8a7f6f',
+      'font-size': 11, 'text-anchor': 'end', 'font-family': 'Noto Serif SC'
+    })).textContent = l;
+  });
+
+  // Data points for Yi
+  XIAOXI.forEach((x, i) => {
+    const cx = L + W * (i + 0.5) / 12;
+    const cy = B - H * x.yang / 6;
+    const c = svgEl('circle', {
+      cx, cy, r: 4,
+      fill: '#d4a574', stroke: '#0f0f23', 'stroke-width': 1.5,
+      style: 'cursor:pointer;'
+    });
+    c.addEventListener('mouseenter', e => showTooltip(e, x));
+    c.addEventListener('mouseleave', hideTooltip);
+    svg.appendChild(c);
+  });
+}
+
+// ═══════════════════════════════════════════
+// CHART 5: Nesting diagrams
+// ═══════════════════════════════════════════
+
+function drawNesting() {
+  drawNestKD();
+  drawNestYI();
+}
+
+function drawNestKD() {
+  const svg = document.getElementById('svg-nest-kd');
+  const L = 30, R = 450, T = 20, B = 280;
+  const W = R - L, H = B - T;
+
+  const g = svgEl('g');
+  const y1 = T + 20;
+  let p1 = '';
+  for (let i = 0; i <= 200; i++) {
+    const t = i / 200;
+    const x = L + W * t;
+    const y = y1 + 50 - 50 * Math.sin(Math.PI * 2 * t - Math.PI / 2) * 0.5 - 25;
+    p1 += (i === 0 ? 'M' : 'L') + ` ${x.toFixed(1)} ${y.toFixed(1)}`;
+  }
+  g.appendChild(svgEl('path', { d: p1, fill: 'none', stroke: '#6fa8dc', 'stroke-width': 3, opacity: '0.9' }));
+  svg.appendChild(svgEl('text', {
+    x: L, y: y1 - 8, fill: '#6fa8dc', 'font-size': 12,
+    'font-family': 'Noto Serif SC', 'font-weight': '700'
+  })).textContent = '康波 ~60年';
+
+  const y2 = T + 110;
+  let p2 = '';
+  for (let i = 0; i <= 200; i++) {
+    const t = i / 200;
+    const x = L + W * t;
+    const y = y2 + 30 - 30 * Math.sin(Math.PI * 2 * 6 * t - Math.PI / 2) * 0.5 - 15;
+    p2 += (i === 0 ? 'M' : 'L') + ` ${x.toFixed(1)} ${y.toFixed(1)}`;
+  }
+  g.appendChild(svgEl('path', { d: p2, fill: 'none', stroke: '#81c784', 'stroke-width': 2, opacity: '0.8' }));
+  svg.appendChild(svgEl('text', {
+    x: L, y: y2 - 8, fill: '#81c784', 'font-size': 12,
+    'font-family': 'Noto Serif SC', 'font-weight': '700'
+  })).textContent = '朱格拉 ~10年 ×6';
+
+  const y3 = T + 200;
+  let p3 = '';
+  for (let i = 0; i <= 400; i++) {
+    const t = i / 400;
+    const x = L + W * t;
+    const y = y3 + 20 - 20 * Math.sin(Math.PI * 2 * 18 * t - Math.PI / 2) * 0.5 - 10;
+    p3 += (i === 0 ? 'M' : 'L') + ` ${x.toFixed(1)} ${y.toFixed(1)}`;
+  }
+  g.appendChild(svgEl('path', { d: p3, fill: 'none', stroke: '#ffd54f', 'stroke-width': 1.5, opacity: '0.7' }));
+  svg.appendChild(svgEl('text', {
+    x: L, y: y3 - 8, fill: '#ffd54f', 'font-size': 12,
+    'font-family': 'Noto Serif SC', 'font-weight': '700'
+  })).textContent = '基钦 ~40月 ×18';
+
+  const bracketX = L - 8;
+  g.appendChild(svgEl('line', {
+    x1: bracketX, y1: y1, x2: bracketX, y2: y3 + 30,
+    stroke: 'rgba(212,165,116,0.3)', 'stroke-width': 1
+  }));
+
+  svg.appendChild(g);
+
+  svg.appendChild(svgEl('text', {
+    x: L + W / 2, y: B + 10, fill: '#8a7f6f', 'font-size': 11,
+    'text-anchor': 'middle', 'font-family': 'Noto Serif SC'
+  })).textContent = '比例 60 : 10 : 3.3 ≈ 6 : 1';
+}
+
+function drawNestYI() {
+  const svg = document.getElementById('svg-nest-yi');
+  const L = 30, R = 450, T = 20, B = 280;
+  const W = R - L, H = B - T;
+
+  const g = svgEl('g');
+
+  const y1 = T + 20;
+  let p1 = '';
+  for (let i = 0; i <= 200; i++) {
+    const t = i / 200;
+    const x = L + W * t;
+    const y = y1 + 50 - 50 * Math.sin(Math.PI * 2 * t - Math.PI / 2) * 0.5 - 25;
+    p1 += (i === 0 ? 'M' : 'L') + ` ${x.toFixed(1)} ${y.toFixed(1)}`;
+  }
+  g.appendChild(svgEl('path', { d: p1, fill: 'none', stroke: '#d4a574', 'stroke-width': 3, opacity: '0.9' }));
+  svg.appendChild(svgEl('text', {
+    x: L, y: y1 - 8, fill: '#d4a574', 'font-size': 12,
+    'font-family': 'Noto Serif SC', 'font-weight': '700'
+  })).textContent = '64卦周期 (384爻)';
+
+  const y2 = T + 110;
+  let p2 = '';
+  for (let i = 0; i <= 200; i++) {
+    const t = i / 200;
+    const x = L + W * t;
+    const y = y2 + 30 - 30 * Math.sin(Math.PI * 2 * 8 * t - Math.PI / 2) * 0.5 - 15;
+    p2 += (i === 0 ? 'M' : 'L') + ` ${x.toFixed(1)} ${y.toFixed(1)}`;
+  }
+  g.appendChild(svgEl('path', { d: p2, fill: 'none', stroke: '#f0c080', 'stroke-width': 2, opacity: '0.8' }));
+  svg.appendChild(svgEl('text', {
+    x: L, y: y2 - 8, fill: '#f0c080', 'font-size': 12,
+    'font-family': 'Noto Serif SC', 'font-weight': '700'
+  })).textContent = '八宫/经卦 ×8';
+
+  const y3 = T + 200;
+  let p3 = '';
+  for (let i = 0; i <= 400; i++) {
+    const t = i / 400;
+    const x = L + W * t;
+    const step = Math.floor(t * 48);
+    const val = (step % 2 === 0) ? 1 : 0;
+    const y = y3 + 20 - 20 * val;
+    p3 += (i === 0 ? 'M' : 'L') + ` ${x.toFixed(1)} ${y.toFixed(1)}`;
+  }
+  g.appendChild(svgEl('path', { d: p3, fill: 'none', stroke: '#e8d5b7', 'stroke-width': 1.5, opacity: '0.6' }));
+  svg.appendChild(svgEl('text', {
+    x: L, y: y3 - 8, fill: '#e8d5b7', 'font-size': 12,
+    'font-family': 'Noto Serif SC', 'font-weight': '700'
+  })).textContent = '爻变 (阴阳翻转)';
+
+  const bracketX = L - 8;
+  g.appendChild(svgEl('line', {
+    x1: bracketX, y1: y1, x2: bracketX, y2: y3 + 30,
+    stroke: 'rgba(212,165,116,0.3)', 'stroke-width': 1
+  }));
+
+  svg.appendChild(g);
+
+  svg.appendChild(svgEl('text', {
+    x: L + W / 2, y: B + 10, fill: '#8a7f6f', 'font-size': 11,
+    'text-anchor': 'middle', 'font-family': 'Noto Serif SC'
+  })).textContent = '比例 64 : 8 : 1 = 8 : 1';
+}
+
+// ═══════════════════════════════════════════
+// HEX CARDS
+// ═══════════════════════════════════════════
+
+function buildHexCards() {
+  const container = document.getElementById('hex-cards');
+  XIAOXI.forEach(x => {
+    const card = document.createElement('div');
+    card.className = 'hex-card';
+    card.innerHTML = `
+      <div class="hex-symbol">${x.symbol}</div>
+      <div class="hex-name">${x.name}</div>
+      <div class="hex-month">${x.month}</div>
+      <div class="hex-yang">阳×${x.yang}</div>
+    `;
+    card.addEventListener('mouseenter', e => showTooltip(e, x));
+    card.addEventListener('mouseleave', hideTooltip);
+    container.appendChild(card);
+  });
+}
+
+// ═══════════════════════════════════════════
+// TOOLTIP
+// ═══════════════════════════════════════════
+
+const tt = document.getElementById('tooltip');
+
+function showTooltip(e, data) {
+  tt.innerHTML = `
+    <div class="tt-title">${data.symbol} ${data.name}</div>
+    <div>${data.month} · ${data.season}</div>
+    <div>阳爻：${data.yang}/6</div>
+    <div style="margin-top:4px;color:#8a7f6f;font-size:12px;">${data.desc}</div>
+  `;
+  positionTooltip(e);
+  tt.classList.add('visible');
+}
+
+function showTooltipRaw(e, html) {
+  tt.innerHTML = html;
+  positionTooltip(e);
+  tt.classList.add('visible');
+}
+
+function positionTooltip(e) {
+  let x = e.clientX + 16;
+  let y = e.clientY - 10;
+  if (x + 280 > window.innerWidth) x = e.clientX - 296;
+  if (y + 120 > window.innerHeight) y = e.clientY - 120;
+  tt.style.left = x + 'px';
+  tt.style.top = y + 'px';
+}
+
+function hideTooltip() {
+  tt.classList.remove('visible');
+}
+
+// ═══════════════════════════════════════════
+// CONTROLS
+// ═══════════════════════════════════════════
+
+document.querySelectorAll('.ctrl-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.ctrl-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    overlayMode = btn.dataset.mode;
+    document.getElementById('legend-diff').style.display = overlayMode === 'diff' ? 'flex' : 'none';
+    drawOverlay();
+  });
+});
+
+// Layer toggles
+document.querySelectorAll('.layer-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    btn.classList.toggle('off');
+    btn.classList.toggle('active');
+    const layerId = btn.dataset.layer;
+    const g = document.getElementById('layer-' + layerId);
+    if (g) g.style.display = btn.classList.contains('off') ? 'none' : '';
+    if (layerId === 'stock') {
+      const ra = document.getElementById('layer-stock-axis');
+      if (ra) ra.style.display = btn.classList.contains('off') ? 'none' : '';
+    }
+  });
+});
+
+// ═══════════════════════════════════════════
+// NAV DOTS
+// ═══════════════════════════════════════════
+
+function initNavDots() {
+  const dots = document.querySelectorAll('.nav-dot');
+  const sections = [...dots].map(d => document.querySelector(d.getAttribute('href')));
+  const obs = new IntersectionObserver(entries => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        dots.forEach(d => d.classList.remove('active'));
+        const dot = [...dots].find(d => d.getAttribute('href') === '#' + entry.target.id);
+        if (dot) dot.classList.add('active');
+      }
+    });
+  }, { rootMargin: '-40% 0px -40% 0px' });
+  sections.forEach(s => { if (s) obs.observe(s); });
+}
+
+// ═══════════════════════════════════════════
+// TIMELINE HOVER INTERACTION
+// ═══════════════════════════════════════════
+
+function initTimelineHover() {
+  const svg = document.getElementById('svg-merged');
+  if (!svg) return;
+  const L = 60, R = 1360, T = 50, B = 420;
+  const YS = 1780, YE = 2032, YSPAN = YE - YS;
+
+  const crosshairLine = svgEl('line', {
+    x1: 0, y1: T, x2: 0, y2: B,
+    stroke: 'rgba(212,165,116,0.4)', 'stroke-width': 1,
+    class: 'crosshair', style: 'display:none;'
+  });
+  svg.appendChild(crosshairLine);
+
+  const hoverRect = svgEl('rect', {
+    x: L, y: T, width: R - L, height: B - T,
+    fill: 'transparent', style: 'cursor:crosshair;'
+  });
+  svg.appendChild(hoverRect);
+
+  hoverRect.addEventListener('mousemove', e => {
+    const rect = svg.getBoundingClientRect();
+    const svgX = (e.clientX - rect.left) / rect.width * 1440;
+    if (svgX < L || svgX > R) return;
+    const year = Math.round(YS + YSPAN * (svgX - L) / (R - L));
+
+    crosshairLine.setAttribute('x1', svgX);
+    crosshairLine.setAttribute('x2', svgX);
+    crosshairLine.style.display = '';
+
+    let phase = '', guaName = '', guaYang = 0;
+    for (const w of KD_WAVES) {
+      if (year >= w.start && year <= w.end) {
+        const t = (year - w.start) / (w.end - w.start);
+        const phaseIdx = t < 0.2 ? 0 : t < 0.5 ? 1 : t < 0.7 ? 2 : 3;
+        phase = ['回升','繁荣','衰退','萧条'][phaseIdx];
+        const guaIdx = Math.min(Math.floor(t * 12), 11);
+        guaName = XIAOXI[guaIdx].name;
+        guaYang = XIAOXI[guaIdx].yang;
+        break;
+      }
+    }
+
+    let djia = '';
+    for (let i = 0; i < STOCK_DATA.length - 1; i++) {
+      if (year >= STOCK_DATA[i][0] && year <= STOCK_DATA[i+1][0]) {
+        const frac = (year - STOCK_DATA[i][0]) / (STOCK_DATA[i+1][0] - STOCK_DATA[i][0]);
+        const val = Math.round(STOCK_DATA[i][1] + frac * (STOCK_DATA[i+1][1] - STOCK_DATA[i][1]));
+        djia = val.toLocaleString();
+        break;
+      }
+    }
+
+    showTooltipRaw(e,
+      `<div class="tt-title">${year}年</div>` +
+      (phase ? `<div>康波：${phase} · ${guaName}卦 (阳×${guaYang})</div>` : '') +
+      (djia ? `<div>DJIA：${djia}</div>` : '')
+    );
+  });
+
+  hoverRect.addEventListener('mouseleave', () => {
+    crosshairLine.style.display = 'none';
+    hideTooltip();
+  });
+}
+
+// ═══════════════════════════════════════════
+// SCROLL ANIMATIONS
+// ═══════════════════════════════════════════
+
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      entry.target.style.opacity = '1';
+      entry.target.style.transform = 'translateY(0)';
+    }
+  });
+}, { threshold: 0.1 });
+
+document.querySelectorAll('.section, .chart-wrap, .nest-box, .part-divider, .insight-card').forEach(el => {
+  el.style.opacity = '0';
+  el.style.transform = 'translateY(30px)';
+  el.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+  observer.observe(el);
+});
+
+// ═══════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════
+
+drawXiaoxi();
+drawOverlay();
+drawMergedTimeline();
+drawNesting();
+buildHexCards();
+initNavDots();
+initTimelineHover();
+</script>
+</body>
+</html>

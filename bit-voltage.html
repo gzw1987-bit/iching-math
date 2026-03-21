@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>64卦的电压信号：示波器视角</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;700;900&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#0a0a12;--bg2:#111120;--green:#00ff88;--green2:#00cc66;--dim:#0a3320;--text:#b0b0b0;--text2:#505050;--gold:#f0c080;--border:#1a1a2e;--grid:rgba(0,255,136,0.06)}
+body{background:var(--bg);color:var(--text);font-family:'Courier New',monospace;line-height:1.6}
+.container{max-width:960px;margin:0 auto;padding:24px}
+h1{font-size:22px;font-weight:700;text-align:center;margin-bottom:4px;color:var(--green)}
+.sub{font-size:12px;color:var(--text2);text-align:center;margin-bottom:24px}
+
+/* Scope frame */
+.scope{border:2px solid #333;border-radius:12px;background:var(--bg2);padding:16px;margin:16px 0;box-shadow:0 0 30px rgba(0,255,136,0.05)}
+.scope-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;font-size:11px;color:var(--text2)}
+.scope-label{color:var(--green);font-weight:700}
+canvas{width:100%;border:1px solid #222;border-radius:4px;background:#050510}
+
+/* Controls styled like hardware */
+.hw-controls{display:flex;gap:12px;flex-wrap:wrap;align-items:center;padding:12px;border:1px solid #222;border-radius:8px;background:#0d0d18;margin:12px 0}
+.hw-btn{padding:6px 16px;border:1px solid #333;border-radius:4px;background:#1a1a28;color:var(--green);cursor:pointer;font-family:inherit;font-size:12px;transition:all 0.15s}
+.hw-btn:hover{border-color:var(--green);box-shadow:0 0 8px rgba(0,255,136,0.2)}
+.hw-btn.active{background:var(--dim);border-color:var(--green)}
+.hw-btn.run{border-color:var(--green);color:var(--green)}
+.hw-btn.run.on{background:var(--green);color:#000;box-shadow:0 0 12px var(--green)}
+.hw-knob{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--text2)}
+.hw-knob input{width:100px;accent-color:var(--green)}
+.hw-knob span{color:var(--green);min-width:40px}
+
+/* Status panel */
+.status{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px;margin:12px 0}
+.status-cell{padding:8px 12px;border:1px solid #222;border-radius:4px;background:#0d0d18}
+.status-label{font-size:9px;color:var(--text2);text-transform:uppercase;letter-spacing:1px}
+.status-val{font-size:18px;color:var(--green);font-weight:700;margin-top:2px}
+.status-val.gold{color:var(--gold)}
+
+/* LED indicator row */
+.led-row{display:flex;justify-content:center;gap:12px;margin:16px 0}
+.led-group{text-align:center}
+.led-label{font-size:9px;color:var(--text2);margin-bottom:4px}
+.led{width:16px;height:16px;border-radius:50%;display:inline-block;margin:0 2px;border:1px solid #333;transition:all 0.08s}
+.led.off{background:#1a1a1a}
+.led.on-high{background:var(--green);box-shadow:0 0 8px var(--green)}
+.led.on-low{background:#333}
+
+/* Data table */
+.data-panel{max-height:300px;overflow-y:auto;border:1px solid #222;border-radius:4px;margin:12px 0;font-size:11px}
+.data-panel::-webkit-scrollbar{width:6px}
+.data-panel::-webkit-scrollbar-thumb{background:#333;border-radius:3px}
+.data-row{display:grid;grid-template-columns:40px 60px 80px 60px 1fr;padding:4px 8px;border-bottom:1px solid #111}
+.data-row.header{color:var(--text2);position:sticky;top:0;background:#0d0d18;font-weight:700}
+.data-row.current{background:rgba(0,255,136,0.08);color:var(--green)}
+.data-row .dr-morse{letter-spacing:2px}
+
+.insight{padding:12px;border-left:2px solid var(--green);background:rgba(0,255,136,0.02);border-radius:0 4px 4px 0;font-size:12px;color:var(--text);margin:16px 0}
+.insight strong{color:var(--green)}
+.back-link{display:inline-block;margin-bottom:16px;color:var(--text2);text-decoration:none;font-size:12px}
+.back-link:hover{color:var(--green)}
+</style>
+</head>
+<body>
+<div class="container">
+<a class="back-link" href="index.html">&larr; BACK</a>
+<h1>OSCILLOSCOPE — 64 HEXAGRAM VOLTAGE SIGNAL</h1>
+<div class="sub">YAO DATA BUS: 6-BIT PARALLEL — ACTIVE HIGH — 3.3V LOGIC</div>
+
+<!-- Status panel -->
+<div class="status">
+  <div class="status-cell"><div class="status-label">HEXAGRAM</div><div class="status-val gold" id="st-name">—</div></div>
+  <div class="status-cell"><div class="status-label">ADDRESS</div><div class="status-val" id="st-addr">--/64</div></div>
+  <div class="status-cell"><div class="status-label">BINARY</div><div class="status-val" id="st-bin">------</div></div>
+  <div class="status-cell"><div class="status-label">DECIMAL</div><div class="status-val" id="st-dec">--</div></div>
+  <div class="status-cell"><div class="status-label">YANG COUNT</div><div class="status-val" id="st-yang">-/6</div></div>
+  <div class="status-cell"><div class="status-label">VOLTAGE</div><div class="status-val" id="st-volt">0.0V</div></div>
+</div>
+
+<!-- LED indicators -->
+<div class="led-row">
+  <div class="led-group">
+    <div class="led-label">上 五 四 三 二 初</div>
+    <div id="leds"></div>
+  </div>
+</div>
+
+<!-- Scope: 6 channels -->
+<div class="scope">
+  <div class="scope-header">
+    <span class="scope-label">CH1-6: YAO[0:5] — 3.3V/div — TIME BASE: 1 hexagram/div</span>
+    <span>TRIGGER: AUTO</span>
+  </div>
+  <canvas id="scope-canvas" height="360"></canvas>
+</div>
+
+<!-- Scope: composite -->
+<div class="scope">
+  <div class="scope-header">
+    <span class="scope-label">COMPOSITE: DECIMAL VALUE — 63.0/div</span>
+    <span>ANALOG OUTPUT</span>
+  </div>
+  <canvas id="composite-canvas" height="180"></canvas>
+</div>
+
+<!-- Controls -->
+<div class="hw-controls">
+  <button class="hw-btn run" id="run-btn" onclick="toggleRun()">▶ RUN</button>
+  <button class="hw-btn" onclick="stepOne()">STEP ▸</button>
+  <button class="hw-btn" onclick="resetAll()">RESET</button>
+  <div style="width:1px;height:20px;background:#333"></div>
+  <button class="hw-btn active" data-order="wen" onclick="setOrd('wen',this)">WENXU</button>
+  <button class="hw-btn" data-order="nat" onclick="setOrd('nat',this)">BINARY</button>
+  <button class="hw-btn" data-order="gray" onclick="setOrd('gray',this)">GRAY</button>
+  <button class="hw-btn" data-order="yang" onclick="setOrd('yang',this)">YANG↑</button>
+  <div class="hw-knob">CLK <input type="range" id="clk-slider" min="50" max="1000" value="300"><span id="clk-val">300</span>ms</div>
+</div>
+
+<!-- Data log -->
+<div class="data-panel" id="data-panel">
+  <div class="data-row header"><span>#</span><span>NAME</span><span>BINARY</span><span>DEC</span><span>SIGNAL</span></div>
+</div>
+
+<div class="insight">
+  <strong>这就是计算机的工作方式。</strong>每个卦 = 数据总线上的一帧6位数据。阳(1) = 3.3V高电平，阴(0) = 0V低电平。
+  示波器的6条通道对应6个爻位，就像逻辑分析仪的6条数据线。
+  上方的合成信号把6位二进制转为十进制模拟电压——你看到的波形和我们之前做的"文王序波形图"是同一个东西，
+  只是换了一种表达：从数学曲线变成了电信号。<br><br>
+  <strong>伏羲发明了数据格式（6位二进制），文王写了数据内容（64帧的序列），周公写了解码协议（384条爻辞=查找表）。
+  这就是一个完整的数字通信系统。</strong>
+</div>
+
+</div>
+
+<script>
+const HEXAGRAM_MAP={'111111':1,'000000':2,'100010':3,'010001':4,'111010':5,'010111':6,'010000':7,'000010':8,'111011':9,'110111':10,'111000':11,'000111':12,'101111':13,'111101':14,'001000':15,'000100':16,'100110':17,'011001':18,'110000':19,'000011':20,'100101':21,'101001':22,'000001':23,'100000':24,'100111':25,'111001':26,'100001':27,'011110':28,'010010':29,'101101':30,'001110':31,'011100':32,'001111':33,'111100':34,'000101':35,'101000':36,'101011':37,'110101':38,'001010':39,'010100':40,'110001':41,'100011':42,'111110':43,'011111':44,'000110':45,'011000':46,'010110':47,'011010':48,'101110':49,'011101':50,'100100':51,'001001':52,'001011':53,'110100':54,'101100':55,'001101':56,'011011':57,'110110':58,'010011':59,'110010':60,'110011':61,'001100':62,'101010':63,'010101':64};
+const HN={1:'乾',2:'坤',3:'屯',4:'蒙',5:'需',6:'讼',7:'师',8:'比',9:'小畜',10:'履',11:'泰',12:'否',13:'同人',14:'大有',15:'谦',16:'豫',17:'随',18:'蛊',19:'临',20:'观',21:'噬嗑',22:'贲',23:'剥',24:'复',25:'无妄',26:'大畜',27:'颐',28:'大过',29:'坎',30:'离',31:'咸',32:'恒',33:'遁',34:'大壮',35:'晋',36:'明夷',37:'家人',38:'睽',39:'蹇',40:'解',41:'损',42:'益',43:'夬',44:'姤',45:'萃',46:'升',47:'困',48:'井',49:'革',50:'鼎',51:'震',52:'艮',53:'渐',54:'归妹',55:'丰',56:'旅',57:'巽',58:'兑',59:'涣',60:'节',61:'中孚',62:'小过',63:'既济',64:'未济'};
+const n2b={};for(const[b,n]of Object.entries(HEXAGRAM_MAP))n2b[n]=b;
+
+function wenOrder(){const r=[];for(let n=1;n<=64;n++)r.push(n2b[n]);return r;}
+function natOrder(){const a=[];for(let i=0;i<64;i++)a.push(i.toString(2).padStart(6,'0'));return a;}
+function grayOrder(){const g=[];for(let i=0;i<64;i++){const v=i^(i>>1);g.push(v.toString(2).padStart(6,'0'));}return g;}
+function yangOrder(){const a=natOrder();a.sort((a,b)=>{const ya=a.split('').filter(c=>c==='1').length;const yb=b.split('').filter(c=>c==='1').length;return ya-yb||parseInt(a,2)-parseInt(b,2);});return a;}
+
+let order=wenOrder();
+let running=false;
+let timer=null;
+let idx=0;
+let history=[];// store past frames for scope display
+const SCOPE_HISTORY=32;// show last N hexagrams
+
+// LEDs
+const ledsEl=document.getElementById('leds');
+for(let i=5;i>=0;i--){const l=document.createElement('span');l.className='led off';l.id='led-'+i;ledsEl.appendChild(l);}
+
+// Clock slider
+const clkSlider=document.getElementById('clk-slider');
+const clkVal=document.getElementById('clk-val');
+clkSlider.addEventListener('input',()=>{clkVal.textContent=clkSlider.value;});
+
+function setOrd(key,btn){
+  const fns={wen:wenOrder,nat:natOrder,gray:grayOrder,yang:yangOrder};
+  order=fns[key]();
+  document.querySelectorAll('.hw-btn[data-order]').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  resetAll();
+}
+
+function resetAll(){
+  if(running)toggleRun();
+  idx=0;history=[];
+  updateDisplay(null);
+  drawScope();drawComposite();
+  document.getElementById('data-panel').innerHTML='<div class="data-row header"><span>#</span><span>NAME</span><span>BINARY</span><span>DEC</span><span>SIGNAL</span></div>';
+  for(let i=0;i<6;i++)document.getElementById('led-'+i).className='led off';
+}
+
+function toggleRun(){
+  running=!running;
+  const btn=document.getElementById('run-btn');
+  if(running){
+    btn.classList.add('on');btn.textContent='■ STOP';
+    tick();
+  }else{
+    btn.classList.remove('on');btn.textContent='▶ RUN';
+    clearTimeout(timer);
+  }
+}
+
+function stepOne(){
+  if(running)return;
+  processFrame();
+}
+
+function tick(){
+  if(!running)return;
+  processFrame();
+  if(idx>=order.length){running=false;document.getElementById('run-btn').classList.remove('on');document.getElementById('run-btn').textContent='▶ RUN';return;}
+  timer=setTimeout(tick,parseInt(clkSlider.value));
+}
+
+function processFrame(){
+  if(idx>=order.length)return;
+  const bin=order[idx];
+  const num=HEXAGRAM_MAP[bin]||0;
+
+  history.push(bin);
+  if(history.length>SCOPE_HISTORY)history.shift();
+
+  updateDisplay(bin);
+  updateLEDs(bin);
+  addDataRow(idx,bin,num);
+  drawScope();
+  drawComposite();
+
+  idx++;
+}
+
+function updateDisplay(bin){
+  if(!bin){
+    document.getElementById('st-name').textContent='—';
+    document.getElementById('st-addr').textContent='--/64';
+    document.getElementById('st-bin').textContent='------';
+    document.getElementById('st-dec').textContent='--';
+    document.getElementById('st-yang').textContent='-/6';
+    document.getElementById('st-volt').textContent='0.0V';
+    return;
+  }
+  const num=HEXAGRAM_MAP[bin]||0;
+  const dec=parseInt(bin,2);
+  const yang=bin.split('').filter(c=>c==='1').length;
+  const volt=(yang/6*3.3).toFixed(1);
+
+  document.getElementById('st-name').textContent=num?HN[num]:'?';
+  document.getElementById('st-addr').textContent=`${idx+1}/64`;
+  document.getElementById('st-bin').textContent=bin;
+  document.getElementById('st-dec').textContent=dec;
+  document.getElementById('st-yang').textContent=`${yang}/6`;
+  document.getElementById('st-volt').textContent=`${volt}V`;
+}
+
+function updateLEDs(bin){
+  for(let i=0;i<6;i++){
+    const led=document.getElementById('led-'+i);
+    led.className='led '+(bin[i]==='1'?'on-high':'on-low');
+  }
+}
+
+function addDataRow(i,bin,num){
+  const panel=document.getElementById('data-panel');
+  // Remove current highlight from previous
+  panel.querySelectorAll('.data-row.current').forEach(r=>r.classList.remove('current'));
+  const row=document.createElement('div');
+  row.className='data-row current';
+  const name=num?HN[num]:'?';
+  const dec=parseInt(bin,2);
+  const signal=bin.split('').map(c=>c==='1'?'▮':'▯').join('');
+  row.innerHTML=`<span>${i+1}</span><span style="color:var(--gold)">${name}</span><span>${bin}</span><span>${dec}</span><span class="dr-morse">${signal}</span>`;
+  panel.appendChild(row);
+  row.scrollIntoView({block:'nearest'});
+}
+
+// ═══ Scope Drawing ═══
+function drawScope(){
+  const canvas=document.getElementById('scope-canvas');
+  const dpr=window.devicePixelRatio||1;
+  const rect=canvas.getBoundingClientRect();
+  canvas.width=rect.width*dpr;canvas.height=rect.height*dpr;
+  const ctx=canvas.getContext('2d');ctx.scale(dpr,dpr);
+  const w=rect.width,h=rect.height;
+
+  // Background
+  ctx.fillStyle='#050510';ctx.fillRect(0,0,w,h);
+
+  // Grid
+  ctx.strokeStyle='var(--grid)';ctx.lineWidth=0.5;
+  for(let x=0;x<=SCOPE_HISTORY;x++){
+    const px=x/SCOPE_HISTORY*w;
+    ctx.beginPath();ctx.moveTo(px,0);ctx.lineTo(px,h);ctx.stroke();
+  }
+  const chH=h/6;
+  for(let ch=0;ch<=6;ch++){
+    ctx.beginPath();ctx.moveTo(0,ch*chH);ctx.lineTo(w,ch*chH);ctx.stroke();
+  }
+
+  // Channel labels
+  const labels=['初爻 D0','二爻 D1','三爻 D2','四爻 D3','五爻 D4','上爻 D5'];
+
+  // Draw 6 channels (bottom = D0/初爻, top = D5/上爻)
+  for(let ch=0;ch<6;ch++){
+    const bitIdx=ch;// bit 0=初爻 at bottom
+    const yBase=h-(ch+0.5)*chH;// bottom to top
+    const yHigh=yBase-chH*0.35;
+    const yLow=yBase+chH*0.35;
+
+    // Channel label
+    ctx.fillStyle='rgba(0,255,136,0.3)';ctx.font='9px monospace';ctx.textAlign='left';
+    ctx.fillText(labels[ch],4,yBase-chH*0.3);
+
+    if(history.length===0)continue;
+
+    // Draw waveform
+    ctx.strokeStyle=ch===5?'#00ff88':ch===4?'#00dd77':ch===3?'#00bb66':ch===2?'#009955':ch===1?'#007744':'#005533';
+    ctx.lineWidth=1.5;
+    ctx.beginPath();
+
+    const startX=Math.max(0,SCOPE_HISTORY-history.length);
+
+    for(let i=0;i<history.length;i++){
+      const bin=history[i];
+      const val=parseInt(bin[bitIdx]);
+      const x=(startX+i)/SCOPE_HISTORY*w;
+      const xNext=(startX+i+1)/SCOPE_HISTORY*w;
+      const y=val?yHigh:yLow;
+
+      if(i===0){
+        ctx.moveTo(x,y);
+      }else{
+        // Previous value
+        const prevVal=parseInt(history[i-1][bitIdx]);
+        const prevY=prevVal?yHigh:yLow;
+        // Vertical transition
+        if(val!==prevVal){
+          ctx.lineTo(x,prevY);
+          ctx.lineTo(x,y);
+        }
+      }
+      ctx.lineTo(xNext,y);
+    }
+    ctx.stroke();
+
+    // Phosphor glow effect for last position
+    if(history.length>0){
+      const lastBin=history[history.length-1];
+      const lastVal=parseInt(lastBin[bitIdx]);
+      const lastY=lastVal?yHigh:yLow;
+      const lastX=w;
+      ctx.beginPath();ctx.arc(lastX-2,lastY,3,0,Math.PI*2);
+      ctx.fillStyle=ctx.strokeStyle;ctx.fill();
+    }
+  }
+}
+
+function drawComposite(){
+  const canvas=document.getElementById('composite-canvas');
+  const dpr=window.devicePixelRatio||1;
+  const rect=canvas.getBoundingClientRect();
+  canvas.width=rect.width*dpr;canvas.height=rect.height*dpr;
+  const ctx=canvas.getContext('2d');ctx.scale(dpr,dpr);
+  const w=rect.width,h=rect.height;
+  const pad={top:10,bottom:10,left:10,right:10};
+  const pw=w-pad.left-pad.right,ph=h-pad.top-pad.bottom;
+
+  ctx.fillStyle='#050510';ctx.fillRect(0,0,w,h);
+
+  // Grid
+  ctx.strokeStyle='var(--grid)';ctx.lineWidth=0.5;
+  for(let x=0;x<=SCOPE_HISTORY;x++){
+    const px=pad.left+x/SCOPE_HISTORY*pw;
+    ctx.beginPath();ctx.moveTo(px,0);ctx.lineTo(px,h);ctx.stroke();
+  }
+  for(let y=0;y<=4;y++){
+    const py=pad.top+y/4*ph;
+    ctx.beginPath();ctx.moveTo(0,py);ctx.lineTo(w,py);ctx.stroke();
+  }
+
+  if(history.length<2)return;
+
+  const startX=Math.max(0,SCOPE_HISTORY-history.length);
+
+  // Draw composite (decimal value as analog voltage)
+  ctx.strokeStyle='#00ff88';ctx.lineWidth=2;
+  ctx.beginPath();
+
+  for(let i=0;i<history.length;i++){
+    const dec=parseInt(history[i],2);
+    const x=pad.left+(startX+i)/SCOPE_HISTORY*pw;
+    const xNext=pad.left+(startX+i+1)/SCOPE_HISTORY*pw;
+    const y=pad.top+ph-(dec/63)*ph;
+
+    if(i===0){ctx.moveTo(x,y);}
+    else{
+      const prevDec=parseInt(history[i-1],2);
+      const prevY=pad.top+ph-(prevDec/63)*ph;
+      ctx.lineTo(x,prevY);
+      ctx.lineTo(x,y);
+    }
+    ctx.lineTo(xNext,y);
+  }
+  ctx.stroke();
+
+  // Fill
+  const lastX=pad.left+(startX+history.length)/SCOPE_HISTORY*pw;
+  ctx.lineTo(lastX,pad.top+ph);
+  ctx.lineTo(pad.left+startX/SCOPE_HISTORY*pw,pad.top+ph);
+  ctx.closePath();
+  ctx.fillStyle='rgba(0,255,136,0.05)';ctx.fill();
+
+  // Y axis labels
+  ctx.fillStyle='rgba(0,255,136,0.3)';ctx.font='9px monospace';ctx.textAlign='right';
+  ctx.fillText('63',pad.left-2,pad.top+8);
+  ctx.fillText('0',pad.left-2,h-pad.bottom);
+}
+
+// Init
+drawScope();
+drawComposite();
+</script>
+</body>
+</html>

@@ -1,0 +1,590 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>四个大脑，同一个终点：莱布尼茨 · 冯诺伊曼 · Shannon · Petoukhov × 易经</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;700;900&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0f0f23;--bg2:#1a1a2e;--bg3:#16162b;
+  --bronze:#d4a574;--gold:#f0c080;--cream:#e8d5b7;
+  --text:#e0d6c8;--text2:#8a7f6f;--border:#2a2a3d;
+  --green:#7ecba1;--red:#e07070;--blue:#a8d8ea;--purple:#c792ea;
+  --leibniz:#e07070;--neumann:#a8d8ea;--shannon:#c792ea;--petoukhov:#7ecba1;
+}
+body{background:var(--bg);color:var(--text);font-family:'Noto Serif SC',serif;line-height:1.8}
+.container{max-width:960px;margin:0 auto;padding:24px}
+a{color:var(--bronze);text-decoration:none}
+
+.hero{text-align:center;padding:60px 0 40px;border-bottom:1px solid var(--border);margin-bottom:40px}
+.hero h1{font-size:clamp(24px,4vw,36px);font-weight:900;color:var(--cream);margin-bottom:16px}
+.hero .sub{font-size:15px;color:var(--text2);max-width:700px;margin:0 auto}
+.hero .portraits{display:flex;gap:16px;justify-content:center;margin-top:24px;flex-wrap:wrap}
+.portrait{text-align:center;padding:12px 16px;border:1px solid var(--border);border-radius:10px;background:var(--bg2);min-width:120px}
+.portrait .p-year{font-size:11px;color:var(--text2)}
+.portrait .p-name{font-size:15px;font-weight:700}
+.portrait .p-field{font-size:11px;margin-top:2px}
+.portrait .p-read{font-size:10px;margin-top:4px;padding:2px 6px;border-radius:3px}
+
+/* Person section */
+.person{padding:48px 0;border-bottom:1px solid var(--border)}
+.person:last-of-type{border-bottom:none}
+.person-header{display:flex;align-items:center;gap:16px;margin-bottom:20px}
+.person-icon{width:48px;height:48px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:24px;flex-shrink:0}
+.person-info h2{font-size:22px;font-weight:900;margin-bottom:2px}
+.person-info .p-meta{font-size:12px;color:var(--text2)}
+.person-desc{font-size:14px;color:var(--text2);margin-bottom:20px}
+
+/* Vis container */
+.vis-box{border:1px solid var(--border);border-radius:12px;background:var(--bg2);overflow:hidden;margin-bottom:20px}
+.vis-title{padding:12px 16px;font-size:14px;font-weight:700;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center}
+.vis-canvas{width:100%;background:var(--bg3)}
+.vis-legend{padding:8px 16px;font-size:11px;color:var(--text2);display:flex;gap:16px;flex-wrap:wrap;border-top:1px solid var(--border)}
+.vis-legend-dot{width:10px;height:10px;border-radius:2px;display:inline-block;margin-right:4px;vertical-align:middle}
+
+/* Mapping table */
+.map-table{width:100%;border-collapse:collapse;font-size:13px;margin:16px 0}
+.map-table th{text-align:left;padding:8px 12px;border-bottom:2px solid var(--border);color:var(--bronze)}
+.map-table td{padding:8px 12px;border-bottom:1px solid var(--border)}
+.map-table td:first-child{font-weight:700;white-space:nowrap}
+
+/* Insight */
+.insight{padding:16px;border-left:3px solid var(--gold);background:rgba(212,165,116,0.04);border-radius:0 8px 8px 0;font-size:14px;color:var(--cream);margin:16px 0}
+.insight strong{color:var(--gold)}
+
+/* Grid for Petoukhov */
+.dual-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:16px 0}
+.grid-box{border:1px solid var(--border);border-radius:8px;overflow:hidden}
+.grid-label{padding:8px 12px;font-size:12px;font-weight:700;text-align:center;border-bottom:1px solid var(--border)}
+.mini-grid{display:grid;grid-template-columns:repeat(8,1fr);gap:1px;padding:4px;background:var(--bg3)}
+.mini-cell{padding:3px 1px;text-align:center;font-size:9px;border-radius:2px;cursor:default}
+
+/* Shannon flow */
+.flow{display:flex;align-items:center;gap:0;margin:16px 0;overflow-x:auto;padding:8px 0}
+.flow-node{padding:12px 14px;border-radius:8px;text-align:center;min-width:100px;font-size:12px;flex-shrink:0}
+.flow-arrow{font-size:18px;color:var(--text2);padding:0 4px;flex-shrink:0}
+.flow-top{font-size:10px;margin-bottom:4px;font-weight:700}
+.flow-bot{font-size:10px;margin-top:4px;color:var(--text2)}
+
+/* Payoff matrix */
+.matrix-wrap{display:flex;gap:24px;align-items:flex-start;flex-wrap:wrap;margin:16px 0}
+.matrix{border-collapse:collapse;font-size:12px;font-family:'Courier New',monospace}
+.matrix th{padding:6px 10px;color:var(--text2);font-weight:400}
+.matrix td{padding:6px 10px;border:1px solid var(--border);text-align:center}
+.matrix .eq{background:rgba(240,192,128,0.1);color:var(--gold);font-weight:700}
+.matrix-hex{display:flex;flex-direction:column;gap:8px;font-size:13px}
+.matrix-hex-item{padding:8px 12px;border:1px solid var(--border);border-radius:6px;background:var(--bg3)}
+.matrix-hex-item .mh-name{color:var(--bronze);font-weight:700}
+
+@media(max-width:768px){
+  .dual-grid{grid-template-columns:1fr}
+  .flow{flex-wrap:wrap;justify-content:center}
+  .flow-arrow{transform:rotate(90deg)}
+  .matrix-wrap{flex-direction:column}
+}
+
+.reveal{opacity:0;transform:translateY(20px);transition:all 0.5s ease}
+.reveal.visible{opacity:1;transform:translateY(0)}
+.back-link{display:inline-block;margin-bottom:20px;color:var(--text2);text-decoration:none;font-size:13px}
+.back-link:hover{color:var(--bronze)}
+</style>
+</head>
+<body>
+<div class="container">
+<a class="back-link" href="index.html">← 返回衍化之旅</a>
+
+<div class="hero">
+  <h1>四个大脑，同一个终点</h1>
+  <div class="sub">四个人，横跨300年，只有一个人读过易经。但四个人都独立到达了和易经同构的结构。<br>这不是巧合——是底层规律的必然性。</div>
+  <div class="portraits">
+    <div class="portrait">
+      <div class="p-year">1646-1716</div>
+      <div class="p-name" style="color:var(--leibniz)">莱布尼茨</div>
+      <div class="p-field">二进制 · 微积分</div>
+      <div class="p-read" style="background:rgba(224,112,112,0.1);color:var(--leibniz)">读过易经</div>
+    </div>
+    <div class="portrait">
+      <div class="p-year">1903-1957</div>
+      <div class="p-name" style="color:var(--neumann)">冯·诺伊曼</div>
+      <div class="p-field">博弈论 · 计算机</div>
+      <div class="p-read" style="background:rgba(168,216,234,0.1);color:var(--neumann)">没读过</div>
+    </div>
+    <div class="portrait">
+      <div class="p-year">1916-2001</div>
+      <div class="p-name" style="color:var(--shannon)">Shannon</div>
+      <div class="p-field">信息论 · 编码</div>
+      <div class="p-read" style="background:rgba(199,146,234,0.1);color:var(--shannon)">没读过</div>
+    </div>
+    <div class="portrait">
+      <div class="p-year">1946-</div>
+      <div class="p-name" style="color:var(--petoukhov)">Petoukhov</div>
+      <div class="p-field">代数生物学</div>
+      <div class="p-read" style="background:rgba(126,203,161,0.1);color:var(--petoukhov)">研究了易经</div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ 1. Leibniz ═══ -->
+<div class="person reveal">
+  <div class="person-header">
+    <div class="person-icon" style="background:rgba(224,112,112,0.1);color:var(--leibniz)">01</div>
+    <div class="person-info">
+      <h2 style="color:var(--leibniz)">莱布尼茨 × 易经：完全重合</h2>
+      <div class="p-meta">二进制 | 1701年通过传教士白晋看到伏羲六十四卦方位图</div>
+    </div>
+  </div>
+  <div class="person-desc">莱布尼茨发明了二进制（声称是独立发明），但看到伏羲64卦后震惊——这不就是他的二进制吗？两者不是"相似"——是<strong>完全相同的数学对象</strong>。</div>
+
+  <div class="vis-box">
+    <div class="vis-title" style="color:var(--leibniz)">
+      镜像对照：莱布尼茨的二进制 = 伏羲的64卦
+      <span style="font-size:11px;color:var(--text2)">同一个东西的两种写法</span>
+    </div>
+    <canvas class="vis-canvas" id="leibniz-canvas" height="360"></canvas>
+    <div class="vis-legend">
+      <span><span class="vis-legend-dot" style="background:var(--leibniz)"></span>莱布尼茨二进制</span>
+      <span><span class="vis-legend-dot" style="background:var(--bronze)"></span>伏羲64卦</span>
+      <span><span class="vis-legend-dot" style="background:rgba(255,255,255,0.2)"></span>连线=完全相同</span>
+    </div>
+  </div>
+
+  <div class="insight"><strong>同构本质：</strong>完全重合——不是同构，是同一个东西。莱布尼茨的0/1 = 伏羲的阴/阳。莱布尼茨的6位二进制数 = 伏羲的6爻卦象。两者之间不需要"映射"——它们就是同一张表。差异只有符号：0/1 vs ⚋/⚊。</div>
+</div>
+
+<!-- ═══ 2. Von Neumann ═══ -->
+<div class="person reveal">
+  <div class="person-header">
+    <div class="person-icon" style="background:rgba(168,216,234,0.1);color:var(--neumann)">🎲</div>
+    <div class="person-info">
+      <h2 style="color:var(--neumann)">冯·诺伊曼 × 易经：均衡 = 卦象</h2>
+      <div class="p-meta">博弈论 | 灵感来自扑克，从未接触易经</div>
+    </div>
+  </div>
+  <div class="person-desc">冯·诺伊曼从扑克的"虚张声势"出发，建立了博弈论。他描述的"在给定约束下系统的稳定态"，和文王描述的"在给定力量配置下情境的稳定态"是完全同构的。</div>
+
+  <div class="vis-box">
+    <div class="vis-title" style="color:var(--neumann)">
+      经典博弈 → 纳什均衡 → 对应卦象
+      <span style="font-size:11px;color:var(--text2)">点击切换不同博弈</span>
+    </div>
+    <div style="padding:16px" id="neumann-content">
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px" id="game-buttons"></div>
+      <div class="matrix-wrap" id="matrix-area"></div>
+    </div>
+  </div>
+
+  <div class="insight"><strong>同构本质：</strong>64卦 = 64种纳什均衡。每个卦描述的是一种"没有参与者有动力单方面改变"的稳定态。变爻 = 均衡被外部冲击打破后的跳转。文王卦序 = 均衡之间的演化路径。冯·诺伊曼用公式写的东西，文王用卦象画了出来。</div>
+</div>
+
+<!-- ═══ 3. Shannon ═══ -->
+<div class="person reveal">
+  <div class="person-header">
+    <div class="person-icon" style="background:rgba(199,146,234,0.1);color:var(--shannon)">📡</div>
+    <div class="person-info">
+      <h2 style="color:var(--shannon)">Shannon × 易经：通信 = 起卦</h2>
+      <div class="p-meta">信息论 | 1948年《通信的数学理论》，从未接触易经</div>
+    </div>
+  </div>
+  <div class="person-desc">Shannon证明了任何信息都可以用二进制编码，定义了信息熵、信道容量、纠错编码。易经的起卦→查表→解读流程，和Shannon的信息传输模型完全同构。</div>
+
+  <div class="vis-box">
+    <div class="vis-title" style="color:var(--shannon)">
+      Shannon通信模型 ↔ 易经起卦模型
+    </div>
+    <div style="padding:20px">
+      <div style="font-size:12px;color:var(--shannon);font-weight:700;margin-bottom:8px">Shannon模型（1948）</div>
+      <div class="flow">
+        <div class="flow-node" style="background:rgba(199,146,234,0.1);border:1px solid rgba(199,146,234,0.3);color:var(--shannon)">
+          <div class="flow-top">信源</div>
+          Source
+          <div class="flow-bot">要传输的消息</div>
+        </div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-node" style="background:rgba(199,146,234,0.1);border:1px solid rgba(199,146,234,0.3);color:var(--shannon)">
+          <div class="flow-top">编码器</div>
+          Encoder
+          <div class="flow-bot">消息→二进制信号</div>
+        </div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-node" style="background:rgba(199,146,234,0.08);border:1px solid rgba(199,146,234,0.2);color:var(--shannon)">
+          <div class="flow-top">信道+噪声</div>
+          Channel
+          <div class="flow-bot">传输中可能出错</div>
+        </div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-node" style="background:rgba(199,146,234,0.1);border:1px solid rgba(199,146,234,0.3);color:var(--shannon)">
+          <div class="flow-top">解码器</div>
+          Decoder
+          <div class="flow-bot">信号→消息</div>
+        </div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-node" style="background:rgba(199,146,234,0.1);border:1px solid rgba(199,146,234,0.3);color:var(--shannon)">
+          <div class="flow-top">信宿</div>
+          Destination
+          <div class="flow-bot">接收者</div>
+        </div>
+      </div>
+
+      <div style="text-align:center;color:var(--text2);font-size:18px;margin:16px 0">‖ 逐环节同构 ‖</div>
+
+      <div style="font-size:12px;color:var(--bronze);font-weight:700;margin-bottom:8px">易经起卦模型（前1050年）</div>
+      <div class="flow">
+        <div class="flow-node" style="background:rgba(212,165,116,0.1);border:1px solid rgba(212,165,116,0.3);color:var(--bronze)">
+          <div class="flow-top">时势</div>
+          当下情境
+          <div class="flow-bot">要"传输"的信息</div>
+        </div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-node" style="background:rgba(212,165,116,0.1);border:1px solid rgba(212,165,116,0.3);color:var(--bronze)">
+          <div class="flow-top">起卦</div>
+          铜钱×6次
+          <div class="flow-bot">情境→6位二进制</div>
+        </div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-node" style="background:rgba(212,165,116,0.08);border:1px solid rgba(212,165,116,0.2);color:var(--bronze)">
+          <div class="flow-top">变爻</div>
+          老阴/老阳
+          <div class="flow-bot">"噪声"=极限翻转</div>
+        </div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-node" style="background:rgba(212,165,116,0.1);border:1px solid rgba(212,165,116,0.3);color:var(--bronze)">
+          <div class="flow-top">查表</div>
+          384条爻辞
+          <div class="flow-bot">二进制→解读</div>
+        </div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-node" style="background:rgba(212,165,116,0.1);border:1px solid rgba(212,165,116,0.3);color:var(--bronze)">
+          <div class="flow-top">指引</div>
+          行动建议
+          <div class="flow-bot">接收者=问卦的人</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <table class="map-table">
+    <tr><th>Shannon概念</th><th>数学定义</th><th>易经对应</th></tr>
+    <tr><td style="color:var(--shannon)">信息熵 H</td><td>H = -Σ p(x) log₂ p(x)</td><td>64卦的状态空间 = 6 bits = 最大熵</td></tr>
+    <tr><td style="color:var(--shannon)">信道容量 C</td><td>单位时间最大可靠传输速率</td><td>一次起卦传输6 bits信息（一个卦象）</td></tr>
+    <tr><td style="color:var(--shannon)">冗余编码</td><td>增加冗余位来纠错</td><td>384条爻辞 = 64卦×6位的冗余描述</td></tr>
+    <tr><td style="color:var(--shannon)">噪声</td><td>传输中引入的随机错误</td><td>变爻 = 信号中的"噪声"——但这里噪声本身携带信息</td></tr>
+    <tr><td style="color:var(--shannon)">纠错码</td><td>检测和修正错误的编码</td><td>道德经校正层 = 对解读结果的"纠错"过滤器</td></tr>
+  </table>
+
+  <div class="insight"><strong>同构本质：</strong>Shannon说"任何信息都可以用二进制编码"。易经在3000年前就这样做了——用6个二进制位编码64种情境。Shannon的通信模型（信源→编码→信道→解码→信宿）和易经的起卦模型（时势→起卦→变爻→查表→指引）是同一个流程。最精妙的一点：Shannon的"噪声"是坏东西，要消除；但易经的"变爻"（信号中的极端值）是好东西——它携带着"哪里要变"的关键信息。</div>
+</div>
+
+<!-- ═══ 4. Petoukhov ═══ -->
+<div class="person reveal">
+  <div class="person-header">
+    <div class="person-icon" style="background:rgba(126,203,161,0.1);color:var(--petoukhov)">🧬</div>
+    <div class="person-info">
+      <h2 style="color:var(--petoukhov)">Petoukhov × 易经：数学证明</h2>
+      <div class="p-meta">代数生物学 | 2017年ScienceDirect正式证明二元群同构</div>
+    </div>
+  </div>
+  <div class="person-desc">Petoukhov是唯一一个明确研究了易经和现代科学关系的学者。他证明了：易经的4象/8卦/64卦 与 遗传密码的4碱基/16双联体/64密码子 构成<strong>完全相同的二元群代数结构</strong>。</div>
+
+  <div class="vis-box">
+    <div class="vis-title" style="color:var(--petoukhov)">
+      双矩阵叠合：64卦方阵 ↔ 64密码子表
+      <span style="font-size:11px;color:var(--text2)">同一个8×8矩阵的两种填法</span>
+    </div>
+    <div class="dual-grid" style="padding:16px">
+      <div class="grid-box">
+        <div class="grid-label" style="color:var(--bronze);background:rgba(212,165,116,0.04)">易经64卦（8×8）</div>
+        <div class="mini-grid" id="yi-grid"></div>
+      </div>
+      <div class="grid-box">
+        <div class="grid-label" style="color:var(--petoukhov);background:rgba(126,203,161,0.04)">DNA 64密码子（8×8）</div>
+        <div class="mini-grid" id="dna-grid"></div>
+      </div>
+    </div>
+  </div>
+
+  <table class="map-table">
+    <tr><th>层级</th><th>易经</th><th>遗传密码</th><th>数学结构</th></tr>
+    <tr><td>基本单元</td><td>阴/阳（2种）</td><td>嘌呤/嘧啶（2类）</td><td>Z₂（二元群）</td></tr>
+    <tr><td>二阶组合</td><td>四象（4种）</td><td>4种碱基 ATCG</td><td>Z₂ × Z₂</td></tr>
+    <tr><td>三阶组合</td><td>八卦（8种）</td><td>8种碱基对组合</td><td>Z₂ × Z₂ × Z₂</td></tr>
+    <tr><td>六阶组合</td><td>64卦</td><td>64密码子</td><td>(Z₂)⁶ = 六维布尔代数</td></tr>
+    <tr><td>群运算</td><td>按位异或（XOR）</td><td>碱基互补配对</td><td>模2加法</td></tr>
+    <tr><td>汉明距离</td><td>文王叙事编码</td><td>氨基酸理化性质</td><td>六维超立方体上的图距离</td></tr>
+  </table>
+
+  <div class="insight"><strong>同构本质：</strong>Petoukhov证明的不是"相似"——是<strong>严格的代数同构</strong>。两个系统在二元群运算（XOR/模2加法）下具有完全相同的群结构。这意味着：在64卦上成立的任何群论定理，在64密码子上也自动成立。反之亦然。这是数学上可证明的，不是类比。</div>
+</div>
+
+<!-- ═══ Final ═══ -->
+<div class="person reveal" style="text-align:center;padding:60px 0;border-bottom:none">
+  <h2 style="color:var(--gold);font-size:24px;margin-bottom:20px">为什么四条独立的路汇聚到同一个点？</h2>
+  <div style="max-width:640px;margin:0 auto;text-align:left">
+    <div class="insight" style="margin-bottom:16px">
+      <strong>莱布尼茨</strong>从哲学出发 → 发现二进制 → 和伏羲64卦重合<br>
+      <strong>冯·诺伊曼</strong>从扑克出发 → 发现博弈均衡 → 和文王64卦同构<br>
+      <strong>Shannon</strong>从电报出发 → 发现信息编码 → 和起卦流程同构<br>
+      <strong>Petoukhov</strong>从DNA出发 → 发现二元群 → 和易经代数结构同构
+    </div>
+    <p style="font-size:15px;text-align:center;color:var(--cream)">四个不同的起点。同一个终点。只有一个人读过易经。</p>
+    <p style="font-size:15px;text-align:center;color:var(--gold);font-weight:700;margin-top:12px">这不是易经"预见"了现代科学——是<br>二元组合、有限状态空间、动态均衡<br>这些底层规律在任何需要编码信息的系统中都会自发涌现。<br><br>伏羲和文王的天才在于：<br>他们在三千年前就找到了这些规律的符号表达。</p>
+  </div>
+</div>
+
+</div>
+
+<script>
+// ═══ Leibniz Canvas ═══
+function drawLeibniz() {
+  const canvas = document.getElementById('leibniz-canvas');
+  const dpr = window.devicePixelRatio || 1;
+  const rect = canvas.getBoundingClientRect();
+  canvas.width = rect.width * dpr;
+  canvas.height = rect.height * dpr;
+  const ctx = canvas.getContext('2d');
+  ctx.scale(dpr, dpr);
+  const w = rect.width, h = rect.height;
+  const mid = w / 2;
+
+  // Draw 16 entries on each side (first 16 for clarity)
+  const count = 16;
+  const startY = 30, endY = h - 20;
+  const gap = (endY - startY) / (count - 1);
+
+  const TRIGRAMS = {'111':'乾','110':'兑','101':'离','100':'震','011':'巽','010':'坎','001':'艮','000':'坤'};
+
+  for (let i = 0; i < count; i++) {
+    const y = startY + i * gap;
+    const bin = i.toString(2).padStart(6, '0');
+
+    // Left: Leibniz binary
+    ctx.fillStyle = '#e07070';
+    ctx.font = 'bold 13px "Courier New", monospace';
+    ctx.textAlign = 'right';
+    ctx.fillText(bin, mid - 60, y + 4);
+    ctx.font = '11px sans-serif';
+    ctx.fillStyle = '#8a7f6f';
+    ctx.fillText('= ' + i, mid - 130, y + 4);
+
+    // Right: Fuxi hexagram
+    const lower = bin.substring(0, 3);
+    const upper = bin.substring(3, 6);
+    const triL = TRIGRAMS[lower] || '?';
+    const triU = TRIGRAMS[upper] || '?';
+    ctx.fillStyle = '#d4a574';
+    ctx.font = 'bold 13px "Courier New", monospace';
+    ctx.textAlign = 'left';
+    ctx.fillText(bin, mid + 60, y + 4);
+    ctx.font = '12px "Noto Serif SC", serif';
+    ctx.fillText(triU + triL, mid + 140, y + 4);
+
+    // Mini yao lines
+    for (let b = 0; b < 6; b++) {
+      const lx = mid + 30 + b * 5;
+      const ly = y - 2;
+      if (bin[b] === '1') {
+        ctx.fillStyle = '#e8d5b7';
+        ctx.fillRect(lx, ly, 4, 2);
+      } else {
+        ctx.fillStyle = '#e8d5b7';
+        ctx.fillRect(lx, ly, 1.5, 2);
+        ctx.fillRect(lx + 2.5, ly, 1.5, 2);
+      }
+    }
+
+    // Connecting line
+    ctx.beginPath();
+    ctx.moveTo(mid - 55, y);
+    ctx.lineTo(mid + 25, y);
+    ctx.strokeStyle = 'rgba(255,255,255,0.08)';
+    ctx.lineWidth = 1;
+    ctx.stroke();
+
+    // = sign
+    ctx.fillStyle = 'rgba(255,255,255,0.3)';
+    ctx.font = '14px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('=', mid - 15, y + 4);
+  }
+
+  // Headers
+  ctx.fillStyle = '#e07070';
+  ctx.font = 'bold 12px "Noto Serif SC", serif';
+  ctx.textAlign = 'center';
+  ctx.fillText('莱布尼茨 (1701)', mid - 90, 16);
+  ctx.fillStyle = '#d4a574';
+  ctx.fillText('伏羲 (~前3000)', mid + 90, 16);
+
+  // ... indicator
+  ctx.fillStyle = '#8a7f6f';
+  ctx.font = '12px sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillText('... 共64行，每行完全相同 ...', mid, h - 4);
+}
+
+// ═══ Von Neumann Games ═══
+const GAMES = [
+  {
+    name: '囚徒困境',
+    headers: ['', '对方合作', '对方背叛'],
+    rows: [
+      ['我方合作', '(-1,-1)', '(-10, 0)'],
+      ['我方背叛', '(0,-10)', '(-5,-5)'],
+    ],
+    eq: [1, 1], // row, col of equilibrium (0-indexed)
+    hexagrams: [
+      {name:'否', full:'天地否', desc:'纳什均衡=双方背叛=否：天地不交，闭塞不通'},
+      {name:'泰', full:'地天泰', desc:'帕累托最优=双方合作=泰：天地交通，但不稳定'},
+      {name:'损', full:'山泽损', desc:'打破困境的方法=损：主动牺牲短期利益换长期合作'},
+    ],
+  },
+  {
+    name: '胆小鬼博弈',
+    headers: ['', '对方退让', '对方不退'],
+    rows: [
+      ['我方退让', '(0, 0)', '(-1,+1)'],
+      ['我方不退', '(+1,-1)', '(-10,-10)'],
+    ],
+    eq: -1,
+    hexagrams: [
+      {name:'大壮', full:'雷天大壮', desc:'双方都不退=大壮互冲→亢龙有悔，同归于尽'},
+      {name:'遁', full:'天山遁', desc:'主动退让=遁：退不是胆小，是战略选择'},
+      {name:'夬', full:'泽天夬', desc:'决断不退=夬：扬于王庭，公开对决'},
+    ],
+  },
+  {
+    name: '猎鹿博弈',
+    headers: ['', '对方猎鹿', '对方猎兔'],
+    rows: [
+      ['我方猎鹿', '(+5,+5)', '(0,+2)'],
+      ['我方猎兔', '(+2, 0)', '(+2,+2)'],
+    ],
+    eq: -1,
+    hexagrams: [
+      {name:'泰', full:'地天泰', desc:'双方猎鹿=泰：合作成功，最优均衡'},
+      {name:'小畜', full:'风天小畜', desc:'独自猎兔=小畜：积小利，安全但不大'},
+      {name:'中孚', full:'风泽中孚', desc:'关键是信任=中孚：没有中孚就没有泰'},
+    ],
+  },
+  {
+    name: '鹰鸽博弈',
+    headers: ['', '对方鸽', '对方鹰'],
+    rows: [
+      ['我方鸽', '(3, 3)', '(1, 5)'],
+      ['我方鹰', '(5, 1)', '(0, 0)'],
+    ],
+    eq: -1,
+    hexagrams: [
+      {name:'乾', full:'乾为天', desc:'纯鹰=乾：全力进攻，但亢龙有悔'},
+      {name:'坤', full:'坤为地', desc:'纯鸽=坤：全力退让，利牝马之贞'},
+      {name:'泰', full:'地天泰', desc:'鹰鸽混合均衡=泰：阴阳交融才稳定'},
+    ],
+  },
+];
+
+function buildGames() {
+  const btns = document.getElementById('game-buttons');
+  const area = document.getElementById('matrix-area');
+
+  GAMES.forEach((game, gi) => {
+    const btn = document.createElement('button');
+    btn.textContent = game.name;
+    btn.style.cssText = 'padding:6px 14px;border:1px solid var(--border);border-radius:6px;background:var(--bg3);color:var(--text2);cursor:pointer;font-family:inherit;font-size:12px;transition:all 0.2s';
+    btn.onclick = () => {
+      btns.querySelectorAll('button').forEach(b => { b.style.borderColor = 'var(--border)'; b.style.color = 'var(--text2)'; });
+      btn.style.borderColor = 'var(--neumann)';
+      btn.style.color = 'var(--neumann)';
+      renderGame(game);
+    };
+    btns.appendChild(btn);
+  });
+
+  // Default
+  btns.querySelector('button').click();
+}
+
+function renderGame(game) {
+  const area = document.getElementById('matrix-area');
+  let matrixHtml = '<table class="matrix"><tr>';
+  game.headers.forEach(h => matrixHtml += `<th>${h}</th>`);
+  matrixHtml += '</tr>';
+  game.rows.forEach((row, ri) => {
+    matrixHtml += '<tr>';
+    row.forEach((cell, ci) => {
+      if (ci === 0) matrixHtml += `<th>${cell}</th>`;
+      else {
+        const isEq = game.eq !== -1 && ri === game.eq && ci === game.eq;
+        matrixHtml += `<td${isEq ? ' class="eq"' : ''}>${cell}${isEq ? ' ←均衡' : ''}</td>`;
+      }
+    });
+    matrixHtml += '</tr>';
+  });
+  matrixHtml += '</table>';
+
+  let hexHtml = '<div class="matrix-hex">';
+  game.hexagrams.forEach(h => {
+    hexHtml += `<div class="matrix-hex-item"><span class="mh-name">${h.name}</span>（${h.full}）<br><span style="color:var(--text2);font-size:12px">${h.desc}</span></div>`;
+  });
+  hexHtml += '</div>';
+
+  area.innerHTML = matrixHtml + hexHtml;
+}
+
+// ═══ Petoukhov Grids ═══
+function buildGrids() {
+  const HEX_NAMES = {1:'乾',2:'坤',3:'屯',4:'蒙',5:'需',6:'讼',7:'师',8:'比',9:'小畜',10:'履',11:'泰',12:'否',13:'同人',14:'大有',15:'谦',16:'豫',17:'随',18:'蛊',19:'临',20:'观',21:'噬嗑',22:'贲',23:'剥',24:'复',25:'无妄',26:'大畜',27:'颐',28:'大过',29:'坎',30:'离',31:'咸',32:'恒',33:'遁',34:'大壮',35:'晋',36:'明夷',37:'家人',38:'睽',39:'蹇',40:'解',41:'损',42:'益',43:'夬',44:'姤',45:'萃',46:'升',47:'困',48:'井',49:'革',50:'鼎',51:'震',52:'艮',53:'渐',54:'归妹',55:'丰',56:'旅',57:'巽',58:'兑',59:'涣',60:'节',61:'中孚',62:'小过',63:'既济',64:'未济'};
+  const HEXAGRAM_MAP = {'111111':1,'000000':2,'100010':3,'010001':4,'111010':5,'010111':6,'010000':7,'000010':8,'111011':9,'110111':10,'111000':11,'000111':12,'101111':13,'111101':14,'001000':15,'000100':16,'100110':17,'011001':18,'110000':19,'000011':20,'100101':21,'101001':22,'000001':23,'100000':24,'100111':25,'111001':26,'100001':27,'011110':28,'010010':29,'101101':30,'001110':31,'011100':32,'001111':33,'111100':34,'000101':35,'101000':36,'101011':37,'110101':38,'001010':39,'010100':40,'110001':41,'100011':42,'111110':43,'011111':44,'000110':45,'011000':46,'010110':47,'011010':48,'101110':49,'011101':50,'100100':51,'001001':52,'001011':53,'110100':54,'101100':55,'001101':56,'011011':57,'110110':58,'010011':59,'110010':60,'110011':61,'001100':62,'101010':63,'010101':64};
+  const TRIGRAMS = ['111','110','101','100','011','010','001','000'];
+  const TRI_NAMES = {'111':'乾','110':'兑','101':'离','100':'震','011':'巽','010':'坎','001':'艮','000':'坤'};
+
+  // Yi grid
+  const yiGrid = document.getElementById('yi-grid');
+  TRIGRAMS.forEach(upper => {
+    TRIGRAMS.forEach(lower => {
+      const bin = lower + upper;
+      const num = HEXAGRAM_MAP[bin];
+      const name = HEX_NAMES[num];
+      const cell = document.createElement('div');
+      cell.className = 'mini-cell';
+      cell.style.background = 'rgba(212,165,116,0.08)';
+      cell.style.color = '#d4a574';
+      cell.textContent = name;
+      cell.title = `#${num} ${name} (${bin})`;
+      yiGrid.appendChild(cell);
+    });
+  });
+
+  // DNA grid (simplified - map 64 codons to 8x8)
+  const bases = ['U','C','A','G'];
+  const aminoMap = {'UUU':'Phe','UUC':'Phe','UUA':'Leu','UUG':'Leu','CUU':'Leu','CUC':'Leu','CUA':'Leu','CUG':'Leu','AUU':'Ile','AUC':'Ile','AUA':'Ile','AUG':'Met','GUU':'Val','GUC':'Val','GUA':'Val','GUG':'Val','UCU':'Ser','UCC':'Ser','UCA':'Ser','UCG':'Ser','CCU':'Pro','CCC':'Pro','CCA':'Pro','CCG':'Pro','ACU':'Thr','ACC':'Thr','ACA':'Thr','ACG':'Thr','GCU':'Ala','GCC':'Ala','GCA':'Ala','GCG':'Ala','UAU':'Tyr','UAC':'Tyr','UAA':'Stop','UAG':'Stop','GAU':'Asp','GAC':'Asp','GAA':'Glu','GAG':'Glu','UGU':'Cys','UGC':'Cys','UGA':'Stop','UGG':'Trp','CGU':'Arg','CGC':'Arg','CGA':'Arg','CGG':'Arg','AGU':'Ser','AGC':'Ser','AGA':'Arg','AGG':'Arg','GGU':'Gly','GGC':'Gly','GGA':'Gly','GGG':'Gly','AAU':'Asn','AAC':'Asn','AAA':'Lys','AAG':'Lys','CAU':'His','CAC':'His','CAA':'Gln','CAG':'Gln'};
+
+  const dnaGrid = document.getElementById('dna-grid');
+  const codons = [];
+  for (const b1 of bases) for (const b2 of bases) for (const b3 of bases) codons.push(b1+b2+b3);
+  codons.forEach(c => {
+    const aa = aminoMap[c] || '?';
+    const cell = document.createElement('div');
+    cell.className = 'mini-cell';
+    const isStop = aa === 'Stop';
+    const isStart = c === 'AUG';
+    cell.style.background = isStop ? 'rgba(224,112,112,0.12)' : isStart ? 'rgba(240,192,128,0.12)' : 'rgba(126,203,161,0.08)';
+    cell.style.color = isStop ? '#e07070' : isStart ? '#f0c080' : '#7ecba1';
+    cell.textContent = aa;
+    cell.title = c + ' → ' + aa;
+    dnaGrid.appendChild(cell);
+  });
+}
+
+// Init
+drawLeibniz();
+buildGames();
+buildGrids();
+
+const obs = new IntersectionObserver(entries => {
+  entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+}, {threshold: 0.1});
+document.querySelectorAll('.reveal').forEach(el => obs.observe(el));
+</script>
+</body>
+</html>

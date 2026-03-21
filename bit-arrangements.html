@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>64卦的8种排列方式：同一份数据，8种面孔</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;700;900&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#0f0f23;--bg2:#1a1a2e;--bronze:#d4a574;--gold:#f0c080;--cream:#e8d5b7;--text:#e0d6c8;--text2:#8a7f6f;--border:#2a2a3d}
+body{background:var(--bg);color:var(--text);font-family:'Noto Serif SC',serif;line-height:1.8}
+.container{max-width:1000px;margin:0 auto;padding:24px}
+h1{font-size:clamp(22px,4vw,32px);font-weight:900;text-align:center;margin-bottom:8px;color:var(--gold)}
+.sub{font-size:14px;color:var(--text2);text-align:center;max-width:700px;margin:0 auto 32px}
+h2{font-size:18px;color:var(--bronze);margin-bottom:8px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:32px}
+.vis-box{border:1px solid var(--border);border-radius:12px;background:var(--bg2);overflow:hidden}
+.vis-title{padding:10px 14px;font-size:13px;font-weight:700;color:var(--cream);border-bottom:1px solid var(--border);display:flex;justify-content:space-between}
+.vis-title .tag{font-size:10px;padding:2px 8px;border-radius:4px}
+.vis-body{padding:8px;position:relative}
+.vis-desc{padding:8px 14px;font-size:11px;color:var(--text2);border-top:1px solid var(--border)}
+canvas{width:100%;display:block;image-rendering:pixelated}
+.insight{padding:14px;border-left:3px solid var(--gold);background:rgba(212,165,116,0.04);border-radius:0 8px 8px 0;font-size:14px;color:var(--cream);margin:16px 0}
+.insight strong{color:var(--gold)}
+@media(max-width:768px){.grid{grid-template-columns:1fr}}
+.back-link{display:inline-block;margin-bottom:20px;color:var(--text2);text-decoration:none;font-size:13px}
+.back-link:hover{color:var(--bronze)}
+</style>
+</head>
+<body>
+<div class="container">
+<a class="back-link" href="index.html">&larr; 返回</a>
+<h1>同一份数据，8种面孔</h1>
+<div class="sub">64个六位二进制数 = 64个卦。把它们按不同方式排列，每种排列暴露不同的隐藏结构。<br>亮=阳(1)，暗=阴(0)。每列=一个卦，每行=一个爻位（底→顶）。</div>
+
+<div class="grid" id="grid"></div>
+
+<div class="insight">
+  <strong>核心发现：</strong>同一份384个bit的数据，换一种排列就呈现完全不同的图案。
+  二进制自然序是完美渐变（信息为零）。文王序是高对比波动（信息最大）。
+  按阳爻数排列时出现了清晰的三角形——这是组合数学的可视化。
+  按综卦配对排列时出现了镜像对称——这是文王的配对逻辑。
+  <strong>排列本身就是信息。文王的"发明"不是64个卦——是卦的排列顺序。</strong>
+</div>
+</div>
+
+<script>
+const HEXAGRAM_MAP = {
+  '111111':1,'000000':2,'100010':3,'010001':4,'111010':5,'010111':6,
+  '010000':7,'000010':8,'111011':9,'110111':10,'111000':11,'000111':12,
+  '101111':13,'111101':14,'001000':15,'000100':16,'100110':17,'011001':18,
+  '110000':19,'000011':20,'100101':21,'101001':22,'000001':23,'100000':24,
+  '100111':25,'111001':26,'100001':27,'011110':28,'010010':29,'101101':30,
+  '001110':31,'011100':32,'001111':33,'111100':34,'000101':35,'101000':36,
+  '101011':37,'110101':38,'001010':39,'010100':40,'110001':41,'100011':42,
+  '111110':43,'011111':44,'000110':45,'011000':46,'010110':47,'011010':48,
+  '101110':49,'011101':50,'100100':51,'001001':52,'001011':53,'110100':54,
+  '101100':55,'001101':56,'011011':57,'110110':58,'010011':59,'110010':60,
+  '110011':61,'001100':62,'101010':63,'010101':64,
+};
+const HN={1:'乾',2:'坤',3:'屯',4:'蒙',5:'需',6:'讼',7:'师',8:'比',9:'小畜',10:'履',11:'泰',12:'否',13:'同人',14:'大有',15:'谦',16:'豫',17:'随',18:'蛊',19:'临',20:'观',21:'噬嗑',22:'贲',23:'剥',24:'复',25:'无妄',26:'大畜',27:'颐',28:'大过',29:'坎',30:'离',31:'咸',32:'恒',33:'遁',34:'大壮',35:'晋',36:'明夷',37:'家人',38:'睽',39:'蹇',40:'解',41:'损',42:'益',43:'夬',44:'姤',45:'萃',46:'升',47:'困',48:'井',49:'革',50:'鼎',51:'震',52:'艮',53:'渐',54:'归妹',55:'丰',56:'旅',57:'巽',58:'兑',59:'涣',60:'节',61:'中孚',62:'小过',63:'既济',64:'未济'};
+
+// All 64 binary strings
+const ALL_BINS = [];
+for (let i = 0; i < 64; i++) ALL_BINS.push(i.toString(2).padStart(6, '0'));
+
+// Reverse map
+const num2bin = {};
+for (const [b, n] of Object.entries(HEXAGRAM_MAP)) num2bin[n] = b;
+
+// ═══ 8 Arrangements ═══
+const ARRANGEMENTS = [
+  {
+    name: '二进制自然序（习称"伏羲序"）',
+    tag: '数学', tagColor: 'rgba(168,216,234,0.15)', tagText: '#a8d8ea',
+    desc: '按十进制0→63排列。完美的渐变图案——因为这就是二进制计数，每一步只增加1。信息量=零。',
+    order: () => ALL_BINS.slice().sort((a,b) => parseInt(a,2) - parseInt(b,2)),
+  },
+  {
+    name: '文王序',
+    tag: '历史', tagColor: 'rgba(212,165,116,0.15)', tagText: '#d4a574',
+    desc: '文王排列的64卦。高对比、不规则的图案——每一步跳跃很大。信息量=最大。这就是文王的"发明"。',
+    order: () => { const r = []; for (let n=1;n<=64;n++) r.push(num2bin[n]); return r; },
+  },
+  {
+    name: '按阳爻数量（0→6）',
+    tag: '密度', tagColor: 'rgba(126,203,161,0.15)', tagText: '#7ecba1',
+    desc: '从全阴（坤,0个阳）到全阳（乾,6个阳）。出现清晰的三角形——组合数的可视化：C(6,0)=1, C(6,1)=6, ..., C(6,3)=20, ..., C(6,6)=1。',
+    order: () => ALL_BINS.slice().sort((a,b) => {
+      const ya = a.split('').filter(c=>c==='1').length;
+      const yb = b.split('').filter(c=>c==='1').length;
+      return ya - yb || parseInt(a,2) - parseInt(b,2);
+    }),
+  },
+  {
+    name: '按上卦分组',
+    tag: '结构', tagColor: 'rgba(199,146,234,0.15)', tagText: '#c792ea',
+    desc: '按上三位（上卦）分为8组，每组8个。可以看到：同一上卦内，下三位（下卦）在变化。8×8的网格结构浮现。',
+    order: () => ALL_BINS.slice().sort((a,b) => {
+      const ua = a.substring(3), ub = b.substring(3);
+      return ua.localeCompare(ub) || a.localeCompare(b);
+    }),
+  },
+  {
+    name: '按下卦分组',
+    tag: '结构', tagColor: 'rgba(199,146,234,0.15)', tagText: '#c792ea',
+    desc: '按下三位（下卦）分为8组。和上卦分组对比——上下翻转了。下卦=内在，上卦=外在。',
+    order: () => ALL_BINS.slice().sort((a,b) => {
+      const la = a.substring(0,3), lb = b.substring(0,3);
+      return la.localeCompare(lb) || a.localeCompare(b);
+    }),
+  },
+  {
+    name: '综卦配对（翻转对）',
+    tag: '对称', tagColor: 'rgba(224,112,112,0.15)', tagText: '#e07070',
+    desc: '每对综卦（翻转后得到的）放在一起。出现了镜像对称——每对的图案上下颠倒。8个自身对称的卦（翻转=自己）单独成组。',
+    order: () => {
+      const used = new Set();
+      const pairs = [];
+      const selfSym = [];
+      ALL_BINS.forEach(b => {
+        if (used.has(b)) return;
+        const rev = b.split('').reverse().join('');
+        if (rev === b) { selfSym.push(b); used.add(b); }
+        else { pairs.push(b, rev); used.add(b); used.add(rev); }
+      });
+      return [...pairs, ...selfSym];
+    },
+  },
+  {
+    name: '错卦配对（取反对）',
+    tag: '对称', tagColor: 'rgba(240,192,128,0.15)', tagText: '#f0c080',
+    desc: '每对错卦（每位取反）放在一起。图案呈现正负反转——每对是对方的"底片"。每个卦都有唯一的错卦。',
+    order: () => {
+      const used = new Set();
+      const result = [];
+      ALL_BINS.forEach(b => {
+        if (used.has(b)) return;
+        const comp = b.split('').map(c => c==='1'?'0':'1').join('');
+        result.push(b, comp);
+        used.add(b); used.add(comp);
+      });
+      return result;
+    },
+  },
+  {
+    name: '格雷码序（相邻只变1位）',
+    tag: '拓扑', tagColor: 'rgba(78,205,196,0.15)', tagText: '#4ecdc4',
+    desc: '每一步只改变1个bit。这是超立方体上的哈密顿路径——每步走一条边。图案变化极其平滑，和文王序的剧烈跳跃形成鲜明对比。',
+    order: () => {
+      const gray = [];
+      for (let i = 0; i < 64; i++) {
+        const g = i ^ (i >> 1);
+        gray.push(g.toString(2).padStart(6, '0'));
+      }
+      return gray;
+    },
+  },
+];
+
+// ═══ Render ═══
+const CELL = 8; // pixel size per cell
+const ROWS = 6; // 6 yao positions
+
+function drawBitMatrix(canvas, order) {
+  const cols = order.length;
+  const w = cols * CELL;
+  const h = ROWS * CELL;
+  const dpr = 2;
+  canvas.width = w * dpr;
+  canvas.height = h * dpr;
+  canvas.style.height = (h) + 'px';
+  const ctx = canvas.getContext('2d');
+  ctx.scale(dpr, dpr);
+
+  // Background
+  ctx.fillStyle = '#16162b';
+  ctx.fillRect(0, 0, w, h);
+
+  order.forEach((bin, col) => {
+    for (let row = 0; row < 6; row++) {
+      // Row 0 = top of canvas = bit 5 (上爻), Row 5 = bottom = bit 0 (初爻)
+      const bitIdx = 5 - row;
+      const isYang = bin[bitIdx] === '1';
+      ctx.fillStyle = isYang ? '#e8d5b7' : '#1a1a2e';
+      ctx.fillRect(col * CELL, row * CELL, CELL - 1, CELL - 1);
+    }
+  });
+}
+
+// Build grid
+const grid = document.getElementById('grid');
+ARRANGEMENTS.forEach((arr, i) => {
+  const box = document.createElement('div');
+  box.className = 'vis-box';
+  box.innerHTML = `
+    <div class="vis-title">
+      <span>${i+1}. ${arr.name}</span>
+      <span class="tag" style="background:${arr.tagColor};color:${arr.tagText}">${arr.tag}</span>
+    </div>
+    <div class="vis-body"><canvas id="canvas-${i}"></canvas></div>
+    <div class="vis-desc">${arr.desc}</div>
+  `;
+  grid.appendChild(box);
+
+  setTimeout(() => {
+    const canvas = document.getElementById('canvas-' + i);
+    const order = arr.order();
+    drawBitMatrix(canvas, order);
+  }, 50);
+});
+</script>
+</body>
+</html>

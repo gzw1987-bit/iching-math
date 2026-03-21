@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>博弈论知识框架 × 易经映射</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;700;900&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0f0f23;--bg2:#1a1a2e;--bg3:#16162b;
+  --bronze:#d4a574;--gold:#f0c080;--cream:#e8d5b7;
+  --text:#e0d6c8;--text2:#8a7f6f;--border:#2a2a3d;
+  --green:#7ecba1;--red:#e07070;--blue:#a8d8ea;--purple:#c792ea;
+}
+body{background:var(--bg);color:var(--text);font-family:'Noto Serif SC',serif;line-height:1.8}
+.container{max-width:960px;margin:0 auto;padding:24px}
+a{color:var(--bronze);text-decoration:none}
+
+.hero{text-align:center;padding:60px 0 40px;border-bottom:1px solid var(--border);margin-bottom:40px}
+.hero h1{font-size:clamp(26px,5vw,40px);font-weight:900;
+  background:linear-gradient(135deg,var(--blue),var(--gold));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:12px}
+.hero .sub{font-size:15px;color:var(--text2);max-width:640px;margin:0 auto}
+.hero .stat{display:flex;gap:20px;justify-content:center;margin-top:20px;flex-wrap:wrap}
+.hero .stat-item{text-align:center;padding:8px 16px;border:1px solid var(--border);border-radius:8px}
+.hero .stat-val{font-size:24px;font-weight:900;color:var(--gold)}
+.hero .stat-label{font-size:11px;color:var(--text2)}
+
+/* Category */
+.cat{margin-bottom:40px}
+.cat-header{
+  display:flex;align-items:center;gap:12px;padding:16px 20px;
+  border-radius:12px;cursor:pointer;transition:all 0.2s;
+  border:1px solid var(--border);background:var(--bg2);
+}
+.cat-header:hover{border-color:var(--bronze)}
+.cat-header.open{border-color:var(--bronze);background:rgba(212,165,116,0.04)}
+.cat-num{font-size:20px;font-weight:900;color:var(--gold);min-width:36px}
+.cat-title{font-size:18px;font-weight:700;color:var(--cream);flex:1}
+.cat-count{font-size:12px;color:var(--text2);padding:2px 8px;background:rgba(255,255,255,0.04);border-radius:4px}
+.cat-toggle{color:var(--text2);transition:transform 0.3s}
+.cat-header.open .cat-toggle{transform:rotate(180deg)}
+.cat-body{max-height:0;overflow:hidden;transition:max-height 0.5s ease}
+.cat-body.open{max-height:8000px}
+
+/* Sub-category */
+.sub-cat{padding:16px 0 16px 20px;border-left:2px solid var(--border);margin-left:18px;margin-top:12px}
+.sub-title{font-size:15px;font-weight:700;color:var(--bronze);margin-bottom:4px}
+.sub-desc{font-size:13px;color:var(--text2);margin-bottom:12px}
+
+/* Game card */
+.game-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:10px}
+.game-card{
+  padding:14px;border:1px solid var(--border);border-radius:10px;
+  background:var(--bg3);transition:all 0.2s;cursor:pointer;
+}
+.game-card:hover{border-color:var(--bronze);box-shadow:0 0 12px rgba(212,165,116,0.1)}
+.game-card.open .gc-detail{max-height:500px;opacity:1;margin-top:10px}
+.gc-header{display:flex;align-items:center;gap:8px}
+.gc-icon{font-size:18px;width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.gc-icon.coop{background:rgba(126,203,161,0.1);color:var(--green)}
+.gc-icon.comp{background:rgba(224,112,112,0.1);color:var(--red)}
+.gc-icon.info{background:rgba(168,216,234,0.1);color:var(--blue)}
+.gc-icon.time{background:rgba(199,146,234,0.1);color:var(--purple)}
+.gc-icon.evo{background:rgba(240,192,128,0.1);color:var(--gold)}
+.gc-icon.mech{background:rgba(212,165,116,0.1);color:var(--bronze)}
+.gc-name{font-size:14px;font-weight:700;color:var(--cream)}
+.gc-brief{font-size:11px;color:var(--text2);margin-top:2px}
+.gc-detail{max-height:0;overflow:hidden;opacity:0;transition:all 0.4s}
+.gc-desc{font-size:13px;color:var(--text);margin-bottom:8px;padding:8px;background:rgba(0,0,0,0.2);border-radius:6px}
+.gc-matrix{font-family:'Courier New',monospace;font-size:11px;padding:8px;background:rgba(0,0,0,0.3);border-radius:6px;color:var(--blue);margin-bottom:8px;overflow-x:auto;white-space:pre}
+.gc-hexagrams{display:flex;flex-wrap:wrap;gap:6px}
+.gc-hex{
+  padding:4px 10px;border-radius:6px;font-size:12px;
+  background:rgba(212,165,116,0.08);border:1px solid rgba(212,165,116,0.2);
+  color:var(--bronze);
+}
+.gc-hex .gh-name{font-weight:700}
+.gc-hex .gh-desc{color:var(--text2);margin-left:4px}
+.gc-insight{margin-top:8px;padding:8px 10px;border-left:2px solid var(--gold);font-size:12px;color:var(--cream);font-style:italic}
+
+/* Insight section */
+.insight-section{margin-top:40px;padding:24px;border:1px solid var(--border);border-radius:14px;background:var(--bg2)}
+.insight-section h2{font-size:22px;color:var(--gold);margin-bottom:16px}
+.insight-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
+.insight-cell{padding:12px;border-radius:8px;font-size:13px}
+.insight-cell.gt{background:rgba(168,216,234,0.06);border:1px solid rgba(168,216,234,0.15)}
+.insight-cell.yi{background:rgba(212,165,116,0.06);border:1px solid rgba(212,165,116,0.15)}
+.insight-cell h4{font-size:14px;margin-bottom:4px}
+.insight-cell.gt h4{color:var(--blue)}
+.insight-cell.yi h4{color:var(--bronze)}
+.insight-final{margin-top:16px;padding:16px;border-left:3px solid var(--gold);background:rgba(212,165,116,0.04);border-radius:0 8px 8px 0;font-size:14px;color:var(--cream)}
+
+@media(max-width:768px){
+  .game-cards{grid-template-columns:1fr}
+  .insight-row{grid-template-columns:1fr}
+}
+.reveal{opacity:0;transform:translateY(20px);transition:all 0.5s ease}
+.reveal.visible{opacity:1;transform:translateY(0)}
+.back-link{display:inline-block;margin-bottom:20px;color:var(--text2);text-decoration:none;font-size:13px}
+.back-link:hover{color:var(--bronze)}
+</style>
+</head>
+<body>
+<div class="container">
+<a class="back-link" href="index.html">← 返回衍化之旅</a>
+
+<div class="hero">
+  <h1>博弈论 × 易经：同一套逻辑的两种语言</h1>
+  <div class="sub">博弈论（1944）用数学公式描述策略均衡。易经（前1050）用64卦描述情境稳定态。<br>两者的底层结构完全一样：在一组约束条件下，系统会稳定在哪里？</div>
+  <div class="stat">
+    <div class="stat-item"><div class="stat-val">7</div><div class="stat-label">大类</div></div>
+    <div class="stat-item"><div class="stat-val">19</div><div class="stat-label">博弈模型</div></div>
+    <div class="stat-item"><div class="stat-val">43</div><div class="stat-label">卦被映射</div></div>
+    <div class="stat-item"><div class="stat-val">67%</div><div class="stat-label">覆盖率</div></div>
+  </div>
+</div>
+
+<div id="framework"></div>
+
+<!-- Deep insight -->
+<div class="insight-section reveal">
+  <h2>深层同构：为什么博弈论和易经说的是同一件事</h2>
+
+  <div class="insight-row">
+    <div class="insight-cell gt">
+      <h4>博弈论的核心概念</h4>
+      <p>参与者（Players）：博弈的主体</p>
+    </div>
+    <div class="insight-cell yi">
+      <h4>易经的对应</h4>
+      <p>上卦/下卦：外部力量 vs 内部力量。每个卦本身就是一个两方博弈。</p>
+    </div>
+  </div>
+  <div class="insight-row">
+    <div class="insight-cell gt">
+      <h4>策略空间（Strategy Space）</h4>
+      <p>每个参与者可选择的行动集合</p>
+    </div>
+    <div class="insight-cell yi">
+      <h4>每爻的阴阳选择</h4>
+      <p>6个位置×2种选择 = 2⁶ = 64种策略组合 = 64卦</p>
+    </div>
+  </div>
+  <div class="insight-row">
+    <div class="insight-cell gt">
+      <h4>纳什均衡（Nash Equilibrium）</h4>
+      <p>没有参与者有动力单方面改变策略的稳定状态</p>
+    </div>
+    <div class="insight-cell yi">
+      <h4>卦象</h4>
+      <p>每一卦就是一个稳定态——在这种力量配置下，系统会停在这里</p>
+    </div>
+  </div>
+  <div class="insight-row">
+    <div class="insight-cell gt">
+      <h4>均衡转移</h4>
+      <p>外部冲击打破旧均衡，系统跳到新均衡</p>
+    </div>
+    <div class="insight-cell yi">
+      <h4>变爻 → 之卦</h4>
+      <p>某一爻到极限（老阳/老阴）翻转 → 卦象变化 = 从旧均衡跳到新均衡</p>
+    </div>
+  </div>
+  <div class="insight-row">
+    <div class="insight-cell gt">
+      <h4>机制设计（反向博弈论）</h4>
+      <p>不是在规则下找最优解，而是设计规则使均衡行为达到目标</p>
+    </div>
+    <div class="insight-cell yi">
+      <h4>鼎/节/井</h4>
+      <p>文王/周公做的就是机制设计——设计礼乐制度使"走完10卦循环"成为均衡行为</p>
+    </div>
+  </div>
+  <div class="insight-row">
+    <div class="insight-cell gt">
+      <h4>重复博弈</h4>
+      <p>同一博弈反复进行，长期声誉比短期获利更重要</p>
+    </div>
+    <div class="insight-cell yi">
+      <h4>既济 → 未济 → 循环</h4>
+      <p>博弈不止一轮。"以未济结尾"= 这场博弈永远没有终局。</p>
+    </div>
+  </div>
+
+  <div class="insight-final">
+    <strong>一句话：</strong>博弈论是用数学语言写的易经，易经是用符号语言写的博弈论。冯·诺伊曼在1944年用数学公式化了文王在前1050年用直觉捕捉到的东西——在一组力量配置下，系统的稳定态是什么，以及它会怎么演化。64卦 = 64种纳什均衡。变爻 = 均衡转移。文王卦序 = 均衡之间的演化路径。
+  </div>
+</div>
+
+</div>
+
+<script>
+const DATA = [
+  {
+    num:'一', title:'按合作性分', count:7,
+    subs:[
+      {name:'合作博弈', desc:'参与者可以达成并执行有约束力的协议。核心问题：联盟如何形成？收益如何分配？', icon:'coop',
+       games:[
+        {name:'联盟形成', brief:'多方结盟的策略',
+         desc:'参与者结成联盟，联合行动获得比单干更大的收益。关键问题：谁和谁联盟？利益怎么分？',
+         hexagrams:[{n:8,name:'比',desc:'亲密联合——有约束力的联盟'},{n:13,name:'同人',desc:'志同道合——基于共同利益'},{n:31,name:'咸',desc:'感应——互相吸引的合作'},{n:45,name:'萃',desc:'聚集——多方联合'}],
+         insight:'易经的比卦说「原筮元永贞」——结盟前要反复验证，不是谁来都结盟。博弈论的联盟理论也说：稳定的联盟需要核心（core）是非空的——即存在一种分配方案使所有成员都不想离开。'},
+      ]},
+      {name:'非合作博弈', desc:'每个参与者独立决策。不能签合同，不能强制执行承诺。现代博弈论的主流。', icon:'comp',
+       games:[
+        {name:'利益冲突', brief:'无法强制合作',
+         desc:'没有执行协议的机制时，理性个体倾向于追求自身利益，即使合作对双方都更好。',
+         hexagrams:[{n:6,name:'讼',desc:'争讼——利益冲突无仲裁'},{n:38,name:'睽',desc:'背离——各怀心思'},{n:47,name:'困',desc:'困境——零和或负和'}],
+         insight:'讼卦说「中吉，终凶」——争到一半和解是吉的，争到底是凶的。博弈论也是这样：非合作博弈中，中途退出（中吉）往往比打到底（终凶）更理性。'},
+      ]},
+    ]
+  },
+  {
+    num:'二', title:'按信息结构分', count:5,
+    subs:[
+      {name:'完全信息博弈', desc:'所有参与者知道游戏规则、对方的策略和收益。象棋就是完全信息博弈。', icon:'info',
+       games:[
+        {name:'透明对弈', brief:'双方都看到全局',
+         desc:'当所有信息公开时，博弈的结果由纯策略决定——不需要猜测和欺骗。',
+         hexagrams:[{n:20,name:'观',desc:'观察——充分信息下的决策'},{n:30,name:'离',desc:'光明——信息完全透明'}],
+         insight:'观卦「盥而不荐」——在完全信息下，最优策略是先充分观察再行动。博弈论中完全信息博弈可以用逆向归纳法（backward induction）求解——从终局倒推。'},
+      ]},
+      {name:'不完全信息博弈', desc:'参与者不知道对方的全部信息——对方的底牌、真实意图、能力上限。扑克就是不完全信息博弈。', icon:'info',
+       games:[
+        {name:'信息迷雾', brief:'看不清对方的底牌',
+         desc:'真实世界的绝大多数博弈都是不完全信息的。你不知道对手真正想要什么。信号传递、筛选、欺骗都在这里发生。',
+         hexagrams:[{n:4,name:'蒙',desc:'蒙昧——信息不对称'},{n:36,name:'明夷',desc:'光明受损——信息被遮蔽'},{n:29,name:'坎',desc:'险陷——看不清的危险'}],
+         insight:'蒙卦是博弈论"信息不对称"的完美描述。而明夷更深——不只是"信息缺失"，是"信息被主动遮蔽"。NPD的操控就是明夷：有意制造信息迷雾来获取博弈优势。'},
+      ]},
+    ]
+  },
+  {
+    num:'三', title:'按时间结构分', count:5,
+    subs:[
+      {name:'静态博弈（同时决策）', desc:'所有参与者同时选择策略，看不到对方选了什么。石头剪刀布就是静态博弈。', icon:'time',
+       games:[
+        {name:'同时行动', brief:'没有先后手',
+         desc:'当双方同时行动时，关键是预判——你选什么取决于你认为对方会选什么。',
+         hexagrams:[{n:51,name:'震',desc:'震惊——突发的同时行动'},{n:49,name:'革',desc:'变革——同时达到临界点'}],
+         insight:'震卦「震来虩虩，笑言哑哑」——同时行动的冲击让所有人都吓了一跳，但最终回归平静。牧野之战就是一个静态博弈：商周两军同时决定投入多少兵力。'},
+      ]},
+      {name:'动态博弈（序贯决策）', desc:'参与者轮流行动，后手可以观察先手的选择再决定。象棋就是动态博弈。', icon:'time',
+       games:[
+        {name:'序贯行动', brief:'看到对方出牌再决定',
+         desc:'动态博弈中先行者有"承诺优势"，但后行者有"信息优势"。关键是子博弈完美均衡（SPNE）。',
+         hexagrams:[{n:53,name:'渐',desc:'渐进——一步步展开策略'},{n:5,name:'需',desc:'等待——观察后再行动'},{n:10,name:'履',desc:'谨行——每步看前步结果'}],
+         insight:'渐卦就是动态博弈的教科书——鸿雁一站一站地落脚，每一步都基于前一步的结果。你对孩子的"渐卦策略"本质上就是一个动态博弈：她先出招（破坏），你后出招（渗透），根据她的反应调整。'},
+      ]},
+    ]
+  },
+  {
+    num:'四', title:'经典博弈模型', count:12,
+    subs:[
+      {name:'囚徒困境', desc:'最著名的博弈。个体理性导致集体非理性——每个人都选择对自己最好的，但结果对所有人都不是最好的。', icon:'comp',
+       games:[
+        {name:'囚徒困境', brief:'双方都背叛 > 双方都合作',
+         matrix:'              对方合作    对方背叛\n  我方合作    (-1,-1)     (-10, 0)\n  我方背叛    ( 0,-10)    (-5,-5) ← 纳什均衡',
+         desc:'无论对方怎么选，背叛对自己都更好（优势策略）。但双方都背叛（-5,-5）比双方都合作（-1,-1）差得多。',
+         hexagrams:[{n:12,name:'否',desc:'闭塞——双方拒绝合作的均衡'},{n:41,name:'损',desc:'减损——为合作需牺牲短期利益'}],
+         insight:'否卦就是囚徒困境的纳什均衡——天地不交，双方都选择不合作。损卦给出了打破囚徒困境的方法：主动减损自己的短期利益（「损下益上」），换取长期合作的可能。'},
+      ]},
+      {name:'胆小鬼博弈', desc:'两辆车对冲，谁先转向谁输（胆小鬼），但都不转就同归于尽。古巴导弹危机就是胆小鬼博弈。', icon:'comp',
+       games:[
+        {name:'胆小鬼博弈', brief:'谁先退让谁输，但都不退则同归于尽',
+         matrix:'              对方退让    对方不退\n  我方退让    ( 0, 0)     (-1,+1)\n  我方不退    (+1,-1)     (-10,-10)',
+         desc:'两个纳什均衡：一个退一个不退。关键是"承诺"——如何让对方相信你不会退。',
+         hexagrams:[{n:34,name:'大壮',desc:'强盛——硬碰硬的对决'},{n:33,name:'遁',desc:'退隐——主动退让'},{n:43,name:'夬',desc:'决断——不退的决心'}],
+         insight:'大壮→遁→夬 这三卦覆盖了胆小鬼博弈的全部策略空间：硬碰硬（大壮）、主动退让（遁）、决断不退（夬）。遁卦说「退是为了进」——主动退让不是胆小鬼，是战略选择。'},
+      ]},
+      {name:'猎鹿博弈', desc:'两人合作猎鹿，收益最大但需要信任。独自猎兔，收益小但不依赖别人。信任是关键。', icon:'coop',
+       games:[
+        {name:'猎鹿博弈', brief:'合作高收益但高风险 vs 单干低收益但安全',
+         matrix:'              对方猎鹿    对方猎兔\n  我方猎鹿    (+5,+5)     ( 0,+2)\n  我方猎兔    (+2, 0)     (+2,+2)',
+         desc:'两个均衡：双方猎鹿（最优但需信任）和双方猎兔（安全但次优）。关键是互信。',
+         hexagrams:[{n:11,name:'泰',desc:'通泰——合作成功的最优均衡'},{n:9,name:'小畜',desc:'小积蓄——独自猎兔的安全策略'}],
+         insight:'泰卦=双方猎鹿成功。小畜=独自猎兔。泰卦为什么地在上天在下？因为信任需要双方都"放低自己"（地下降，天上升），走向对方。如果都端着（天上地下=否），就只能各猎各的兔。'},
+      ]},
+      {name:'零和/正和/负和', desc:'博弈的总收益是固定的（零和）、可增长的（正和）、还是缩减的（负和）？', icon:'comp',
+       games:[
+        {name:'零和博弈', brief:'你多一分我就少一分',
+         desc:'一方所得=另一方所失。总和为零。纯粹的对抗，不存在合作空间。',
+         hexagrams:[{n:7,name:'师',desc:'用兵——纯粹的对抗'},{n:6,name:'讼',desc:'争讼——有赢必有输'}],
+         insight:'师卦和讼卦是64卦中最"零和"的两卦——战争和诉讼都是典型的零和博弈。'},
+        {name:'正和博弈', brief:'合作把蛋糕做大',
+         desc:'通过合作可以创造新的价值，总收益增加。贸易就是正和博弈。',
+         hexagrams:[{n:42,name:'益',desc:'增益——合作扩大总量'},{n:50,name:'鼎',desc:'鼎新——合作创造新秩序'}],
+         insight:'益卦「利有攸往，利涉大川」——正和博弈中应该积极行动、大胆合作。'},
+        {name:'负和博弈', brief:'冲突让所有人都受损',
+         desc:'总收益为负——双方的争斗导致资源被浪费。军备竞赛就是负和博弈。',
+         hexagrams:[{n:23,name:'剥',desc:'剥落——互相消耗到底'},{n:47,name:'困',desc:'困境——两败俱伤'}],
+         insight:'NPD关系就是一个负和博弈——她获得供给但代价是你和孩子的消耗。长期看连她自己也在消耗（上六「不明晦」）。'},
+      ]},
+    ]
+  },
+  {
+    num:'五', title:'进化博弈论', count:7,
+    subs:[
+      {name:'进化稳定策略（ESS）', desc:'在一个群体中，如果大多数人采用某策略，少数偏离者无法获得优势——该策略就是进化稳定的。', icon:'evo',
+       games:[
+        {name:'ESS', brief:'不可被入侵的策略',
+         desc:'不需要参与者"理性"——只需要成功的策略被模仿、失败的被淘汰。自然选择就是这样工作的。',
+         hexagrams:[{n:32,name:'恒',desc:'持久——稳定的群体策略'},{n:15,name:'谦',desc:'谦虚——进化上稳定的低调策略'},{n:2,name:'坤',desc:'承载——柔顺的生存策略'}],
+         insight:'谦卦是64卦中吉率最高的之一——这和进化博弈论的发现一致：低调策略往往比高调策略更稳定。"枪打出头鸟"不是道德说教——是进化稳定性的数学表达。'},
+      ]},
+      {name:'鹰鸽博弈', desc:'群体中鹰派（攻击）和鸽派（退让）共存。纯鹰和纯鸽都不稳定，混合比例才是均衡。', icon:'evo',
+       games:[
+        {name:'鹰鸽博弈', brief:'群体中鹰和鸽的稳定比例',
+         desc:'如果全是鹰——鹰之间互伤太大，鸽派入侵有利。如果全是鸽——鹰入侵立刻获利。均衡=特定比例的鹰鸽混合。',
+         hexagrams:[{n:1,name:'乾',desc:'纯阳=鹰派——全力进攻'},{n:2,name:'坤',desc:'纯阴=鸽派——全力退让'},{n:11,name:'泰',desc:'阴阳交融=鹰鸽混合均衡'}],
+         insight:'乾坤泰三卦完美对应鹰鸽博弈的三种状态。纯乾（全鹰）=「亢龙有悔」会崩溃。纯坤（全鸽）被入侵。泰（阴阳交融）才是稳定均衡——但泰卦也警告「无平不陂」，均衡随时可能被打破。'},
+      ]},
+      {name:'复制者动态', desc:'成功的策略被模仿扩散，失败的被淘汰。不需要理性——只需要差异化复制。', icon:'evo',
+       games:[
+        {name:'复制者动态', brief:'策略的自然选择',
+         desc:'这是达尔文进化论的博弈论版本。适应度高的策略占比增加，低的减少。',
+         hexagrams:[{n:24,name:'复',desc:'来复——成功策略的回归'},{n:23,name:'剥',desc:'剥落——失败策略的淘汰'},{n:18,name:'蛊',desc:'整治——淘汰旧策略引入新策略'}],
+         insight:'剥→复→蛊 这个三卦序列就是一个完整的复制者动态循环：旧策略被剥落淘汰(剥) → 成功策略复制回归(复) → 系统性地整合更新(蛊)。'},
+      ]},
+    ]
+  },
+  {
+    num:'六', title:'机制设计', count:5,
+    subs:[
+      {name:'机制设计（反向博弈论）', desc:'普通博弈论：给定规则，求最优策略。机制设计：给定目标，设计规则使均衡行为达到目标。', icon:'mech',
+       games:[
+        {name:'规则设计', brief:'设计游戏规则而不是玩游戏',
+         desc:'拍卖设计、投票制度、市场规则——都是机制设计的应用。2007年诺贝尔经济学奖授予机制设计理论。',
+         hexagrams:[{n:50,name:'鼎',desc:'鼎新——设计新制度框架'},{n:21,name:'噬嗑',desc:'用法——用规则清除障碍'},{n:60,name:'节',desc:'节制——设计约束机制'},{n:48,name:'井',desc:'源泉——设计持续供给制度'}],
+         insight:'周公制礼作乐就是人类历史上最早的大规模机制设计——设计一套规则（礼乐），使每个人的均衡行为（走完10卦循环）恰好是社会最优（文明持续发展）。'},
+        {name:'激励相容', brief:'让说真话成为最优策略',
+         desc:'设计机制使个人利益和集体利益一致——个人追求自身利益时，自动实现集体目标。',
+         hexagrams:[{n:61,name:'中孚',desc:'诚信——当规则使说真话更有利'},{n:15,name:'谦',desc:'谦虚——当规则使低调更有利'}],
+         insight:'中孚卦就是激励相容的理想状态——规则设计得让"真诚"比"欺骗"收益更高，人们就自然会真诚。当制度衰减到中孚崩塌——说真话不如说假话——激励相容被破坏——礼崩乐坏。'},
+      ]},
+    ]
+  },
+  {
+    num:'七', title:'重复博弈与声誉', count:6,
+    subs:[
+      {name:'重复博弈', desc:'同一博弈反复进行。一次性博弈中的背叛策略，在重复博弈中可能被合作取代——因为有下一轮。', icon:'time',
+       games:[
+        {name:'无限重复博弈', brief:'博弈没有终点——考虑永远的未来',
+         desc:'民间定理（Folk Theorem）：如果博弈无限重复，几乎任何合理的结果都可以成为均衡——包括合作。关键是耐心（贴现因子）。',
+         hexagrams:[{n:32,name:'恒',desc:'持久——长期重复互动'},{n:63,name:'既济',desc:'完成一轮——但还有下一轮'},{n:64,name:'未济',desc:'尚未完成——博弈永远继续'}],
+         insight:'易经以未济结尾 = 博弈永远不结束。既济→未济→回到乾坤→新一轮 = 无限重复博弈。在无限重复中，合作可以成为均衡——这就是为什么"以未济结尾"是乐观的，不是悲观的。'},
+      ]},
+      {name:'以牙还牙策略', brief:'TFT——重复博弈中最成功的策略',icon:'coop',
+       games:[
+        {name:'以牙还牙（TFT）', brief:'第一轮合作，之后模仿对方',
+         desc:'Robert Axelrod的计算机锦标赛中，"以牙还牙"（Tit-for-Tat）击败了所有复杂策略。规则极简：第一步合作，之后对方上一轮怎么做你就怎么做。',
+         hexagrams:[{n:17,name:'随',desc:'跟随——模仿对方的策略'},{n:25,name:'无妄',desc:'纯粹——不先攻击但会反击'}],
+         insight:'随卦「随有求得，利居贞」——跟随不是软弱，是最优策略。无妄「纯粹自然」——不算计、不先手攻击，但也不傻。TFT的四个特征——善良（先合作）、可激怒（被背叛就报复）、宽容（对方回到合作就恢复）、清晰（规则简单透明）——正好对应无妄卦的核心：纯粹，不妄为。'},
+      ]},
+      {name:'声誉效应', brief:'长期互动中声誉的价值',icon:'coop',
+       games:[
+        {name:'声誉与信任', brief:'声誉是重复博弈中最重要的资产',
+         desc:'在重复博弈中，建立"可信赖"的声誉可以改变对方的策略——让合作成为可能。',
+         hexagrams:[{n:14,name:'大有',desc:'丰盛——声誉积累的结果'},{n:61,name:'中孚',desc:'诚信——声誉的内在基础'}],
+         insight:'大有是中孚的外在表现——你内在真诚（中孚），长期下来就积累了声誉（大有）。大有不是靠抢来的——是中孚自然产出的。'},
+      ]},
+    ]
+  },
+];
+
+// Build the page
+const container = document.getElementById('framework');
+
+DATA.forEach((cat, ci) => {
+  const catEl = document.createElement('div');
+  catEl.className = 'cat reveal';
+  catEl.style.transitionDelay = (ci * 0.05) + 's';
+
+  // Total hexagrams in this category
+  let hexCount = 0;
+  cat.subs.forEach(sub => sub.games.forEach(g => {
+    if (g.hexagrams) hexCount += g.hexagrams.length;
+  }));
+
+  const header = document.createElement('div');
+  header.className = 'cat-header';
+  header.innerHTML = `
+    <div class="cat-num">${cat.num}</div>
+    <div class="cat-title">${cat.title}</div>
+    <div class="cat-count">${hexCount}卦</div>
+    <div class="cat-toggle">▼</div>
+  `;
+
+  const body = document.createElement('div');
+  body.className = 'cat-body';
+
+  cat.subs.forEach(sub => {
+    let subHtml = `<div class="sub-cat">
+      <div class="sub-title">${sub.name}</div>
+      <div class="sub-desc">${sub.desc}</div>
+      <div class="game-cards">`;
+
+    sub.games.forEach(game => {
+      const hexHtml = (game.hexagrams || []).map(h =>
+        `<div class="gc-hex"><span class="gh-name">${h.name}</span><span class="gh-desc">${h.desc}</span></div>`
+      ).join('');
+
+      subHtml += `<div class="game-card" onclick="this.classList.toggle('open')">
+        <div class="gc-header">
+          <div class="gc-icon ${sub.icon || ''}">${sub.icon === 'coop' ? '🤝' : sub.icon === 'comp' ? '⚔️' : sub.icon === 'info' ? '🔍' : sub.icon === 'time' ? '⏱️' : sub.icon === 'evo' ? '🧬' : '⚙️'}</div>
+          <div>
+            <div class="gc-name">${game.name}</div>
+            <div class="gc-brief">${game.brief}</div>
+          </div>
+        </div>
+        <div class="gc-detail">
+          ${game.matrix ? `<div class="gc-matrix">${game.matrix}</div>` : ''}
+          <div class="gc-desc">${game.desc}</div>
+          <div class="gc-hexagrams">${hexHtml}</div>
+          ${game.insight ? `<div class="gc-insight">${game.insight}</div>` : ''}
+        </div>
+      </div>`;
+    });
+
+    subHtml += '</div></div>';
+    body.innerHTML += subHtml;
+  });
+
+  header.onclick = () => {
+    header.classList.toggle('open');
+    body.classList.toggle('open');
+  };
+
+  // Open first category by default
+  if (ci === 0) { header.classList.add('open'); body.classList.add('open'); }
+
+  catEl.appendChild(header);
+  catEl.appendChild(body);
+  container.appendChild(catEl);
+});
+
+// Scroll reveal
+const obs = new IntersectionObserver(entries => {
+  entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+}, {threshold: 0.1});
+document.querySelectorAll('.reveal').forEach(el => obs.observe(el));
+</script>
+</body>
+</html>

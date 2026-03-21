@@ -1,0 +1,1221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>置换循环验证器 · Permutation Cycle Verifier</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;700;900&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0f0f23;--bg2:#1a1a2e;--bg3:#16162b;
+  --bronze:#d4a574;--gold:#f0c080;--cream:#e8d5b7;
+  --text:#e0d6c8;--text2:#8a7f6f;--border:#2a2a3d;
+  --c52:#f0c080;--c10:#a8d8ea;--c2:#e07070;
+  --green:#7ecba1;--purple:#c792ea;
+}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:'Noto Serif SC',serif;line-height:1.8;overflow-x:hidden}
+code,.mono{font-family:'JetBrains Mono',monospace}
+
+/* Navigation */
+#progress{position:fixed;right:24px;top:50%;transform:translateY(-50%);z-index:100;display:flex;flex-direction:column;gap:14px}
+.prog-dot{width:12px;height:12px;border-radius:50%;border:2px solid var(--text2);background:transparent;cursor:pointer;transition:all .3s;position:relative}
+.prog-dot.active{background:var(--bronze);border-color:var(--bronze);box-shadow:0 0 12px var(--bronze)}
+.prog-dot .prog-label{position:absolute;right:24px;top:50%;transform:translateY(-50%);white-space:nowrap;font-size:12px;color:var(--text2);opacity:0;transition:opacity .3s;pointer-events:none}
+.prog-dot:hover .prog-label{opacity:1}
+
+/* Stage */
+.stage{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:80px 20px;position:relative}
+.stage-divider{width:1px;height:80px;background:linear-gradient(to bottom,transparent,var(--bronze),transparent);margin:0 auto}
+.stage-title{font-size:clamp(24px,4vw,40px);font-weight:900;color:var(--bronze);margin-bottom:8px;text-align:center}
+.stage-sub{font-size:clamp(13px,2vw,16px);color:var(--text2);margin-bottom:40px;text-align:center;max-width:700px}
+
+/* Landing */
+#landing .main-title{
+  font-size:clamp(32px,6vw,64px);font-weight:900;
+  background:linear-gradient(135deg,var(--c52),var(--c10),var(--c2));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+  text-align:center;margin-bottom:12px;
+}
+#landing .main-sub{font-size:clamp(14px,2vw,18px);color:var(--text2);text-align:center;max-width:660px;margin-bottom:48px}
+.hero-stats{display:flex;gap:24px;flex-wrap:wrap;justify-content:center;margin-bottom:48px}
+.hero-stat{text-align:center;padding:16px 24px;border:1px solid var(--border);border-radius:12px;background:var(--bg2);min-width:120px}
+.hero-stat .val{font-size:28px;font-weight:900;font-family:'JetBrains Mono',monospace}
+.hero-stat .val.c52{color:var(--c52)}.hero-stat .val.c10{color:var(--c10)}.hero-stat .val.c2{color:var(--c2)}.hero-stat .val.fix{color:var(--green)}
+.hero-stat .label{font-size:11px;color:var(--text2);margin-top:4px}
+.scroll-hint{position:absolute;bottom:40px;color:var(--text2);font-size:13px;animation:float 2s ease-in-out infinite}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
+
+/* Grid */
+.grid-wrap{width:100%;max-width:900px}
+.hex-grid{display:grid;grid-template-columns:repeat(8,1fr);gap:4px;margin-bottom:24px}
+.hex-cell{
+  aspect-ratio:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  border:1px solid var(--border);border-radius:6px;background:var(--bg2);
+  cursor:pointer;transition:all .4s;position:relative;font-size:11px;overflow:hidden;
+}
+.hex-cell:hover{border-color:var(--bronze);z-index:2;transform:scale(1.1)}
+.hex-cell .h-name{font-weight:700;color:var(--cream);font-size:clamp(11px,1.5vw,14px)}
+.hex-cell .h-num{font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--text2)}
+.hex-cell .h-bin{font-family:'JetBrains Mono',monospace;font-size:8px;color:var(--text2);opacity:.6}
+.hex-cell.in-c52{border-color:rgba(240,192,128,0.4);background:rgba(240,192,128,0.06)}
+.hex-cell.in-c10{border-color:rgba(168,216,234,0.4);background:rgba(168,216,234,0.06)}
+.hex-cell.in-c2{border-color:rgba(224,112,112,0.4);background:rgba(224,112,112,0.06)}
+.hex-cell.highlight{transform:scale(1.15);z-index:3;box-shadow:0 0 20px rgba(212,165,116,0.3)}
+.hex-cell.tracing{animation:pulse .6s ease-in-out}
+@keyframes pulse{0%{box-shadow:0 0 0 rgba(240,192,128,0)}50%{box-shadow:0 0 24px rgba(240,192,128,0.5)}100%{box-shadow:0 0 0 rgba(240,192,128,0)}}
+.grid-legend{display:flex;gap:16px;justify-content:center;flex-wrap:wrap;font-size:12px}
+.grid-legend span{display:flex;align-items:center;gap:6px}
+.legend-dot{width:10px;height:10px;border-radius:50%;border:2px solid}
+
+/* Tracer */
+.tracer-wrap{width:100%;max-width:900px}
+.tracer-controls{display:flex;gap:12px;align-items:center;justify-content:center;margin-bottom:24px;flex-wrap:wrap}
+.btn{
+  padding:10px 24px;border:1px solid var(--bronze);border-radius:8px;
+  background:transparent;color:var(--bronze);font-family:'Noto Serif SC',serif;
+  font-size:14px;cursor:pointer;transition:all .2s;font-weight:700;
+}
+.btn:hover{background:rgba(212,165,116,0.1)}
+.btn:active{transform:scale(0.97)}
+.btn.primary{background:rgba(212,165,116,0.15)}
+.btn:disabled{opacity:.3;cursor:not-allowed}
+.speed-label{font-size:12px;color:var(--text2)}
+.tracer-status{text-align:center;font-size:14px;color:var(--text);margin-bottom:16px;min-height:28px}
+.tracer-status .curr{color:var(--gold);font-weight:900}
+.tracer-chain{
+  display:flex;flex-wrap:wrap;align-items:center;gap:4px;padding:20px;
+  border:1px solid var(--border);border-radius:12px;background:var(--bg2);
+  min-height:80px;font-family:'JetBrains Mono',monospace;font-size:13px;
+  line-height:2.2;justify-content:center;
+}
+.chain-node{
+  padding:4px 10px;border-radius:6px;border:1px solid var(--border);
+  transition:all .3s;opacity:0;transform:scale(0.5);
+}
+.chain-node.show{opacity:1;transform:scale(1)}
+.chain-node.c52{background:rgba(240,192,128,0.1);border-color:rgba(240,192,128,0.3);color:var(--c52)}
+.chain-node.c10{background:rgba(168,216,234,0.1);border-color:rgba(168,216,234,0.3);color:var(--c10)}
+.chain-node.c2{background:rgba(224,112,112,0.1);border-color:rgba(224,112,112,0.3);color:var(--c2)}
+.chain-arrow{color:var(--text2);opacity:0;transition:opacity .3s}
+.chain-arrow.show{opacity:1}
+.chain-return{color:var(--gold);font-weight:700;opacity:0;transition:opacity .3s}
+.chain-return.show{opacity:1}
+
+/* Cycle result summary */
+.cycle-result{
+  display:flex;gap:16px;justify-content:center;flex-wrap:wrap;margin:24px 0;
+  opacity:0;transform:translateY(20px);transition:all .6s;
+}
+.cycle-result.show{opacity:1;transform:translateY(0)}
+.cycle-badge{
+  padding:12px 24px;border-radius:10px;text-align:center;
+  border:2px solid;min-width:140px;
+}
+.cycle-badge.c52{border-color:var(--c52);background:rgba(240,192,128,0.08)}
+.cycle-badge.c10{border-color:var(--c10);background:rgba(168,216,234,0.08)}
+.cycle-badge.c2{border-color:var(--c2);background:rgba(224,112,112,0.08)}
+.cycle-badge .cb-len{font-size:32px;font-weight:900;font-family:'JetBrains Mono',monospace}
+.cycle-badge.c52 .cb-len{color:var(--c52)}.cycle-badge.c10 .cb-len{color:var(--c10)}.cycle-badge.c2 .cb-len{color:var(--c2)}
+.cycle-badge .cb-pct{font-size:12px;color:var(--text2)}
+
+/* Ring visualization */
+.ring-section{width:100%;max-width:900px;display:flex;flex-direction:column;align-items:center}
+.ring-canvas-wrap{position:relative;width:100%;max-width:700px;aspect-ratio:1}
+#ringCanvas{width:100%;height:100%}
+.ring-legend{display:flex;gap:20px;justify-content:center;margin-top:16px;font-size:12px;flex-wrap:wrap}
+
+/* Statistics */
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;width:100%;max-width:900px}
+.stat-card{padding:20px;border:1px solid var(--border);border-radius:12px;background:var(--bg2);text-align:center}
+.stat-card .sv{font-size:28px;font-weight:900;font-family:'JetBrains Mono',monospace;color:var(--gold)}
+.stat-card .sv.red{color:var(--c2)}.stat-card .sv.blue{color:var(--c10)}.stat-card .sv.green{color:var(--green)}
+.stat-card .sl{font-size:12px;color:var(--text2);margin-top:4px}
+.stat-card .sd{font-size:11px;color:var(--text2);margin-top:8px;opacity:.7}
+.compare-bar{height:6px;border-radius:3px;background:var(--bg);margin-top:8px;overflow:hidden}
+.compare-bar-fill{height:100%;border-radius:3px;transition:width 1s}
+
+/* Custom input */
+.custom-section{width:100%;max-width:900px}
+.custom-input-wrap{margin-bottom:20px}
+.custom-input-wrap label{display:block;font-size:13px;color:var(--text2);margin-bottom:6px}
+.custom-input-wrap textarea{
+  width:100%;height:60px;padding:12px;border:1px solid var(--border);border-radius:8px;
+  background:var(--bg2);color:var(--cream);font-family:'JetBrains Mono',monospace;font-size:13px;
+  resize:vertical;
+}
+.custom-input-wrap textarea:focus{border-color:var(--bronze);outline:none}
+.custom-result{padding:20px;border:1px solid var(--border);border-radius:12px;background:var(--bg2);min-height:80px}
+.custom-result .cr-title{font-size:14px;font-weight:700;color:var(--cream);margin-bottom:8px}
+.custom-cycle{margin:8px 0;padding:8px 12px;border-radius:6px;font-size:12px;font-family:'JetBrains Mono',monospace;border-left:3px solid}
+.custom-cycle.long{border-color:var(--c52);background:rgba(240,192,128,0.04);color:var(--c52)}
+.custom-cycle.med{border-color:var(--c10);background:rgba(168,216,234,0.04);color:var(--c10)}
+.custom-cycle.short{border-color:var(--c2);background:rgba(224,112,112,0.04);color:var(--c2)}
+.custom-cycle.fix{border-color:var(--green);background:rgba(126,203,161,0.04);color:var(--green)}
+.error-msg{color:var(--c2);font-size:13px;padding:12px;border:1px solid rgba(224,112,112,0.3);border-radius:8px;background:rgba(224,112,112,0.06)}
+
+/* Random comparison */
+.random-wrap{display:flex;gap:12px;align-items:center;margin:16px 0;flex-wrap:wrap;justify-content:center}
+.random-result{font-size:13px;color:var(--text)}
+.random-result strong{color:var(--cream)}
+
+/* Language toggle */
+.lang-toggle{
+  position:fixed;top:16px;left:16px;z-index:200;display:flex;
+  border:1px solid var(--border);border-radius:20px;overflow:hidden;
+  background:var(--bg2);font-size:13px;font-family:'JetBrains Mono',monospace;
+  box-shadow:0 2px 12px rgba(0,0,0,0.4);
+}
+.lang-btn{
+  padding:6px 14px;cursor:pointer;color:var(--text2);transition:all .2s;
+  border:none;background:transparent;font-family:inherit;font-size:inherit;
+}
+.lang-btn.active{background:rgba(212,165,116,0.2);color:var(--bronze);font-weight:700}
+.lang-btn:hover:not(.active){background:rgba(212,165,116,0.08)}
+
+/* Responsive */
+@media(max-width:600px){
+  .hex-grid{grid-template-columns:repeat(8,1fr);gap:2px}
+  .hex-cell{font-size:9px}
+  .hex-cell .h-bin{display:none}
+  .hex-cell .h-num{font-size:7px}
+  .hero-stats{gap:12px}
+  .hero-stat{min-width:80px;padding:10px 14px}
+  .hero-stat .val{font-size:22px}
+  .stats-grid{grid-template-columns:1fr 1fr}
+  .tracer-chain{font-size:11px;padding:12px}
+}
+</style>
+</head>
+<body>
+
+<div class="lang-toggle" id="langToggle">
+  <button class="lang-btn active" data-lang="en" onclick="setLang('en')">EN</button>
+  <button class="lang-btn" data-lang="zh" onclick="setLang('zh')">中文</button>
+</div>
+
+<nav id="progress"></nav>
+
+<!-- ═══ Landing ═══ -->
+<section class="stage" id="landing">
+  <div class="main-title" data-i18n="landing_title">置换循环验证器</div>
+  <div class="main-sub" data-i18n="landing_sub_html">
+    二进制自然序（习称"伏羲序"）与文王序之间的映射，在S₆₄对称群中是什么结构？<br>
+    不要相信任何人的话——<strong>自己算，自己看。</strong>
+  </div>
+  <div class="hero-stats">
+    <div class="hero-stat"><div class="val c52">52</div><div class="label" data-i18n="hero_main">主循环</div></div>
+    <div class="hero-stat"><div class="val c10">10</div><div class="label" data-i18n="hero_secondary">次循环</div></div>
+    <div class="hero-stat"><div class="val c2">2</div><div class="label" data-i18n="hero_swap">对换</div></div>
+    <div class="hero-stat"><div class="val fix">0</div><div class="label" data-i18n="hero_fixed">固定点</div></div>
+  </div>
+  <div class="scroll-hint" data-i18n="scroll_hint">↓ 亲手验证</div>
+</section>
+
+<div class="stage-divider"></div>
+
+<!-- ═══ Stage 1: 8×8 Grid ═══ -->
+<section class="stage" id="stage-grid" style="min-height:auto;padding:60px 20px">
+  <div class="stage-title" data-i18n="grid_title">二进制自然序 · 8×8 方阵</div>
+  <div class="stage-sub" data-i18n="grid_sub">64卦按二进制自然序排列（000000→111111）。颜色标注它们将落入的循环。点击任意卦开始追踪。</div>
+  <div class="grid-wrap">
+    <div class="hex-grid" id="hexGrid"></div>
+    <div class="grid-legend">
+      <span><span class="legend-dot" style="border-color:var(--c52);background:rgba(240,192,128,0.3)"></span><span data-i18n="legend_c52">52-循环 (81.25%)</span></span>
+      <span><span class="legend-dot" style="border-color:var(--c10);background:rgba(168,216,234,0.3)"></span><span data-i18n="legend_c10">10-循环 (15.6%)</span></span>
+      <span><span class="legend-dot" style="border-color:var(--c2);background:rgba(224,112,112,0.3)"></span><span data-i18n="legend_c2">2-对换 (3.1%)</span></span>
+    </div>
+  </div>
+</section>
+
+<div class="stage-divider"></div>
+
+<!-- ═══ Stage 2: Step-by-step tracer ═══ -->
+<section class="stage" id="stage-trace" style="min-height:auto;padding:60px 20px">
+  <div class="stage-title" data-i18n="trace_title">逐步追踪</div>
+  <div class="stage-sub" data-i18n="trace_sub">从乾卦(自然序#63)出发，沿 σ(i) = 文王序[i] − 1 追踪。看它何时回到起点。</div>
+  <div class="tracer-wrap">
+    <div class="tracer-controls">
+      <button class="btn primary" id="btnTrace" onclick="startTrace()" data-i18n="btn_start">▶ 开始追踪</button>
+      <button class="btn" id="btnStep" onclick="stepTrace()" disabled data-i18n="btn_step">→ 单步</button>
+      <button class="btn" id="btnAuto" onclick="autoTrace()" disabled data-i18n="btn_auto">⟫ 自动播放</button>
+      <button class="btn" id="btnReset" onclick="resetTrace()" data-i18n="btn_reset">↺ 重置</button>
+      <div>
+        <span class="speed-label" data-i18n="speed_label">速度</span>
+        <input type="range" id="speedSlider" min="50" max="800" value="300" style="vertical-align:middle;width:80px;accent-color:var(--bronze)">
+      </div>
+    </div>
+    <div class="tracer-status" id="tracerStatus" data-i18n="tracer_idle_short">点击「开始追踪」从乾卦出发</div>
+    <div class="tracer-chain" id="tracerChain"></div>
+    <div class="cycle-result" id="cycleResult"></div>
+  </div>
+</section>
+
+<div class="stage-divider"></div>
+
+<!-- ═══ Stage 3: Ring visualization ═══ -->
+<section class="stage" id="stage-ring" style="min-height:auto;padding:60px 20px">
+  <div class="stage-title" data-i18n="ring_title">循环环形图</div>
+  <div class="stage-sub" data-i18n="ring_sub">三个循环的完整结构。悬停查看卦名，点击开始追踪该循环。</div>
+  <div class="ring-section">
+    <div class="ring-canvas-wrap">
+      <canvas id="ringCanvas" width="700" height="700"></canvas>
+    </div>
+    <div class="ring-legend">
+      <span style="color:var(--c52)" data-i18n="ring_leg_52">● 52-循环（主循环）</span>
+      <span style="color:var(--c10)" data-i18n="ring_leg_10">● 10-循环（次循环）</span>
+      <span style="color:var(--c2)" data-i18n="ring_leg_2">● 2-对换</span>
+    </div>
+  </div>
+</section>
+
+<div class="stage-divider"></div>
+
+<!-- ═══ Stage 4: Statistics ═══ -->
+<section class="stage" id="stage-stats" style="min-height:auto;padding:60px 20px">
+  <div class="stage-title" data-i18n="stats_title">统计检验</div>
+  <div class="stage-sub" data-i18n="stats_sub">文王序 vs 随机置换——这个结构有多特殊？</div>
+  <div class="stats-grid" id="statsGrid">
+    <div class="stat-card">
+      <div class="sv">3</div>
+      <div class="sl" data-i18n="stat_cycles">循环数</div>
+      <div class="sd" data-i18n="stat_cycles_desc">随机期望 ≈ 4.4</div>
+      <div class="compare-bar"><div class="compare-bar-fill" style="width:68%;background:var(--c52)"></div></div>
+    </div>
+    <div class="stat-card">
+      <div class="sv red">0</div>
+      <div class="sl" data-i18n="stat_fixed">固定点</div>
+      <div class="sd" data-i18n="stat_fixed_desc">随机期望 ≈ 1.0（P=0.37）</div>
+      <div class="compare-bar"><div class="compare-bar-fill" style="width:0%;background:var(--c2)"></div></div>
+    </div>
+    <div class="stat-card">
+      <div class="sv">52</div>
+      <div class="sl" data-i18n="stat_maxlen">最大循环长度</div>
+      <div class="sd" data-i18n="stat_maxlen_desc">随机期望 ≈ 40</div>
+      <div class="compare-bar"><div class="compare-bar-fill" style="width:81%;background:var(--c52)"></div></div>
+    </div>
+    <div class="stat-card">
+      <div class="sv blue">260</div>
+      <div class="sl" data-i18n="stat_order">置换的阶 lcm(52,10,2)</div>
+      <div class="sd" data-i18n="stat_order_desc">σ²⁶⁰ = 恒等置换</div>
+    </div>
+    <div class="stat-card">
+      <div class="sv green">81.25%</div>
+      <div class="sl" data-i18n="stat_dominant">主循环占比</div>
+      <div class="sd" data-i18n="stat_dominant_desc">52/64 的卦被一条链锁住</div>
+      <div class="compare-bar"><div class="compare-bar-fill" style="width:81.25%;background:var(--green)"></div></div>
+    </div>
+    <div class="stat-card">
+      <div class="sv" style="color:var(--purple)">2435×</div>
+      <div class="sl" data-i18n="stat_genome">vs 人猩基因组</div>
+      <div class="sd" data-i18n="stat_genome_desc">重排彻底度的参照系</div>
+    </div>
+  </div>
+
+  <div class="random-wrap">
+    <button class="btn" onclick="genRandom()" data-i18n="btn_random">🎲 生成随机置换对比</button>
+    <div class="random-result" id="randomResult"></div>
+  </div>
+</section>
+
+<div class="stage-divider"></div>
+
+<!-- ═══ Stage 5: Custom input ═══ -->
+<section class="stage" id="stage-custom" style="min-height:auto;padding:60px 20px">
+  <div class="stage-title" data-i18n="custom_title">自定义验证</div>
+  <div class="stage-sub" data-i18n="custom_sub">输入任意置换，计算其循环分解。用你自己的数据验证算法——或者挑战文王。</div>
+  <div class="custom-section">
+    <div class="custom-input-wrap">
+      <label data-i18n="custom_label">输入置换 σ（64个数字，用逗号/空格分隔，0-indexed 或 1-indexed 均可）</label>
+      <textarea id="customInput" data-i18n-placeholder="custom_placeholder" placeholder="例：1,22,7,19,15,34,44,11,14,51,38,52,61,55,30,32,6,3,28,58,39,63,46,5,45,17,47,56,27,48,30,43...（64个数字）"></textarea>
+    </div>
+    <div style="display:flex;gap:12px;margin-bottom:16px;flex-wrap:wrap">
+      <button class="btn primary" onclick="computeCustom()" data-i18n="btn_compute">计算循环分解</button>
+      <button class="btn" onclick="loadWenWang()" data-i18n="btn_load_wen">载入文王序</button>
+      <button class="btn" onclick="loadRandom64()" data-i18n="btn_load_random">载入随机置换</button>
+      <button class="btn" onclick="loadIdentity()" data-i18n="btn_load_identity">载入恒等置换</button>
+    </div>
+    <div class="custom-result" id="customResult">
+      <div style="color:var(--text2);font-size:13px" data-i18n="custom_hint">在上方输入置换，或点击预设按钮</div>
+    </div>
+  </div>
+</section>
+
+<div style="height:120px"></div>
+
+<!-- ═══ Footer ═══ -->
+<div style="text-align:center;padding:40px 20px;border-top:1px solid var(--border)">
+  <div style="font-size:13px;color:var(--text2);max-width:600px;margin:0 auto;line-height:2" data-i18n="footer_html">
+    <strong style="color:var(--cream)">所有计算在你的浏览器本地完成。</strong><br>
+    源数据来自二进制自然序（0–63）与《周易》文王序。<br>
+    算法：标准循环检测（DFS遍历置换图）。<br>
+    <span style="opacity:.6">葛正文 · 2026</span>
+  </div>
+</div>
+
+<script>
+// ══════════════════════════════════════════
+// I18N
+// ══════════════════════════════════════════
+let currentLang = localStorage.getItem('verify-perm-lang') || 'en';
+
+const I18N = {
+  en: {
+    // Landing
+    landing_title: 'Permutation Cycle Verifier',
+    landing_sub_html: 'What structure does the mapping between binary natural order ("Fuxi sequence") and King Wen sequence have in the S\u2086\u2084 symmetric group?<br>Don\'t take anyone\'s word for it\u2014<strong>compute it yourself.</strong>',
+    hero_main: 'Main cycle',
+    hero_secondary: 'Secondary cycle',
+    hero_swap: 'Transposition',
+    hero_fixed: 'Fixed points',
+    scroll_hint: '\u2193 Verify it yourself',
+    // Grid
+    grid_title: 'Binary Natural Order \u00b7 8\u00d78 Grid',
+    grid_sub: '64 hexagrams in binary natural order (000000\u2192111111). Colors indicate which cycle they belong to. Click any hexagram to start tracing.',
+    legend_c52: '52-cycle (81.25%)',
+    legend_c10: '10-cycle (15.6%)',
+    legend_c2: '2-transposition (3.1%)',
+    // Trace
+    trace_title: 'Step-by-Step Tracer',
+    trace_sub: 'Starting from Qian (natural order #63), follow \u03c3(i) = KingWen[i] \u2212 1. See when it returns to the start.',
+    btn_start: '\u25b6 Start',
+    btn_step: '\u2192 Step',
+    btn_auto: '\u27eb Auto',
+    btn_auto_pause: '\u23f8 Pause',
+    btn_reset: '\u21ba Reset',
+    speed_label: 'Speed',
+    tracer_idle: 'Click "Start" to begin from Qian, or click any hexagram in the grid',
+    tracer_idle_short: 'Click "Start" to begin from Qian',
+    // Ring
+    ring_title: 'Cycle Ring Diagram',
+    ring_sub: 'Complete structure of all three cycles. Hover to see names, click to start tracing that cycle.',
+    ring_leg_52: '\u25cf 52-cycle (main)',
+    ring_leg_10: '\u25cf 10-cycle (secondary)',
+    ring_leg_2: '\u25cf 2-transposition',
+    ring_label_52: '52-cycle',
+    ring_label_10: '10-cycle',
+    ring_label_2: '2-swap',
+    ring_center_sub: 'Fixed pts = 0',
+    // Stats
+    stats_title: 'Statistical Context',
+    stats_sub: 'King Wen sequence vs random permutations\u2014how special is this structure?',
+    stat_cycles: 'Cycles',
+    stat_cycles_desc: 'Random expected \u2248 4.4',
+    stat_fixed: 'Fixed Points',
+    stat_fixed_desc: 'Random expected \u2248 1.0 (P=0.37)',
+    stat_maxlen: 'Max Cycle Length',
+    stat_maxlen_desc: 'Random expected \u2248 40',
+    stat_order: 'Order lcm(52,10,2)',
+    stat_order_desc: '\u03c3\u00b2\u2076\u2070 = identity permutation',
+    stat_dominant: 'Dominant Cycle %',
+    stat_dominant_desc: '52/64 hexagrams locked in one chain',
+    stat_genome: 'vs Human\u2013Chimp Genome',
+    stat_genome_desc: 'Rearrangement thoroughness reference',
+    btn_random: '\ud83c\udfb2 Random Comparison',
+    // Custom
+    custom_title: 'Custom Verification',
+    custom_sub: 'Enter any permutation to compute its cycle decomposition. Verify the algorithm with your own data\u2014or challenge King Wen.',
+    custom_label: 'Enter permutation \u03c3 (64 numbers, comma/space separated, 0-indexed or 1-indexed)',
+    custom_placeholder: 'e.g.: 1,22,7,19,15,34,44,11,14,51,38,52,61,55,30,32,6,3,28,58,39,63,46,5,45,17,47,56,27,48,30,43... (64 numbers)',
+    btn_compute: 'Compute Cycles',
+    btn_load_wen: 'Load King Wen',
+    btn_load_random: 'Load Random',
+    btn_load_identity: 'Load Identity',
+    custom_hint: 'Enter a permutation above, or click a preset button',
+    // Footer
+    footer_html: '<strong style="color:var(--cream)">All computation runs locally in your browser.</strong><br>Source data: binary natural order (0\u201363) and the <i>Zhouyi</i> King Wen sequence.<br>Algorithm: standard cycle detection (DFS on permutation graph).<br><span style="opacity:.6">Zhengwen Ge \u00b7 2026</span>',
+    // Dynamic JS strings
+    status_current: 'Current',
+    status_natural: 'natural #',
+    status_steps: 'Steps',
+    cycle_complete: 'cycle complete! Length',
+    unvisited_remaining: 'unvisited remaining.',
+    all_traced: '\u2713 All 64 hexagrams traced!',
+    cycle_type_label: 'Cycle type',
+    fixed_points_label: 'Fixed points',
+    tooltip_natural: 'Natural #',
+    tooltip_wen: 'King Wen #',
+    err_not_number: 'is not a valid number',
+    err_need_64: 'Need exactly 64 numbers, got',
+    err_range: 'Values should be 0\u201363 or 1\u201364, got range',
+    err_not_perm: 'Not a valid permutation: duplicate or missing values',
+    custom_cycle_type: 'Cycle type',
+    custom_cycles_count: 'cycles',
+    custom_fixed_count: 'fixed points',
+    custom_fixed_point: 'Fixed point',
+    custom_length: 'Length',
+    custom_is_wen: '\u2713 This is exactly the King Wen sequence cycle decomposition: [52, 10, 2]',
+    random_cycle_type: 'Cycle type',
+    random_cycles: 'Cycles',
+    random_max: 'Max',
+    random_fixed: 'Fixed pts',
+    random_vs: 'vs King Wen [52,10,2]: 3 cycles, max 52, 0 fixed points',
+    // Nav labels
+    nav_landing: 'Intro',
+    nav_grid: 'Grid',
+    nav_trace: 'Tracer',
+    nav_ring: 'Ring',
+    nav_stats: 'Stats',
+    nav_custom: 'Custom',
+  },
+  zh: {
+    landing_title: '置换循环验证器',
+    landing_sub_html: '二进制自然序（习称"伏羲序"）与文王序之间的映射，在S₆₄对称群中是什么结构？<br>不要相信任何人的话——<strong>自己算，自己看。</strong>',
+    hero_main: '主循环',
+    hero_secondary: '次循环',
+    hero_swap: '对换',
+    hero_fixed: '固定点',
+    scroll_hint: '↓ 亲手验证',
+    grid_title: '二进制自然序 · 8×8 方阵',
+    grid_sub: '64卦按二进制自然序排列（000000→111111）。颜色标注它们将落入的循环。点击任意卦开始追踪。',
+    legend_c52: '52-循环 (81.25%)',
+    legend_c10: '10-循环 (15.6%)',
+    legend_c2: '2-对换 (3.1%)',
+    trace_title: '逐步追踪',
+    trace_sub: '从乾卦(自然序#63)出发，沿 σ(i) = 文王序[i] − 1 追踪。看它何时回到起点。',
+    btn_start: '▶ 开始追踪',
+    btn_step: '→ 单步',
+    btn_auto: '⟫ 自动播放',
+    btn_auto_pause: '⏸ 暂停',
+    btn_reset: '↺ 重置',
+    speed_label: '速度',
+    tracer_idle: '点击「开始追踪」从乾卦出发，或点击方阵中任意卦',
+    tracer_idle_short: '点击「开始追踪」从乾卦出发',
+    ring_title: '循环环形图',
+    ring_sub: '三个循环的完整结构。悬停查看卦名，点击开始追踪该循环。',
+    ring_leg_52: '● 52-循环（主循环）',
+    ring_leg_10: '● 10-循环（次循环）',
+    ring_leg_2: '● 2-对换',
+    ring_label_52: '52-循环',
+    ring_label_10: '10-循环',
+    ring_label_2: '2-对换',
+    ring_center_sub: '固定点 = 0',
+    stats_title: '统计检验',
+    stats_sub: '文王序 vs 随机置换——这个结构有多特殊？',
+    stat_cycles: '循环数',
+    stat_cycles_desc: '随机期望 ≈ 4.4',
+    stat_fixed: '固定点',
+    stat_fixed_desc: '随机期望 ≈ 1.0（P=0.37）',
+    stat_maxlen: '最大循环长度',
+    stat_maxlen_desc: '随机期望 ≈ 40',
+    stat_order: '置换的阶 lcm(52,10,2)',
+    stat_order_desc: 'σ²⁶⁰ = 恒等置换',
+    stat_dominant: '主循环占比',
+    stat_dominant_desc: '52/64 的卦被一条链锁住',
+    stat_genome: 'vs 人猩基因组',
+    stat_genome_desc: '重排彻底度的参照系',
+    btn_random: '🎲 生成随机置换对比',
+    custom_title: '自定义验证',
+    custom_sub: '输入任意置换，计算其循环分解。用你自己的数据验证算法——或者挑战文王。',
+    custom_label: '输入置换 σ（64个数字，用逗号/空格分隔，0-indexed 或 1-indexed 均可）',
+    custom_placeholder: '例：1,22,7,19,15,34,44,11,14,51,38,52,61,55,30,32,6,3,28,58,39,63,46,5,45,17,47,56,27,48,30,43...（64个数字）',
+    btn_compute: '计算循环分解',
+    btn_load_wen: '载入文王序',
+    btn_load_random: '载入随机置换',
+    btn_load_identity: '载入恒等置换',
+    custom_hint: '在上方输入置换，或点击预设按钮',
+    footer_html: '<strong style="color:var(--cream)">所有计算在你的浏览器本地完成。</strong><br>源数据来自二进制自然序（0–63）与《周易》文王序。<br>算法：标准循环检测（DFS遍历置换图）。<br><span style="opacity:.6">葛正文 · 2026</span>',
+    status_current: '当前',
+    status_natural: '自然序#',
+    status_steps: '步数',
+    cycle_complete: '循环完成！长度',
+    unvisited_remaining: '卦未访问。',
+    all_traced: '✓ 全部64卦追踪完成！',
+    cycle_type_label: '循环型',
+    fixed_points_label: '固定点',
+    tooltip_natural: '自然序#',
+    tooltip_wen: '文王#',
+    err_not_number: '不是有效数字',
+    err_need_64: '需要恰好64个数字，当前输入了',
+    err_range: '数值范围应为 0-63 或 1-64，当前范围',
+    err_not_perm: '不是有效置换：存在重复值或缺失值',
+    custom_cycle_type: '循环型',
+    custom_cycles_count: '个循环',
+    custom_fixed_count: '个固定点',
+    custom_fixed_point: '固定点',
+    custom_length: '长度',
+    custom_is_wen: '✓ 这正是文王序的置换循环分解：[52, 10, 2]',
+    random_cycle_type: '循环型',
+    random_cycles: '循环数',
+    random_max: '最大',
+    random_fixed: '固定点',
+    random_vs: 'vs 文王序 [52,10,2]：循环数3，最大52，固定点0',
+    nav_landing: '序幕',
+    nav_grid: '方阵',
+    nav_trace: '追踪',
+    nav_ring: '环形',
+    nav_stats: '统计',
+    nav_custom: '自定义',
+  }
+};
+
+function t(key) { return I18N[currentLang][key] || I18N['en'][key] || key; }
+
+function applyLanguage() {
+  // Static elements with data-i18n (skip tracer status if tracing is active)
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    if (el.id === 'tracerStatus' && typeof traceState !== 'undefined' && (traceState.active || traceState.chain.length > 0)) return;
+    const key = el.getAttribute('data-i18n');
+    const val = t(key);
+    if (key.endsWith('_html')) {
+      el.innerHTML = val;
+    } else {
+      el.textContent = val;
+    }
+  });
+  // Placeholders
+  document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+    el.placeholder = t(el.getAttribute('data-i18n-placeholder'));
+  });
+  // Update html lang
+  document.documentElement.lang = currentLang === 'zh' ? 'zh-CN' : 'en';
+  // Update toggle buttons
+  document.querySelectorAll('.lang-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.lang === currentLang);
+  });
+  // Update nav labels
+  const navLabels = [t('nav_landing'), t('nav_grid'), t('nav_trace'), t('nav_ring'), t('nav_stats'), t('nav_custom')];
+  document.querySelectorAll('.prog-label').forEach((el, i) => { if (navLabels[i]) el.textContent = navLabels[i]; });
+  // Update cell tooltips
+  document.querySelectorAll('.hex-cell').forEach(cell => {
+    const i = parseInt(cell.dataset.fuxi);
+    const bin = i.toString(2).padStart(6, '0');
+    const wenNum = FUXI_TO_WEN[i];
+    cell.title = `${NAMES[i]}\n${t('tooltip_natural')}${i} (${bin})\n${t('tooltip_wen')}${wenNum}\n→ ${NAMES[PERM[i]]}`;
+  });
+  // Redraw ring (has text labels)
+  if (typeof drawRings === 'function') drawRings();
+  // Re-set tracer idle text if not active
+  if (!traceState.active && traceState.current < 0) {
+    const statusEl = document.getElementById('tracerStatus');
+    if (statusEl && (!statusEl.innerHTML || statusEl.innerHTML.indexOf('curr') === -1)) {
+      statusEl.textContent = t('tracer_idle');
+    }
+  }
+}
+
+function setLang(lang) {
+  currentLang = lang;
+  localStorage.setItem('verify-perm-lang', lang);
+  applyLanguage();
+}
+
+// ══════════════════════════════════════════
+// DATA
+// ══════════════════════════════════════════
+const NAMES = [
+  '坤','剥','比','观','豫','晋','萃','否',  // 0-7
+  '谦','艮','蹇','渐','小过','旅','咸','遁', // 8-15
+  '师','蒙','坎','涣','解','未济','困','讼', // 16-23
+  '升','蛊','井','巽','恒','鼎','大过','姤', // 24-31
+  '复','颐','屯','益','震','噬嗑','随','无妄', // 32-39
+  '明夷','贲','既济','家人','丰','离','革','同人', // 40-47
+  '临','损','节','中孚','归妹','睽','兑','履', // 48-55
+  '泰','大畜','需','小畜','大壮','大有','夬','乾'  // 56-63
+];
+
+// Fuxi position (0-63) → Wen Wang number (1-64)
+const FUXI_TO_WEN = [
+  2,23,8,20,16,35,45,12,  15,52,39,53,62,56,31,33,
+  7,4,29,59,40,64,47,6,   46,18,48,57,32,50,28,44,
+  24,27,3,42,51,21,17,25,  36,22,63,37,55,30,49,13,
+  19,41,60,61,54,38,58,10,  11,26,5,9,34,14,43,1
+];
+
+// Build permutation σ(i) = FUXI_TO_WEN[i] - 1 (0-indexed)
+const PERM = FUXI_TO_WEN.map(w => w - 1);
+
+// Inverse: Wen Wang position (0-indexed) → Fuxi position
+const WEN_TO_FUXI = new Array(64);
+for (let i = 0; i < 64; i++) WEN_TO_FUXI[PERM[i]] = i;
+
+// ══════════════════════════════════════════
+// CYCLE DECOMPOSITION
+// ══════════════════════════════════════════
+function decomposeCycles(perm) {
+  const n = perm.length;
+  const visited = new Set();
+  const cycles = [];
+  for (let i = 0; i < n; i++) {
+    if (visited.has(i)) continue;
+    const cycle = [];
+    let j = i;
+    while (!visited.has(j)) {
+      visited.add(j);
+      cycle.push(j);
+      j = perm[j];
+    }
+    cycles.push(cycle);
+  }
+  cycles.sort((a, b) => b.length - a.length);
+  return cycles;
+}
+
+const CYCLES = decomposeCycles(PERM);
+
+// Map: fuxi position → which cycle index
+const CYCLE_MAP = {};
+CYCLES.forEach((c, ci) => c.forEach(pos => CYCLE_MAP[pos] = ci));
+
+// ══════════════════════════════════════════
+// NAVIGATION
+// ══════════════════════════════════════════
+const STAGES = ['#landing','#stage-grid','#stage-trace','#stage-ring','#stage-stats','#stage-custom'];
+const STAGE_LABEL_KEYS = ['nav_landing','nav_grid','nav_trace','nav_ring','nav_stats','nav_custom'];
+
+(function initNav() {
+  const nav = document.getElementById('progress');
+  STAGES.forEach((s, i) => {
+    const dot = document.createElement('div');
+    dot.className = 'prog-dot' + (i === 0 ? ' active' : '');
+    dot.onclick = () => document.querySelector(s).scrollIntoView({ behavior: 'smooth' });
+    dot.innerHTML = `<span class="prog-label">${t(STAGE_LABEL_KEYS[i])}</span>`;
+    nav.appendChild(dot);
+  });
+
+  const dots = nav.querySelectorAll('.prog-dot');
+  const obs = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        const idx = STAGES.indexOf('#' + e.target.id);
+        if (idx >= 0) dots.forEach((d, i) => d.classList.toggle('active', i === idx));
+      }
+    });
+  }, { threshold: 0.3 });
+  STAGES.forEach(s => { const el = document.querySelector(s); if (el) obs.observe(el); });
+})();
+
+// ══════════════════════════════════════════
+// GRID
+// ══════════════════════════════════════════
+(function initGrid() {
+  const grid = document.getElementById('hexGrid');
+  for (let i = 0; i < 64; i++) {
+    const cell = document.createElement('div');
+    const ci = CYCLE_MAP[i];
+    const cls = ci === 0 ? 'in-c52' : ci === 1 ? 'in-c10' : 'in-c2';
+    cell.className = `hex-cell ${cls}`;
+    cell.dataset.fuxi = i;
+    const bin = i.toString(2).padStart(6, '0');
+    const wenNum = FUXI_TO_WEN[i];
+    cell.innerHTML = `<div class="h-name">${NAMES[i]}</div><div class="h-num">F${i} → W${wenNum}</div><div class="h-bin">${bin}</div>`;
+    cell.onclick = () => startTraceFrom(i);
+    cell.title = `${NAMES[i]}\n${t('tooltip_natural')}${i} (${bin})\n${t('tooltip_wen')}${wenNum}\n→ ${NAMES[PERM[i]]}`;
+    grid.appendChild(cell);
+  }
+})();
+
+// ══════════════════════════════════════════
+// TRACER
+// ══════════════════════════════════════════
+let traceState = { active: false, start: 63, current: -1, chain: [], autoTimer: null, cyclesDone: [] };
+
+function clearHighlights() {
+  document.querySelectorAll('.hex-cell.highlight,.hex-cell.tracing').forEach(c => {
+    c.classList.remove('highlight', 'tracing');
+  });
+}
+
+function highlightCell(fuxi) {
+  clearHighlights();
+  const cells = document.querySelectorAll('.hex-cell');
+  cells[fuxi].classList.add('highlight');
+}
+
+function startTrace() {
+  startTraceFrom(63); // 乾
+}
+
+function startTraceFrom(fuxiPos) {
+  resetTrace();
+  traceState.active = true;
+  traceState.start = fuxiPos;
+  traceState.current = fuxiPos;
+  traceState.chain = [fuxiPos];
+  traceState.cyclesDone = [];
+
+  document.getElementById('btnStep').disabled = false;
+  document.getElementById('btnAuto').disabled = false;
+  document.getElementById('btnTrace').disabled = true;
+
+  const ci = CYCLE_MAP[fuxiPos];
+  const cClass = ci === 0 ? 'c52' : ci === 1 ? 'c10' : 'c2';
+
+  const chainEl = document.getElementById('tracerChain');
+  chainEl.innerHTML = '';
+  const node = mkNode(fuxiPos, cClass);
+  chainEl.appendChild(node);
+  requestAnimationFrame(() => node.classList.add('show'));
+
+  highlightCell(fuxiPos);
+  updateStatus();
+
+  // Scroll to tracer
+  document.getElementById('stage-trace').scrollIntoView({ behavior: 'smooth' });
+}
+
+function mkNode(fuxi, cClass) {
+  const span = document.createElement('span');
+  span.className = `chain-node ${cClass}`;
+  span.textContent = NAMES[fuxi];
+  span.title = `${t('tooltip_natural')}${fuxi} → ${t('tooltip_wen')}${FUXI_TO_WEN[fuxi]}`;
+  return span;
+}
+
+function mkArrow() {
+  const span = document.createElement('span');
+  span.className = 'chain-arrow';
+  span.textContent = '→';
+  return span;
+}
+
+function stepTrace() {
+  if (!traceState.active) return;
+  const next = PERM[traceState.current];
+  const chainEl = document.getElementById('tracerChain');
+  const ci = CYCLE_MAP[traceState.start];
+  const cClass = ci === 0 ? 'c52' : ci === 1 ? 'c10' : 'c2';
+
+  if (next === traceState.start) {
+    // Cycle complete!
+    const arrow = mkArrow();
+    chainEl.appendChild(arrow);
+    requestAnimationFrame(() => arrow.classList.add('show'));
+
+    const ret = document.createElement('span');
+    ret.className = 'chain-return';
+    ret.textContent = `↩ ${NAMES[next]}`;
+    chainEl.appendChild(ret);
+    requestAnimationFrame(() => ret.classList.add('show'));
+
+    traceState.cyclesDone.push({ start: traceState.start, len: traceState.chain.length });
+
+    // Flash grid cell
+    const cells = document.querySelectorAll('.hex-cell');
+    cells[next].classList.add('tracing');
+
+    // Check if more cycles to trace
+    const visitedSet = new Set();
+    traceState.cyclesDone.forEach(cd => {
+      const cyc = CYCLES[CYCLE_MAP[cd.start]];
+      cyc.forEach(p => visitedSet.add(p));
+    });
+
+    if (visitedSet.size < 64) {
+      // Find next unvisited
+      let nextStart = -1;
+      for (let i = 0; i < 64; i++) {
+        if (!visitedSet.has(i)) { nextStart = i; break; }
+      }
+      traceState.current = -1; // pause
+      document.getElementById('tracerStatus').innerHTML =
+        `<span class="curr">${NAMES[traceState.start]}</span> ${t('cycle_complete')} <strong>${traceState.chain.length}</strong>。` +
+        ` ${64 - visitedSet.size} ${t('unvisited_remaining')}`;
+
+      // Auto-continue after delay
+      if (traceState.autoTimer) {
+        setTimeout(() => {
+          if (!traceState.active) return;
+          startNextCycle(nextStart);
+        }, 800);
+      } else {
+        setTimeout(() => {
+          if (!traceState.active) return;
+          startNextCycle(nextStart);
+        }, 1200);
+      }
+    } else {
+      // All done!
+      finishTrace();
+    }
+    return;
+  }
+
+  // Normal step
+  const arrow = mkArrow();
+  chainEl.appendChild(arrow);
+  requestAnimationFrame(() => arrow.classList.add('show'));
+
+  const node = mkNode(next, cClass);
+  chainEl.appendChild(node);
+  requestAnimationFrame(() => node.classList.add('show'));
+
+  traceState.chain.push(next);
+  traceState.current = next;
+  highlightCell(next);
+
+  // Flash
+  const cells = document.querySelectorAll('.hex-cell');
+  cells[next].classList.add('tracing');
+
+  updateStatus();
+
+  // Auto-scroll chain
+  chainEl.scrollTop = chainEl.scrollHeight;
+}
+
+function startNextCycle(fuxiPos) {
+  if (!traceState.active) return;
+  traceState.start = fuxiPos;
+  traceState.current = fuxiPos;
+  traceState.chain = [fuxiPos];
+
+  const chainEl = document.getElementById('tracerChain');
+  // Add separator
+  const sep = document.createElement('div');
+  sep.style.cssText = 'width:100%;height:1px;background:var(--border);margin:8px 0';
+  chainEl.appendChild(sep);
+
+  const ci = CYCLE_MAP[fuxiPos];
+  const cClass = ci === 0 ? 'c52' : ci === 1 ? 'c10' : 'c2';
+  const node = mkNode(fuxiPos, cClass);
+  chainEl.appendChild(node);
+  requestAnimationFrame(() => node.classList.add('show'));
+
+  highlightCell(fuxiPos);
+  updateStatus();
+
+  // Continue auto if was auto
+  if (traceState.autoTimer) {
+    scheduleAutoStep();
+  }
+}
+
+function finishTrace() {
+  traceState.active = false;
+  if (traceState.autoTimer) { clearTimeout(traceState.autoTimer); traceState.autoTimer = null; }
+
+  document.getElementById('btnStep').disabled = true;
+  document.getElementById('btnAuto').disabled = true;
+  document.getElementById('btnTrace').disabled = false;
+  clearHighlights();
+
+  const lens = CYCLES.map(c => c.length).sort((a, b) => b - a);
+  document.getElementById('tracerStatus').innerHTML =
+    `<span style="color:var(--gold);font-weight:900">${t('all_traced')}</span> ${t('cycle_type_label')}：<strong>[${lens.join(', ')}]</strong>，${t('fixed_points_label')}：<strong>0</strong>`;
+
+  // Show result badges
+  const resultEl = document.getElementById('cycleResult');
+  resultEl.innerHTML = '';
+  const configs = [
+    { len: 52, pct: '81.25%', cls: 'c52' },
+    { len: 10, pct: '15.63%', cls: 'c10' },
+    { len: 2, pct: '3.13%', cls: 'c2' }
+  ];
+  configs.forEach(cfg => {
+    const badge = document.createElement('div');
+    badge.className = `cycle-badge ${cfg.cls}`;
+    badge.innerHTML = `<div class="cb-len">${cfg.len}</div><div class="cb-pct">${cfg.pct}</div>`;
+    resultEl.appendChild(badge);
+  });
+  resultEl.classList.add('show');
+}
+
+function updateStatus() {
+  const s = traceState;
+  if (!s.active || s.current < 0) return;
+  const next = PERM[s.current];
+  document.getElementById('tracerStatus').innerHTML =
+    `${t('status_current')}：<span class="curr">${NAMES[s.current]}</span>（${t('status_natural')}${s.current}）` +
+    ` → σ → <strong>${NAMES[next]}</strong>（${t('status_natural')}${next}）` +
+    ` | ${t('status_steps')}：${s.chain.length}`;
+}
+
+function autoTrace() {
+  if (traceState.autoTimer) {
+    clearTimeout(traceState.autoTimer);
+    traceState.autoTimer = null;
+    document.getElementById('btnAuto').textContent = t('btn_auto');
+    return;
+  }
+  document.getElementById('btnAuto').textContent = t('btn_auto_pause');
+  scheduleAutoStep();
+}
+
+function scheduleAutoStep() {
+  const speed = 850 - parseInt(document.getElementById('speedSlider').value);
+  traceState.autoTimer = setTimeout(() => {
+    if (!traceState.active) return;
+    stepTrace();
+    if (traceState.active && traceState.current >= 0) scheduleAutoStep();
+  }, speed);
+}
+
+function resetTrace() {
+  traceState.active = false;
+  if (traceState.autoTimer) { clearTimeout(traceState.autoTimer); traceState.autoTimer = null; }
+  traceState.chain = [];
+  traceState.cyclesDone = [];
+  traceState.current = -1;
+  document.getElementById('tracerChain').innerHTML = '';
+  document.getElementById('tracerStatus').textContent = t('tracer_idle');
+  document.getElementById('cycleResult').innerHTML = '';
+  document.getElementById('cycleResult').classList.remove('show');
+  document.getElementById('btnStep').disabled = true;
+  document.getElementById('btnAuto').disabled = true;
+  document.getElementById('btnTrace').disabled = false;
+  document.getElementById('btnAuto').textContent = t('btn_auto');
+  clearHighlights();
+}
+
+// ══════════════════════════════════════════
+// RING VISUALIZATION
+// ══════════════════════════════════════════
+let ringHover = -1;
+
+function drawRings() {
+  const canvas = document.getElementById('ringCanvas');
+  const dpr = window.devicePixelRatio || 1;
+  const rect = canvas.getBoundingClientRect();
+  canvas.width = rect.width * dpr;
+  canvas.height = rect.height * dpr;
+  const ctx = canvas.getContext('2d');
+  ctx.scale(dpr, dpr);
+  const W = rect.width, H = rect.height;
+  const cx = W / 2, cy = H / 2;
+
+  ctx.clearRect(0, 0, W, H);
+
+  const configs = [
+    { cycle: CYCLES[0], r: Math.min(W, H) * 0.42, color: '#f0c080', bg: 'rgba(240,192,128,0.06)', label: t('ring_label_52') },
+    { cycle: CYCLES[1], r: Math.min(W, H) * 0.22, color: '#a8d8ea', bg: 'rgba(168,216,234,0.08)', label: t('ring_label_10') },
+    { cycle: CYCLES[2], r: Math.min(W, H) * 0.08, color: '#e07070', bg: 'rgba(224,112,112,0.08)', label: t('ring_label_2') }
+  ];
+
+  configs.forEach(cfg => {
+    const n = cfg.cycle.length;
+    const positions = [];
+
+    for (let i = 0; i < n; i++) {
+      const a = -Math.PI / 2 + (2 * Math.PI * i) / n;
+      positions.push({ x: cx + cfg.r * Math.cos(a), y: cy + cfg.r * Math.sin(a), fuxi: cfg.cycle[i] });
+    }
+
+    // Draw connecting lines (arrows)
+    for (let i = 0; i < n; i++) {
+      const from = positions[i];
+      const to = positions[(i + 1) % n];
+      ctx.beginPath();
+      ctx.moveTo(from.x, from.y);
+      ctx.lineTo(to.x, to.y);
+      ctx.strokeStyle = cfg.color + '40';
+      ctx.lineWidth = 1;
+      ctx.stroke();
+    }
+
+    // Draw nodes
+    const nodeR = cfg.r > 80 ? 14 : cfg.r > 40 ? 12 : 10;
+    positions.forEach((pos, i) => {
+      const isHover = ringHover === pos.fuxi;
+
+      // Node circle
+      ctx.beginPath();
+      ctx.arc(pos.x, pos.y, isHover ? nodeR + 3 : nodeR, 0, Math.PI * 2);
+      ctx.fillStyle = isHover ? cfg.color + '40' : cfg.bg;
+      ctx.fill();
+      ctx.strokeStyle = isHover ? cfg.color : cfg.color + '80';
+      ctx.lineWidth = isHover ? 2 : 1;
+      ctx.stroke();
+
+      // Text
+      const name = NAMES[pos.fuxi];
+      ctx.font = `${isHover ? '700' : '400'} ${cfg.r > 80 ? 10 : 9}px "Noto Serif SC", serif`;
+      ctx.fillStyle = isHover ? '#fff' : cfg.color;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(name, pos.x, pos.y);
+
+      if (isHover) {
+        // Show Wen Wang number
+        ctx.font = '600 9px "JetBrains Mono", monospace';
+        ctx.fillStyle = '#fff';
+        ctx.fillText(`W${FUXI_TO_WEN[pos.fuxi]}`, pos.x, pos.y + nodeR + 12);
+      }
+    });
+
+    // Label
+    if (cfg.r > 40) {
+      ctx.font = '700 12px "Noto Serif SC", serif';
+      ctx.fillStyle = cfg.color;
+      ctx.textAlign = 'center';
+      ctx.fillText(cfg.label, cx, cy - cfg.r - 22);
+    }
+  });
+
+  // Center text
+  ctx.font = '900 16px "JetBrains Mono", monospace';
+  ctx.fillStyle = '#f0c080';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText('[52, 10, 2]', cx, cy);
+  ctx.font = '400 11px "Noto Serif SC", serif';
+  ctx.fillStyle = '#8a7f6f';
+  ctx.fillText(t('ring_center_sub'), cx, cy + 18);
+}
+
+// Ring hover detection
+document.getElementById('ringCanvas').addEventListener('mousemove', function(e) {
+  const rect = this.getBoundingClientRect();
+  const mx = e.clientX - rect.left;
+  const my = e.clientY - rect.top;
+  const cx = rect.width / 2, cy = rect.height / 2;
+
+  const configs = [
+    { cycle: CYCLES[0], r: Math.min(rect.width, rect.height) * 0.42 },
+    { cycle: CYCLES[1], r: Math.min(rect.width, rect.height) * 0.22 },
+    { cycle: CYCLES[2], r: Math.min(rect.width, rect.height) * 0.08 }
+  ];
+
+  let found = -1;
+  for (const cfg of configs) {
+    const n = cfg.cycle.length;
+    for (let i = 0; i < n; i++) {
+      const a = -Math.PI / 2 + (2 * Math.PI * i) / n;
+      const px = cx + cfg.r * Math.cos(a);
+      const py = cy + cfg.r * Math.sin(a);
+      if (Math.hypot(mx - px, my - py) < 18) {
+        found = cfg.cycle[i];
+        break;
+      }
+    }
+    if (found >= 0) break;
+  }
+
+  if (found !== ringHover) {
+    ringHover = found;
+    this.style.cursor = found >= 0 ? 'pointer' : 'default';
+    drawRings();
+  }
+});
+
+document.getElementById('ringCanvas').addEventListener('click', function() {
+  if (ringHover >= 0) startTraceFrom(ringHover);
+});
+
+document.getElementById('ringCanvas').addEventListener('mouseleave', function() {
+  ringHover = -1;
+  drawRings();
+});
+
+// ══════════════════════════════════════════
+// RANDOM COMPARISON
+// ══════════════════════════════════════════
+function genRandom() {
+  const arr = Array.from({ length: 64 }, (_, i) => i);
+  // Fisher-Yates shuffle
+  for (let i = 63; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  const cycles = decomposeCycles(arr);
+  const lens = cycles.map(c => c.length).sort((a, b) => b - a);
+  const fixedPoints = cycles.filter(c => c.length === 1).length;
+  const maxLen = lens[0];
+
+  document.getElementById('randomResult').innerHTML =
+    `${t('random_cycle_type')}: <strong>[${lens.join(',')}]</strong> | ${t('random_cycles')}: <strong>${cycles.length}</strong> | ` +
+    `${t('random_max')}: <strong>${maxLen}</strong> | ${t('random_fixed')}: <strong>${fixedPoints}</strong>` +
+    `<br><span style="color:var(--text2);font-size:11px">${t('random_vs')}</span>`;
+}
+
+// ══════════════════════════════════════════
+// CUSTOM INPUT
+// ══════════════════════════════════════════
+function computeCustom() {
+  const raw = document.getElementById('customInput').value.trim();
+  if (!raw) return;
+  const resultEl = document.getElementById('customResult');
+
+  try {
+    let nums = raw.split(/[\s,;]+/).map(s => {
+      const n = parseInt(s);
+      if (isNaN(n)) throw new Error(`"${s}" ${t('err_not_number')}`);
+      return n;
+    });
+
+    if (nums.length !== 64) {
+      resultEl.innerHTML = `<div class="error-msg">${t('err_need_64')} ${nums.length}</div>`;
+      return;
+    }
+
+    // Detect 1-indexed vs 0-indexed
+    const min = Math.min(...nums);
+    const max = Math.max(...nums);
+    let perm;
+    if (min === 1 && max === 64) {
+      perm = nums.map(n => n - 1);
+    } else if (min === 0 && max === 63) {
+      perm = nums;
+    } else {
+      resultEl.innerHTML = `<div class="error-msg">${t('err_range')} ${min}-${max}</div>`;
+      return;
+    }
+
+    // Validate: must be a valid permutation
+    const seen = new Set(perm);
+    if (seen.size !== 64) {
+      resultEl.innerHTML = `<div class="error-msg">${t('err_not_perm')}</div>`;
+      return;
+    }
+
+    const cycles = decomposeCycles(perm);
+    const lens = cycles.map(c => c.length).sort((a, b) => b - a);
+    const fixedPoints = cycles.filter(c => c.length === 1).length;
+
+    let html = `<div class="cr-title">${t('custom_cycle_type')}：[${lens.join(', ')}] — ${cycles.length} ${t('custom_cycles_count')}，${fixedPoints} ${t('custom_fixed_count')}</div>`;
+
+    cycles.forEach((cyc, i) => {
+      const len = cyc.length;
+      const cls = len >= 20 ? 'long' : len >= 5 ? 'med' : len >= 2 ? 'short' : 'fix';
+      if (len === 1) {
+        html += `<div class="custom-cycle ${cls}">${t('custom_fixed_point')}: ${cyc[0]}</div>`;
+      } else {
+        const display = cyc.map(p => NAMES[p] || p).join(' → ') + ` ↩ ${NAMES[cyc[0]] || cyc[0]}`;
+        html += `<div class="custom-cycle ${cls}">${t('custom_length')} ${len}: ${display}</div>`;
+      }
+    });
+
+    // Compare with Wen Wang
+    const isWenWang = JSON.stringify(perm) === JSON.stringify(PERM);
+    if (isWenWang) {
+      html += `<div style="margin-top:12px;padding:12px;border-radius:8px;background:rgba(240,192,128,0.1);border:1px solid var(--c52);color:var(--gold);font-weight:700;text-align:center">${t('custom_is_wen')}</div>`;
+    }
+
+    resultEl.innerHTML = html;
+  } catch (e) {
+    resultEl.innerHTML = `<div class="error-msg">${e.message}</div>`;
+  }
+}
+
+function loadWenWang() {
+  document.getElementById('customInput').value = FUXI_TO_WEN.join(', ');
+  computeCustom();
+}
+
+function loadRandom64() {
+  const arr = Array.from({ length: 64 }, (_, i) => i);
+  for (let i = 63; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  document.getElementById('customInput').value = arr.join(', ');
+  computeCustom();
+}
+
+function loadIdentity() {
+  document.getElementById('customInput').value = Array.from({ length: 64 }, (_, i) => i).join(', ');
+  computeCustom();
+}
+
+// ══════════════════════════════════════════
+// INIT
+// ══════════════════════════════════════════
+window.addEventListener('load', () => {
+  applyLanguage();
+  drawRings();
+  window.addEventListener('resize', drawRings);
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>文明的引擎：个人循环 × 制度化悖论</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;700;900&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0f0f23;--bg2:#1a1a2e;--bg3:#16162b;
+  --bronze:#d4a574;--gold:#f0c080;--cream:#e8d5b7;
+  --text:#e0d6c8;--text2:#8a7f6f;--border:#2a2a3d;
+  --green:#7ecba1;--red:#e07070;--blue:#a8d8ea;--purple:#c792ea;
+}
+body{background:var(--bg);color:var(--text);font-family:'Noto Serif SC',serif;line-height:1.9}
+.container{max-width:820px;margin:0 auto;padding:24px}
+a{color:var(--bronze);text-decoration:none}
+a:hover{color:var(--gold)}
+
+/* Sections */
+section{padding:60px 0;border-bottom:1px solid var(--border)}
+section:last-of-type{border-bottom:none}
+h1{font-size:clamp(28px,5vw,44px);font-weight:900;text-align:center;margin-bottom:16px;
+  background:linear-gradient(135deg,var(--green),var(--gold));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+h2{font-size:24px;font-weight:900;color:var(--bronze);margin-bottom:16px}
+h3{font-size:18px;color:var(--gold);margin:24px 0 8px}
+.sub{font-size:15px;color:var(--text2);text-align:center;max-width:640px;margin:0 auto 32px}
+p{margin-bottom:14px;font-size:15px}
+
+/* Cards and boxes */
+.card{padding:20px;border:1px solid var(--border);border-radius:12px;background:var(--bg2);margin:16px 0}
+.quote{padding:16px 20px;margin:16px 0;border-left:3px solid var(--bronze);background:rgba(212,165,116,0.05);border-radius:0 8px 8px 0;font-size:15px;color:var(--cream);font-style:italic}
+.tag{display:inline-block;font-size:10px;font-weight:700;padding:3px 10px;border-radius:4px;margin-bottom:8px;letter-spacing:1px}
+.tag-math{background:rgba(168,216,234,0.15);color:var(--blue)}
+.tag-hist{background:rgba(240,192,128,0.15);color:var(--gold)}
+.tag-insight{background:rgba(199,146,234,0.15);color:var(--purple)}
+.tag-paradox{background:rgba(224,112,112,0.15);color:var(--red)}
+
+/* 10-cycle interactive journey */
+.journey{position:relative}
+.j-step{
+  display:grid;grid-template-columns:80px 1fr;gap:16px;
+  padding:20px 0;border-bottom:1px solid rgba(42,42,61,0.4);
+  cursor:pointer;transition:all 0.2s;
+}
+.j-step:last-child{border-bottom:none}
+.j-step:hover{background:rgba(126,203,161,0.03);border-radius:8px;padding-left:8px}
+.j-step.active{background:rgba(126,203,161,0.06);border-radius:8px;padding-left:8px}
+.j-left{text-align:center;padding-top:4px}
+.j-num{font-size:24px;font-weight:900;color:var(--green)}
+.j-hex{font-size:12px;color:var(--text2)}
+.j-right{}
+.j-title{font-size:16px;font-weight:700;color:var(--cream)}
+.j-wudi{font-size:13px;color:var(--green);margin-top:4px}
+.j-zhou{font-size:13px;color:var(--gold);margin-top:4px}
+.j-detail{
+  max-height:0;overflow:hidden;opacity:0;transition:all 0.4s ease;
+  font-size:13px;color:var(--text2);margin-top:8px;line-height:1.7;
+}
+.j-step.active .j-detail{max-height:300px;opacity:1}
+.j-decay{font-size:13px;color:var(--red);margin-top:4px}
+
+/* Decay slider */
+.decay-section{margin:24px 0}
+.decay-slider-wrap{display:flex;align-items:center;gap:16px;margin:16px 0}
+.decay-slider{
+  flex:1;-webkit-appearance:none;appearance:none;height:6px;
+  background:linear-gradient(to right,var(--green),var(--gold),var(--red));
+  border-radius:3px;outline:none;
+}
+.decay-slider::-webkit-slider-thumb{
+  -webkit-appearance:none;width:20px;height:20px;border-radius:50%;
+  background:var(--cream);border:2px solid var(--bronze);cursor:pointer;
+}
+.decay-label{font-size:14px;color:var(--text2);min-width:60px}
+.decay-gen{font-size:20px;font-weight:900;color:var(--gold);min-width:80px;text-align:center}
+.decay-bars{display:flex;flex-direction:column;gap:6px;margin-top:16px}
+.decay-bar-row{display:flex;align-items:center;gap:10px;font-size:12px}
+.decay-bar-name{min-width:60px;color:var(--text2);text-align:right}
+.decay-bar-track{flex:1;height:16px;background:var(--bg);border-radius:3px;overflow:hidden;border:1px solid var(--border)}
+.decay-bar-fill{height:100%;border-radius:2px;transition:width 0.5s ease}
+.decay-bar-val{min-width:36px;font-size:11px;color:var(--text2)}
+.decay-state{margin-top:16px;padding:16px;border-radius:10px;font-size:14px;transition:all 0.3s}
+
+/* Paradox visual */
+.paradox-box{
+  padding:24px;border:2px solid var(--red);border-radius:14px;
+  background:rgba(224,112,112,0.04);margin:20px 0;
+}
+.paradox-box h3{color:var(--red);margin-top:0}
+.paradox-cols{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:12px}
+.paradox-col{padding:14px;border-radius:8px;font-size:13px}
+.paradox-col.good{background:rgba(126,203,161,0.06);border:1px solid rgba(126,203,161,0.2)}
+.paradox-col.bad{background:rgba(224,112,112,0.06);border:1px solid rgba(224,112,112,0.2)}
+.paradox-col h4{margin-bottom:6px}
+.paradox-col.good h4{color:var(--green)}
+.paradox-col.bad h4{color:var(--red)}
+
+/* Final */
+.final{text-align:center;padding:40px 0}
+.final-hex{font-size:48px;margin-bottom:12px}
+.final-name{font-size:28px;font-weight:900;color:var(--gold);margin-bottom:8px}
+.final-msg{font-size:16px;color:var(--cream);font-style:italic}
+
+.code{font-family:'Courier New',monospace;font-size:12px;color:var(--blue);background:rgba(0,0,0,0.2);padding:12px;border-radius:6px;margin:12px 0;line-height:1.6;overflow-x:auto}
+
+@media(max-width:768px){
+  .j-step{grid-template-columns:60px 1fr}
+  .paradox-cols{grid-template-columns:1fr}
+}
+.reveal{opacity:0;transform:translateY(20px);transition:all 0.5s ease}
+.reveal.visible{opacity:1;transform:translateY(0)}
+</style>
+</head>
+<body>
+<div class="container">
+
+<!-- Hero -->
+<section class="reveal" style="border-bottom:none;text-align:center">
+  <h1>文明的引擎</h1>
+  <div class="sub">一个数学发现引发的追问：如果文明不会自动运行，那驱动它的引擎是什么？<br>引擎可以被制度化吗？制度化之后为什么还会熄火？</div>
+  <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;font-size:12px;color:var(--text2)">
+    <span style="padding:4px 12px;border:1px solid var(--border);border-radius:6px">基于置换循环分解 [52, 10, 2]</span>
+    <span style="padding:4px 12px;border:1px solid var(--border);border-radius:6px">384条爻辞数据验证</span>
+    <span style="padding:4px 12px;border:1px solid var(--border);border-radius:6px">商周600年历史比对</span>
+  </div>
+</section>
+
+<!-- Part 1: The Discovery -->
+<section class="reveal">
+  <div class="tag tag-math">数学事实</div>
+  <h2>置换循环分解：[52, 10, 2]</h2>
+  <p>把「二进制自然序→文王序」的映射做循环分解，64卦自动分成三组：</p>
+  <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:16px 0">
+    <div class="card" style="text-align:center;border-color:rgba(212,165,116,0.3)">
+      <div style="font-size:36px;font-weight:900;color:var(--gold)">52</div>
+      <div style="font-size:13px;color:var(--text2)">卦 · 主循环</div>
+      <div style="font-size:12px;color:var(--gold);margin-top:4px">文明叙事轨道</div>
+    </div>
+    <div class="card" style="text-align:center;border-color:rgba(126,203,161,0.3)">
+      <div style="font-size:36px;font-weight:900;color:var(--green)">10</div>
+      <div style="font-size:13px;color:var(--text2)">卦 · 独立循环</div>
+      <div style="font-size:12px;color:var(--green);margin-top:4px">个人状态引擎</div>
+    </div>
+    <div class="card" style="text-align:center;border-color:rgba(168,216,234,0.3)">
+      <div style="font-size:36px;font-weight:900;color:var(--blue)">2</div>
+      <div style="font-size:13px;color:var(--text2)">卦 · 互锁对</div>
+      <div style="font-size:12px;color:var(--blue);margin-top:4px">相变奇点</div>
+    </div>
+  </div>
+  <p>10卦与52卦在数学上<strong>完全独立</strong>。然后我们检查10卦的爻辞文本——</p>
+  <div class="card">
+    <div style="font-size:14px">
+      <strong style="color:var(--green)">个人/集体词频比：</strong>10卦 3.50 vs 52卦 1.98（<strong>1.8倍</strong>差距）<br>
+      <strong style="color:var(--green)">自指词频：</strong>10卦 36.7% vs 52卦 22.8%<br>
+      <strong style="color:var(--green)">事件词频：</strong>10卦 21.7% vs 52卦 33.0%
+    </div>
+  </div>
+  <p><strong>数学分组和语义特征一致</strong>——被数学筛出来的10卦，确实更偏向描述个人内在状态。</p>
+</section>
+
+<!-- Part 2: Wudi's Journey -->
+<section class="reveal">
+  <div class="tag tag-hist">历史验证</div>
+  <h2>武丁：走完10卦循环的人</h2>
+  <p>武丁是商朝第23位国王（前1250-前1192），在位59年，创造了「武丁盛世」。他的一生几乎完美地走过了10卦循环的每一步——而且是甲骨文可以实证的。</p>
+  <p style="font-size:13px;color:var(--text2)">点击任意阶段展开详情：</p>
+  <div class="journey" id="journey"></div>
+  <div class="quote">武丁之后的继任者没有经历过民间的「止」，没有三年不语的「小过」，没有在荒野找人的「同人」。他们从「大壮」直接开始，跳过了前面所有的积蓄阶段。10卦循环断裂 → 文明循环失去驱动力 → 商朝从既济滑向剥。</div>
+</section>
+
+<!-- Part 3: Zhou Institutionalization -->
+<section class="reveal">
+  <div class="tag tag-insight">核心洞察</div>
+  <h2>周公的天才：把10卦循环制度化</h2>
+  <p>周朝活了800年，不是因为"制度好"——秦朝制度更"先进"但只活了15年。周朝的秘密是：<strong>周公把文王发现的10卦个人循环，从"个人偶然修养"变成了"制度性强制流程"。</strong></p>
+
+  <div id="institution-map"></div>
+
+  <div class="quote">其他朝代的个人循环靠天生（武丁碰巧被送到民间）或选拔（科举只筛选不培养）。周朝把它变成制度——不管你是什么人，礼乐制度逼着你走完每一步。</div>
+</section>
+
+<!-- Part 4: Decay -->
+<section class="reveal">
+  <div class="tag tag-paradox">悖论</div>
+  <h2>礼崩乐坏：制度的自动衰减</h2>
+  <p>拖动滑块，观察10卦循环的「实质含量」如何随世代递减：</p>
+
+  <div class="decay-section">
+    <div class="decay-slider-wrap">
+      <div class="decay-label">第</div>
+      <div class="decay-gen" id="decay-gen-label">1</div>
+      <div class="decay-label">代</div>
+      <input type="range" class="decay-slider" id="decay-slider" min="1" max="37" value="1">
+    </div>
+    <div class="decay-bars" id="decay-bars"></div>
+    <div class="decay-state" id="decay-state"></div>
+  </div>
+
+  <h3>为什么衰减不可避免？</h3>
+  <p>因为<strong>创伤记忆不可遗传</strong>。</p>
+  <div class="card">
+    <p style="margin:0;font-size:14px">
+      <strong>第一代</strong>（武王、周公）：亲眼看着商朝灭亡 → 守孝是真的在反思，盟誓是真的以命相托<br>
+      <strong>第五代</strong>：听过故事 → 知道为什么要守，但没有亲身震撼<br>
+      <strong>第十代</strong>：只知道"规矩是这样" → 形式还在，内驱力已空<br>
+      <strong>第二十代</strong>：开始问"凭什么" → 三年守孝太久、朝聘太麻烦、盟誓签了不认
+    </p>
+  </div>
+  <p>这就是10卦循环中「中孚·诚信」崩塌的过程——当诚信从真诚变成表演，循环就断了。中孚断裂 → 无法回到艮（止需要内心安定）→ 整个循环卡死 → 文明引擎熄火。</p>
+</section>
+
+<!-- Part 5: The Paradox -->
+<section class="reveal">
+  <div class="tag tag-paradox">根本悖论</div>
+  <h2>制度化悖论：无解的两难</h2>
+
+  <div class="paradox-box">
+    <h3>不可调和的矛盾</h3>
+    <div class="paradox-cols">
+      <div class="paradox-col good">
+        <h4>制度化的好处</h4>
+        <p>不依赖个人偶然性。不需要每一代都碰巧出一个武丁。制度逼着每个人走完10卦循环。</p>
+        <p><strong>结果：周朝800年——史上最长。</strong></p>
+      </div>
+      <div class="paradox-col bad">
+        <h4>制度化的代价</h4>
+        <p>活的体验变成死的规矩。第一代是真诚的，第N代是表演的。形式和实质不可避免地分离。</p>
+        <p><strong>结果：礼崩乐坏——制度最终被自己掏空。</strong></p>
+      </div>
+    </div>
+    <p style="text-align:center;color:var(--red);font-size:14px;margin-top:12px"><strong>这两个效果不可分割。你不能只要好的不要坏的。</strong></p>
+  </div>
+
+  <h3>其他朝代的对照</h3>
+  <div class="card">
+    <p style="margin:0;font-size:13px">
+      <strong style="color:var(--red)">秦朝（15年）</strong>：用法家彻底消灭个人循环——人是机器零件，没有「止」没有「养」→ 引擎从未启动<br>
+      <strong style="color:var(--gold)">汉朝（400年）</strong>：察举制——靠外部推荐筛选人才，但容易被门阀垄断 → 引擎时转时停<br>
+      <strong style="color:var(--gold)">唐朝（289年）</strong>：科举制——更公平的筛选，但只筛选不培养 → 引擎选对了燃料但不养护<br>
+      <strong style="color:var(--green)">周朝（800年）</strong>：礼乐制度——不是筛选人而是<strong>培养人</strong>，强制走完10卦循环 → 引擎自己转<br>
+    </p>
+  </div>
+</section>
+
+<!-- Part 6: The Answer -->
+<section class="reveal">
+  <div class="tag tag-insight">既济 → 未济</div>
+  <h2>易经自身的回答</h2>
+
+  <div class="card" style="border-color:rgba(240,192,128,0.3)">
+    <p style="font-size:18px;color:var(--cream);margin:0;text-align:center">
+      「既济，亨，<strong style="color:var(--gold)">小</strong>利贞。<strong style="color:var(--red)">初吉终乱</strong>。」
+    </p>
+  </div>
+
+  <p>既济 = 六爻皆当位 = 数学上的完美态。周公的礼乐制度就是一个既济——一切各居其位。</p>
+  <p>但既济卦自己说了：<strong>「初吉终乱」</strong>——开头是好的，结尾是乱的。完美秩序自带衰变倾向。</p>
+  <p>为什么？因为维持完美需要能量。第一代人的能量来自真实经历。这种能量<strong>不可遗传</strong>——你可以把制度传给儿子，但不能把「亲眼看着商朝灭亡的震撼」传给他。</p>
+
+  <h3>有没有解？</h3>
+  <p>易经给的答案是全书的最后一卦——</p>
+
+  <div class="final">
+    <div class="final-hex">☲☵</div>
+    <div class="final-name">未济</div>
+    <div class="final-msg">「未济，亨，小狐汔济，濡其尾，无攸利。」</div>
+  </div>
+
+  <p><strong>不要试图冻结在"完成"状态。</strong>接受每个系统终将走完自己的循环。</p>
+  <p>未济之后回到乾坤——新的创造，新的循环。既济不是终点，未济也不是。<strong>循环本身就是答案。</strong></p>
+
+  <div class="quote">
+    文明不会自动发生，是走完了个人循环的人在推动。<br>
+    个人循环可以被制度化，制度化延长了文明的寿命。<br>
+    但制度化必然导致形式和实质的分离，最终引擎熄火。<br>
+    唯一的"解"是不追求永恒——而是在每个循环结束时，准备好下一个循环的种子。<br><br>
+    <strong>这就是易经以「未济」结尾的原因。</strong>
+  </div>
+
+  <div class="code">
+// 文明的引擎——完整模型
+
+while (true) {
+  // 阶段一：某个人走完了10卦个人循环
+  const leader = personalCycle.complete();     // 止→行→历练→…→诚信
+
+  // 阶段二：这个人驱动文明前进
+  civilization.advance(leader);                // 个人状态 → 文明走向
+
+  // 阶段三：如果足够聪明，把个人循环制度化
+  const institution = institutionalize(personalCycle);
+  civilization.install(institution);           // 引擎从"靠人"变成"靠制度"
+
+  // 阶段四：制度运行，文明延寿
+  let generation = 1;
+  while (institution.substance > threshold) {
+    generation++;
+    institution.substance *= 0.92;             // 每代衰减——创伤记忆不可遗传
+  }
+  // 礼崩乐坏——引擎熄火
+
+  // 阶段五：既济 → 未济
+  // 不是失败，是循环的一部分
+  civilization.reset();                        // 回到乾坤，等待下一个走完循环的人
+}
+// 这个while(true)永远不会停——这就是"未济"的意思
+  </div>
+</section>
+
+</div>
+
+<script>
+// ═══ 武丁 Journey ═══
+const JOURNEY = [
+  {num:'一',hex:'艮·止',title:'幼年在民间劳作',
+   wudi:'武丁被父亲小乙送到民间，和平民一起种地。一个王子被剥掉一切光环，从零开始。',
+   zhou:'丧礼——父死守孝三年，强制止步，什么都不能做。',
+   detail:'「艮其背，不获其身」= 止住欲望，看不到自己的身份。武丁隐姓埋名在田间，没人知道他是王子。这个"止"不是消极——是被剥掉一切后，学会用最原始的方式理解世界。',
+   decay:'守孝从三年缩短到几个月 → 走形式 → "止"变成了"暂停"而不是"沉淀"'},
+  {num:'二',hex:'履·谨行',title:'在底层学会走路',
+   wudi:'了解了「稼穑之艰难」——粮食怎么种、百姓怎么活、官吏怎么欺压人。',
+   zhou:'冠礼——成年仪式，学习如何按规矩行走。',
+   detail:'「履虎尾，不咥人」= 踩在老虎尾巴上而不被咬。武丁在底层学会了与危险共处的能力——这不是课本能教的。',
+   decay:'冠礼变成庆典 → 没人真的学"如何谨慎地走" → 一上来就大步流星'},
+  {num:'三',hex:'旅·历练',title:'异乡求生',
+   wudi:'王子在外面不是度假，是真正的异乡人。没有权力保护，靠自己的判断力活下去。',
+   zhou:'游学——贵族子弟必须到其他诸侯国学习。',
+   detail:'「旅，小亨」= 寄人篱下只能小亨，不可能大亨。武丁在民间学到的东西，比在宫里学一辈子都多。',
+   decay:'游学变成镀金旅行 → 带着随从去别国享乐 → 没有真历练'},
+  {num:'四',hex:'大有·丰盛',title:'即位继承王权',
+   wudi:'从一无所有的民间苦工，突然拥有了天下。但面对的是一个烂摊子。',
+   zhou:'封建继承——获得土地和权力。',
+   detail:'「大有，元亨」= 丰盛富足，但要谦虚守成。武丁即位时理解"丰盛"的重量——因为他在底层见过"匮乏"。没有见过匮乏的人，不知道丰盛意味着什么。',
+   decay:'继承变成理所当然 → "天生就该有的" → 不珍惜'},
+  {num:'五',hex:'小过·知度',title:'三年不语',
+   wudi:'即位后三年不说话、不理朝政。所有人都以为国王失职了。实际上他在暗中观察。',
+   zhou:'礼制约束——有权力但处处有"度"。',
+   detail:'武丁的三年不语是整个中国历史上最惊人的克制。一个拥有最高权力的人，选择三年不使用它。这不是软弱——这是对「小过」的极致理解：知道什么时候该"过"（行动），什么时候不该。',
+   decay:'礼制从约束变成束缚 → 有人想突破但没有度 → 要么不敢动要么乱动'},
+  {num:'六',hex:'同人·联合',title:'发现傅说，组建团队',
+   wudi:'在一个叫傅险的地方找到了修路的犯人傅说——直接拜为宰相。妻子妇好成为中国第一位女将领。',
+   zhou:'朝聘制度——定期朝见天子，与其他诸侯建立关系。',
+   detail:'「同人于野，亨」= 在旷野中找到志同道合的人。武丁不在朝堂里找人——他在"野"中找。傅说是犯人、妇好是女人——在当时都是"不该"出现在权力中心的人。这就是真正的「同人」：不论出身，只论能力。',
+   decay:'朝聘变成社交 → "同人"变成结党 → 不是找能力而是找关系'},
+  {num:'七',hex:'井·输出',title:'59年持续治理',
+   wudi:'在位59年——不是一次性的英雄壮举，是长达半个世纪的稳定输出。征服81国，发展农业商业。',
+   zhou:'贡赋制度——持续向天子和民众输出价值。',
+   detail:'「改邑不改井」= 城市可以搬，但井不能搬。核心价值输出不能断。武丁59年如一日，这才是真正的「井」——不是喷泉式的一次性爆发，是深井式的持续供给。',
+   decay:'贡赋变成剥削 → 输出变成负担 → 井枯了'},
+  {num:'八',hex:'颐·养正',title:'养民养才养国',
+   wudi:'让俘虏和罪犯去新土地开荒，妇妌发展农业。不只是打仗——是养育整个国家的根基。',
+   zhou:'乐教——以音乐养心，精神滋养。',
+   detail:'「观颐，自求口实」= 看一个人养什么。武丁养的不是自己的享乐，是百姓的生计和国家的根基。输出之后需要补充——不养则竭，竭则文明停转。',
+   decay:'乐教变成娱乐 → 养心变成消遣 → 精神根基空了'},
+  {num:'九',hex:'大壮·壮大',title:'武丁盛世',
+   wudi:'征服81国，版图达到商朝最大。妇好墓出土和田玉——影响力达到西域。文化巅峰。',
+   zhou:'军事训练——田猎、演武，保持武力。',
+   detail:'「大壮，利贞」= 力量充沛，当行正道。武丁做到了"壮而有道"——力量用于征服是为了安邦，不是穷兵黩武。但大壮的警告是：壮而不当则凶。',
+   decay:'军事从保家变成穷兵黩武 → 力量失去方向'},
+  {num:'十',hex:'中孚·诚信',title:'死于职守',
+   wudi:'前1192年，西华蝗灾，武丁亲赴灾区灭蝗，积劳成疾，病逝于前线。在位59年的老王，到死都在践行承诺。',
+   zhou:'盟誓制度——歃血为盟，以信立国。',
+   detail:'「中孚，豚鱼吉」= 真诚可以感动鱼和猪。武丁到死都在做一个国王该做的事——不是因为制度要求，是因为他真的相信。这就是中孚——不是表演给谁看，是内心真的如此。',
+   decay:'盟誓变成废纸 → 签了不认 → 信任归零 → 整个循环断裂'},
+];
+
+const journeyEl = document.getElementById('journey');
+JOURNEY.forEach((step, i) => {
+  const el = document.createElement('div');
+  el.className = 'j-step';
+  el.innerHTML = `
+    <div class="j-left">
+      <div class="j-num">${step.num}</div>
+      <div class="j-hex">${step.hex}</div>
+    </div>
+    <div class="j-right">
+      <div class="j-title">${step.title}</div>
+      <div class="j-wudi">武丁：${step.wudi}</div>
+      <div class="j-zhou">周制：${step.zhou}</div>
+      <div class="j-detail">
+        <p>${step.detail}</p>
+        <p class="j-decay">衰变：${step.decay}</p>
+      </div>
+    </div>
+  `;
+  el.onclick = () => {
+    document.querySelectorAll('.j-step').forEach(s => s.classList.remove('active'));
+    el.classList.toggle('active');
+  };
+  journeyEl.appendChild(el);
+});
+
+// ═══ Decay Slider ═══
+const HEX_LABELS = ['止(艮)','行(履)','历(旅)','盛(大有)','度(小过)','合(同人)','出(井)','养(颐)','壮(大壮)','信(中孚)'];
+const INITIAL_VALS = [100,100,100,100,100,100,100,100,100,100];
+// Different decay rates for each aspect
+const DECAY_RATES = [0.88,0.90,0.85,0.95,0.82,0.87,0.90,0.83,0.93,0.78]; // 中孚 decays fastest
+
+const decayBars = document.getElementById('decay-bars');
+HEX_LABELS.forEach((label, i) => {
+  decayBars.innerHTML += `
+    <div class="decay-bar-row">
+      <div class="decay-bar-name">${label}</div>
+      <div class="decay-bar-track"><div class="decay-bar-fill" id="bar-${i}" style="width:100%;background:var(--green)"></div></div>
+      <div class="decay-bar-val" id="val-${i}">100%</div>
+    </div>`;
+});
+
+const slider = document.getElementById('decay-slider');
+const genLabel = document.getElementById('decay-gen-label');
+const stateEl = document.getElementById('decay-state');
+
+slider.addEventListener('input', () => {
+  const gen = parseInt(slider.value);
+  genLabel.textContent = gen;
+
+  let minVal = 100;
+  HEX_LABELS.forEach((_, i) => {
+    let val = 100 * Math.pow(DECAY_RATES[i], gen - 1);
+    val = Math.max(0, Math.round(val));
+    minVal = Math.min(minVal, val);
+    const bar = document.getElementById('bar-' + i);
+    const valEl = document.getElementById('val-' + i);
+    bar.style.width = val + '%';
+    bar.style.background = val > 60 ? 'var(--green)' : val > 30 ? 'var(--gold)' : 'var(--red)';
+    valEl.textContent = val + '%';
+  });
+
+  // State description with actual Zhou kings
+  const ZHOU_KINGS = {
+    1:'武王',2:'成王',3:'康王',4:'昭王',5:'穆王',6:'共王',7:'懿王',
+    8:'孝王',9:'夷王',10:'厉王',11:'宣王',12:'幽王',
+    13:'平王(东周始)',14:'桓王',15:'庄王',16:'釐王',17:'惠王',18:'襄王',
+    19:'顷王',20:'匡王',21:'定王',22:'简王',23:'灵王',24:'景王',
+    25:'悼王',26:'敬王',27:'元王',28:'贞定王',29:'哀王',30:'思王',
+    31:'考王',32:'威烈王',33:'安王',34:'烈王',35:'显王',36:'慎靓王',37:'赧王(末王)',
+  };
+  const EVENTS = {
+    1:'灭商建周，分封天下',
+    2:'周公制礼作乐，制度奠基',
+    3:'成康之治——西周黄金时代',
+    5:'穆王西征，国力开始外耗',
+    10:'厉王暴虐，国人暴动，共和行政',
+    11:'宣王中兴——短暂回光',
+    12:'幽王烽火戏诸侯，西周灭亡',
+    13:'平王东迁洛邑，东周开始，王权实质性衰落',
+    18:'齐桓公称霸，诸侯不再朝周',
+    23:'灵王时礼崩乐坏已成定局',
+    32:'三家分晋，战国正式开始',
+    37:'秦灭东周，周朝终结(前256年)',
+  };
+
+  const king = ZHOU_KINGS[gen] || '';
+  const event = EVENTS[gen] || '';
+
+  let state, bg;
+  if (gen <= 3) { state = '制度刚建立，经历者还在。武王亲手灭商，周公亲手制礼。10卦循环的每一步都有真实的内在体验支撑。'; bg = 'rgba(126,203,161,0.08)'; }
+  else if (gen <= 9) { state = '制度运转正常，但创始一代已去世。传承靠口述和仪式，内在体验开始弱化。西周稳定期。'; bg = 'rgba(126,203,161,0.06)'; }
+  else if (gen <= 12) { state = '制度出现严重裂缝。厉王暴政 = 「大壮」失控、「中孚」崩塌。宣王短暂中兴修补，幽王彻底击穿底线。西周灭亡。'; bg = 'rgba(240,192,128,0.1)'; }
+  else if (gen <= 18) { state = '东周开始。天子东迁，实权流失。制度的形式还在（诸侯仍称臣），但实质已空。齐桓公称霸 = 诸侯自己玩了。'; bg = 'rgba(240,192,128,0.08)'; }
+  else if (gen <= 26) { state = '春秋时期。礼崩乐坏成为常态。守孝走形式、朝聘不来了、盟誓随签随毁。10卦循环的多数环节只剩外壳。'; bg = 'rgba(224,112,112,0.08)'; }
+  else if (gen <= 32) { state = '春秋末→战国初。三家分晋、田氏代齐——连"篡位"都可以合法化了。中孚（信任）彻底归零。'; bg = 'rgba(224,112,112,0.12)'; }
+  else { state = '战国。周天子沦为摆设。秦国崛起，法家取代礼乐——用制度压制个人循环，而不是培育它。前256年秦灭东周。'; bg = 'rgba(224,112,112,0.15)'; }
+
+  stateEl.style.background = bg;
+  let html = `<strong>第${gen}王 · ${king}</strong>`;
+  if (event) html += `<br><span style="color:var(--gold)">${event}</span>`;
+  html += `<br>${state}`;
+  stateEl.innerHTML = html;
+});
+slider.dispatchEvent(new Event('input'));
+
+// ═══ Scroll reveal ═══
+const obs = new IntersectionObserver(entries => {
+  entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+}, {threshold: 0.1});
+document.querySelectorAll('.reveal').forEach(el => obs.observe(el));
+</script>
+</body>
+</html>

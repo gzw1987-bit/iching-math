@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>耦合双循环：个人状态 × 文明走向</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;700;900&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0f0f23;--bg2:#1a1a2e;--bg3:#16162b;
+  --bronze:#d4a574;--gold:#f0c080;--cream:#e8d5b7;
+  --text:#e0d6c8;--text2:#8a7f6f;--border:#2a2a3d;
+  --green:#7ecba1;--red:#e07070;--blue:#a8d8ea;--purple:#c792ea;
+  --c10:rgba(126,203,161,0.9);--c52:rgba(212,165,116,0.9);--c2:rgba(168,216,234,0.6);
+}
+body{background:var(--bg);color:var(--text);font-family:'Noto Serif SC',serif;line-height:1.8}
+.container{max-width:1000px;margin:0 auto;padding:24px}
+.back-link{display:inline-block;margin-bottom:20px;color:var(--text2);text-decoration:none;font-size:13px}
+.back-link:hover{color:var(--bronze)}
+
+.hero{text-align:center;padding:60px 0 40px;border-bottom:1px solid var(--border);margin-bottom:40px}
+.hero h1{
+  font-size:clamp(26px,5vw,40px);font-weight:900;
+  background:linear-gradient(135deg,var(--green),var(--gold));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+  margin-bottom:12px;
+}
+.hero .sub{font-size:15px;color:var(--text2);max-width:680px;margin:0 auto}
+
+/* Thesis */
+.thesis{
+  padding:24px;border:2px solid var(--bronze);border-radius:14px;
+  background:rgba(212,165,116,0.04);margin-bottom:40px;text-align:center;
+}
+.thesis .loop{font-size:18px;color:var(--cream);margin:12px 0;font-weight:700}
+.thesis .loop span{padding:4px 12px;border-radius:6px;font-size:16px}
+.thesis .loop .c10{background:rgba(126,203,161,0.15);color:var(--green)}
+.thesis .loop .c52{background:rgba(212,165,116,0.15);color:var(--gold)}
+.thesis .arrow{color:var(--text2);margin:0 4px}
+.thesis p{font-size:13px;color:var(--text2);margin-top:8px}
+
+/* Canvas */
+.vis-section{margin-bottom:40px}
+.vis-section h2{font-size:22px;color:var(--bronze);margin-bottom:8px}
+.vis-section .desc{font-size:13px;color:var(--text2);margin-bottom:16px}
+.main-canvas{width:100%;height:520px;border:1px solid var(--border);border-radius:12px;background:var(--bg2)}
+
+/* 10-cycle detail */
+.cycle-section{margin-bottom:40px}
+.cycle-section h2{font-size:22px;margin-bottom:16px}
+.cycle-ring{display:flex;justify-content:center;margin-bottom:24px}
+.cycle-ring-canvas{width:400px;height:400px}
+
+/* Cards */
+.hex-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px;margin-bottom:24px}
+.hex-card{
+  padding:16px;border:1px solid var(--border);border-radius:10px;background:var(--bg2);
+  cursor:pointer;transition:all 0.2s;position:relative;
+}
+.hex-card:hover{border-color:var(--green);box-shadow:0 0 16px rgba(126,203,161,0.15)}
+.hex-card.active{border-color:var(--green);background:rgba(126,203,161,0.06)}
+.hex-card .hc-num{font-size:11px;color:var(--text2)}
+.hex-card .hc-name{font-size:18px;font-weight:900;color:var(--green)}
+.hex-card .hc-full{font-size:12px;color:var(--text2)}
+.hex-card .hc-theme{font-size:13px;color:var(--cream);margin-top:4px}
+.hex-card .hc-layer{font-size:11px;color:var(--text2);margin-top:4px;padding:3px 8px;background:rgba(126,203,161,0.08);border-radius:4px;display:inline-block}
+.hex-card .hc-arrow{position:absolute;right:12px;top:50%;transform:translateY(-50%);font-size:14px;color:var(--green)}
+
+/* Feedback panel */
+.feedback-section{margin-bottom:40px}
+.feedback-section h2{font-size:22px;color:var(--gold);margin-bottom:16px}
+.fb-flow{display:flex;flex-direction:column;gap:0;align-items:center}
+.fb-node{
+  padding:16px 24px;border-radius:12px;text-align:center;width:100%;max-width:600px;
+  font-size:14px;
+}
+.fb-node.c10{background:rgba(126,203,161,0.08);border:1px solid rgba(126,203,161,0.3);color:var(--green)}
+.fb-node.c52{background:rgba(212,165,116,0.08);border:1px solid rgba(212,165,116,0.3);color:var(--gold)}
+.fb-node.env{background:rgba(168,216,234,0.08);border:1px solid rgba(168,216,234,0.3);color:var(--blue)}
+.fb-node h4{font-size:16px;margin-bottom:4px}
+.fb-arrow{
+  width:2px;height:32px;position:relative;
+  background:linear-gradient(to bottom,var(--border),rgba(212,165,116,0.4));
+}
+.fb-arrow::after{
+  content:'▼';position:absolute;bottom:-10px;left:50%;transform:translateX(-50%);
+  font-size:10px;color:var(--bronze);
+}
+.fb-arrow-up{transform:rotate(180deg)}
+
+/* Example scenarios */
+.scenario-section{margin-bottom:40px}
+.scenario-section h2{font-size:22px;color:var(--purple);margin-bottom:16px}
+.scenarios{display:flex;flex-direction:column;gap:16px}
+.scenario{
+  padding:20px;border:1px solid var(--border);border-radius:12px;background:var(--bg2);
+  cursor:pointer;transition:all 0.2s;
+}
+.scenario:hover{border-color:var(--purple);box-shadow:0 0 12px rgba(199,146,234,0.1)}
+.scenario.open .sc-body{max-height:600px;opacity:1;margin-top:12px}
+.sc-header{display:flex;align-items:center;gap:12px}
+.sc-icon{font-size:24px;width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:rgba(199,146,234,0.1);flex-shrink:0}
+.sc-title{font-size:16px;font-weight:700;color:var(--cream)}
+.sc-sub{font-size:12px;color:var(--text2)}
+.sc-toggle{margin-left:auto;color:var(--text2);transition:transform 0.3s}
+.scenario.open .sc-toggle{transform:rotate(180deg)}
+.sc-body{max-height:0;overflow:hidden;opacity:0;transition:all 0.4s ease}
+.sc-step{
+  display:flex;gap:12px;padding:10px 0;border-bottom:1px solid rgba(42,42,61,0.3);
+  font-size:13px;
+}
+.sc-step:last-child{border-bottom:none}
+.sc-step-num{
+  width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+  font-size:11px;font-weight:700;flex-shrink:0;
+}
+.sc-step-num.c10{background:rgba(126,203,161,0.15);color:var(--green)}
+.sc-step-num.c52{background:rgba(212,165,116,0.15);color:var(--gold)}
+.sc-step-num.env{background:rgba(168,216,234,0.15);color:var(--blue)}
+
+/* Insight */
+.final-insight{
+  padding:24px;border:1px solid var(--border);border-radius:14px;
+  background:var(--bg2);margin-top:40px;
+}
+.final-insight h2{font-size:22px;color:var(--cream);margin-bottom:12px}
+.final-insight p{font-size:14px;margin-bottom:8px}
+.final-insight .highlight{color:var(--gold);font-weight:700}
+.final-insight .code{
+  font-family:'Courier New',monospace;font-size:12px;color:var(--blue);
+  background:rgba(0,0,0,0.2);padding:12px;border-radius:6px;margin:12px 0;
+  line-height:1.6;
+}
+
+@media(max-width:768px){
+  .hex-cards{grid-template-columns:1fr}
+  .cycle-ring-canvas{width:300px;height:300px}
+}
+
+.reveal{opacity:0;transform:translateY(20px);transition:all 0.5s ease}
+.reveal.visible{opacity:1;transform:translateY(0)}
+</style>
+</head>
+<body>
+<div class="container">
+<a class="back-link" href="index.html">← 返回衍化之旅</a>
+
+<div class="hero">
+  <h1>耦合双循环：个人状态 × 文明走向</h1>
+  <div class="sub">置换循环分解[52,10,2]不只是一个数学事实。<br>52卦是文明史的叙事轨道，10卦是驱动文明的个人状态引擎。<br>两者构成一个耦合动力系统——文明不会自动发生，是人在推动。</div>
+</div>
+
+<!-- Core thesis -->
+<div class="thesis reveal">
+  <div class="loop">
+    <span class="c10">10卦·个人状态</span>
+    <span class="arrow">──驱动──→</span>
+    <span class="c52">52卦·文明走向</span>
+  </div>
+  <div class="loop">
+    <span class="c52">52卦·文明环境</span>
+    <span class="arrow">──反馈塑造──→</span>
+    <span class="c10">10卦·个人新状态</span>
+  </div>
+  <p>文明史的走向产生环境，环境反过来影响个人的十卦变化，产生新的状态，新的状态再驱动文明的下一步。</p>
+</div>
+
+<!-- 10-cycle ring -->
+<div class="cycle-section reveal">
+  <h2 style="color:var(--green)">10卦·个人成长循环</h2>
+  <div class="vis-section desc">这10个卦在置换分析中独立于52卦主循环，形成一个封闭的个人状态环。每一步都是上一步的自然延伸。</div>
+  <div class="cycle-ring"><canvas class="cycle-ring-canvas" id="ring10"></canvas></div>
+  <div class="hex-cards" id="hex-cards-10"></div>
+</div>
+
+<!-- Feedback flow -->
+<div class="feedback-section reveal">
+  <h2>耦合反馈机制</h2>
+  <div class="fb-flow">
+    <div class="fb-node c10">
+      <h4>个人状态（10卦循环）</h4>
+      止(艮) → 谨行(履) → 历练(旅) → 丰盛(大有) → 知度(小过) → 联合(同人) → 输出(井) → 养正(颐) → 壮大(大壮) → 诚信(中孚) → ⟲
+    </div>
+    <div class="fb-arrow"></div>
+    <div class="fb-node c52">
+      <h4>文明走向（52卦主循环）</h4>
+      个人的止/行/养/壮状态，决定了他在文明叙事中推动哪个方向：创建、繁荣、改革、还是衰败
+    </div>
+    <div class="fb-arrow"></div>
+    <div class="fb-node env">
+      <h4>环境反馈</h4>
+      文明的走向产生新的环境条件——盛世/乱世/变革期——这个环境反过来重塑个人的起点
+    </div>
+    <div class="fb-arrow fb-arrow-up"></div>
+    <div class="fb-node c10">
+      <h4>个人新状态（循环重启）</h4>
+      在新环境中，个人从10卦循环的某个新位置重新开始——乱世中从「艮·止」开始，盛世中可能从「大壮」开始
+    </div>
+  </div>
+</div>
+
+<!-- Concrete scenarios -->
+<div class="scenario-section reveal">
+  <h2>三个历史场景：看耦合如何运作</h2>
+  <div class="scenarios" id="scenarios"></div>
+</div>
+
+<!-- Final insight -->
+<div class="final-insight reveal">
+  <h2>为什么这10个卦独立于52卦？</h2>
+  <p>在置换循环分析中，这10个卦与52卦主循环<span class="highlight">数学上完全独立</span>——它们形成自己的封闭环，不与主循环交叉。</p>
+  <p>这可能不是巧合。如果文王确实是有意把"个人修养"和"文明叙事"分开编排，那这个数学独立性就是<span class="highlight">他设计意图的证据</span>：</p>
+  <div class="code">// 文王的系统架构
+class YiJing {
+  personalCycle = [艮,履,旅,大有,小过,同人,井,颐,大壮,中孚]; // 独立模块
+  civilizationCycle = [坤,乾,未济,...其余49卦];                 // 独立模块
+  bridge = [既济,夬];                                          // 接口层
+
+  // 两个模块通过"耦合"交互，但各自独立演化
+  evolve(person, civilization) {
+    const newCivState = civilization.next(person.currentState);  // 人驱动文明
+    const newEnv = newCivState.getEnvironment();                 // 文明产生环境
+    const newPersonState = person.adapt(newEnv);                 // 环境塑造人
+    return { person: newPersonState, civilization: newCivState };
+  }
+}</div>
+  <p><span class="highlight">52卦是操作系统，10卦是驱动程序，2卦是接口。</span>操作系统定义了文明可以走的所有路径，驱动程序决定了实际走哪条路，接口（既济↔夬）是两者之间的转换层。</p>
+  <p>文明不会自动运行——它需要人来驱动。而人的状态不是固定的——它被文明的环境反馈所塑造。这个耦合循环，就是历史的引擎。</p>
+</div>
+
+</div>
+
+<script>
+// 10-cycle data
+const CYCLE_10 = [
+  {num:52,name:'艮',full:'艮为山',theme:'止而笃实',layer:'内在修养',
+   desc:'知止——修身的起点。在喧嚣中找到静止的能力。',
+   drive:'止定生静，静定生慧。一个能「止」的人，不会被环境裹挟，是文明转向的锚点。',
+   feedback:'乱世需要更多「止」，盛世容易忘记「止」。环境越躁动，这个卦越重要。'},
+  {num:10,name:'履',full:'天泽履',theme:'谨慎前行',layer:'内在修养',
+   desc:'如履薄冰的自律——知道边界在哪，踩着规矩走。',
+   drive:'一个谨慎的人，推动的是有序的文明进程，而不是鲁莽的扩张。',
+   feedback:'规则越多的社会越需要「履」的人，但过度规训会让人失去创造力。'},
+  {num:56,name:'旅',full:'火山旅',theme:'旅途异乡',layer:'应世',
+   desc:'在不确定中保持自我——身处异乡但不迷失。',
+   drive:'能在陌生环境中存活的人，是文明扩张和文化交流的载体。',
+   feedback:'文明越开放，「旅」的机会越多；越封闭，「旅」越危险。'},
+  {num:14,name:'大有',full:'火天大有',theme:'丰盛富足',layer:'能力积蓄',
+   desc:'实力充沛——不是炫耀，是真正拥有了资源和能力。',
+   drive:'有实力的人才能推动大规模的文明建设。大有 = 积累到了可以输出的阈值。',
+   feedback:'繁荣社会产出更多「大有」的人，但也容易养出骄奢。盛极则衰的种子在这里埋下。'},
+  {num:62,name:'小过',full:'雷山小过',theme:'小有越过',layer:'应世',
+   desc:'知道边界在哪，偶尔小步越过，但不大过。',
+   drive:'创新和突破都需要「小过」——不打破旧规则就没有进步，但过度则乱。',
+   feedback:'保守的环境压制「小过」，开放的环境鼓励「小过」。文明的活力取决于对「小过」的容忍度。'},
+  {num:13,name:'同人',full:'天火同人',theme:'志同道合',layer:'能力积蓄',
+   desc:'向外联结——找到志同道合的人，形成共同体。',
+   drive:'个人联合成团体，团体推动集体行动。所有大规模文明变革都始于「同人」。',
+   feedback:'文明越多元，「同人」越容易也越重要；越同质化，「同人」越退化为结党。'},
+  {num:48,name:'井',full:'水风井',theme:'源泉养人',layer:'应世',
+   desc:'持续输出价值——像一口井，养育周围的人。',
+   drive:'文明的持久依靠「井」——不是英雄的一次性爆发，而是平凡人持续的价值输出。',
+   feedback:'好的制度让更多人成为「井」，坏的制度让「井」枯竭（人才外流）。'},
+  {num:27,name:'颐',full:'山雷颐',theme:'颐养正道',layer:'内在修养',
+   desc:'养身养心——输出之后需要补充，否则会枯竭。',
+   drive:'懂得自我滋养的人才能持续贡献。不养则竭，竭则文明停转。',
+   feedback:'文明是否给人「颐」的空间（休息、教育、精神滋养），决定了它能走多远。'},
+  {num:34,name:'大壮',full:'雷天大壮',theme:'强盛有力',layer:'能力积蓄',
+   desc:'力量充沛——经过修养和积蓄，现在真的强了。',
+   drive:'强盛的个体推动文明的扩张和改革。但「壮而不当则凶」——力量需要方向。',
+   feedback:'上升期的文明产出「大壮」的人，但也最容易让力量失控（穷兵黩武）。'},
+  {num:61,name:'中孚',full:'风泽中孚',theme:'内在诚信',layer:'内在修养',
+   desc:'真诚——不是技巧，是内心真正相信自己在做的事。',
+   drive:'真正的领导力来自「中孚」。没有诚信的强大是暴力，没有诚信的联合是利益交换。',
+   feedback:'文明的信任基础取决于有多少人处于「中孚」状态。信任崩塌 = 文明危机。'},
+];
+
+// 52-cycle key hexagrams (representative)
+const CYCLE_52_KEYS = [
+  {num:1,name:'乾',theme:'创造'},
+  {num:2,name:'坤',theme:'承载'},
+  {num:11,name:'泰',theme:'通泰'},
+  {num:12,name:'否',theme:'闭塞'},
+  {num:23,name:'剥',theme:'剥落'},
+  {num:24,name:'复',theme:'来复'},
+  {num:29,name:'坎',theme:'险难'},
+  {num:36,name:'明夷',theme:'韬晦'},
+  {num:49,name:'革',theme:'变革'},
+  {num:50,name:'鼎',theme:'建制'},
+  {num:64,name:'未济',theme:'未完成'},
+];
+
+// Draw 10-cycle ring
+function drawRing10() {
+  const canvas = document.getElementById('ring10');
+  const dpr = window.devicePixelRatio || 1;
+  const size = canvas.offsetWidth;
+  canvas.width = size * dpr;
+  canvas.height = size * dpr;
+  const ctx = canvas.getContext('2d');
+  ctx.scale(dpr, dpr);
+  const cx = size / 2, cy = size / 2;
+  const r = size * 0.36;
+
+  // Draw circle
+  ctx.beginPath();
+  ctx.arc(cx, cy, r, 0, Math.PI * 2);
+  ctx.strokeStyle = 'rgba(126,203,161,0.2)';
+  ctx.lineWidth = 2;
+  ctx.stroke();
+
+  // Draw arrows between nodes
+  CYCLE_10.forEach((hex, i) => {
+    const next = (i + 1) % 10;
+    const a1 = (i / 10) * Math.PI * 2 - Math.PI / 2;
+    const a2 = (next / 10) * Math.PI * 2 - Math.PI / 2;
+    const x1 = cx + r * Math.cos(a1);
+    const y1 = cy + r * Math.sin(a1);
+    const x2 = cx + r * Math.cos(a2);
+    const y2 = cy + r * Math.sin(a2);
+
+    // Arc arrow
+    const midA = (a1 + a2) / 2 + (next === 0 && i === 9 ? Math.PI : 0);
+    const arcR = r * 1.08;
+    const mx = cx + arcR * Math.cos(midA);
+    const my = cy + arcR * Math.sin(midA);
+
+    ctx.beginPath();
+    ctx.moveTo(x1, y1);
+    ctx.quadraticCurveTo(mx, my, x2, y2);
+    ctx.strokeStyle = 'rgba(126,203,161,0.3)';
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+  });
+
+  // Draw nodes
+  const layerColors = {'内在修养':'#7ecba1','能力积蓄':'#f0c080','应世':'#a8d8ea'};
+  CYCLE_10.forEach((hex, i) => {
+    const angle = (i / 10) * Math.PI * 2 - Math.PI / 2;
+    const x = cx + r * Math.cos(angle);
+    const y = cy + r * Math.sin(angle);
+
+    // Node circle
+    const color = layerColors[hex.layer] || '#d4a574';
+    ctx.beginPath();
+    ctx.arc(x, y, 22, 0, Math.PI * 2);
+    ctx.fillStyle = 'rgba(15,15,35,0.9)';
+    ctx.fill();
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 2;
+    ctx.stroke();
+
+    // Name
+    ctx.fillStyle = color;
+    ctx.font = 'bold 14px "Noto Serif SC", serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(hex.name, x, y);
+
+    // Outer label
+    const lx = cx + (r + 38) * Math.cos(angle);
+    const ly = cy + (r + 38) * Math.sin(angle);
+    ctx.fillStyle = '#8a7f6f';
+    ctx.font = '11px "Noto Serif SC", serif';
+    ctx.fillText(hex.theme, lx, ly);
+  });
+
+  // Center text
+  ctx.fillStyle = 'rgba(126,203,161,0.3)';
+  ctx.font = '13px "Noto Serif SC", serif';
+  ctx.textAlign = 'center';
+  ctx.fillText('个人状态', cx, cy - 8);
+  ctx.fillText('10卦循环', cx, cy + 10);
+}
+
+// Build hex cards
+function buildCards() {
+  const container = document.getElementById('hex-cards-10');
+  CYCLE_10.forEach((hex, i) => {
+    const next = CYCLE_10[(i + 1) % 10];
+    const card = document.createElement('div');
+    card.className = 'hex-card';
+    card.innerHTML = `
+      <div class="hc-num">#${hex.num} · 循环位置 ${i + 1}/10</div>
+      <div class="hc-name">${hex.name}</div>
+      <div class="hc-full">${hex.full} — ${hex.theme}</div>
+      <div class="hc-theme">${hex.desc}</div>
+      <div class="hc-layer">${hex.layer}</div>
+      <div class="hc-arrow">→ ${next.name}</div>
+    `;
+    card.onclick = () => {
+      document.querySelectorAll('.hex-card').forEach(c => c.classList.remove('active'));
+      card.classList.add('active');
+      showDetail(hex);
+    };
+    container.appendChild(card);
+  });
+}
+
+function showDetail(hex) {
+  // Scroll to a detail area or highlight
+  let detail = document.getElementById('hex-detail');
+  if (!detail) {
+    detail = document.createElement('div');
+    detail.id = 'hex-detail';
+    detail.style.cssText = 'padding:20px;border:1px solid var(--green);border-radius:12px;background:rgba(126,203,161,0.04);margin-top:16px;transition:all 0.3s';
+    document.getElementById('hex-cards-10').after(detail);
+  }
+  detail.innerHTML = `
+    <h3 style="color:var(--green);margin-bottom:8px">${hex.name}（${hex.full}）— ${hex.theme}</h3>
+    <p style="font-size:14px;margin-bottom:8px"><strong style="color:var(--cream)">个人层面：</strong>${hex.desc}</p>
+    <p style="font-size:14px;margin-bottom:8px"><strong style="color:var(--gold)">如何驱动文明：</strong>${hex.drive}</p>
+    <p style="font-size:14px"><strong style="color:var(--blue)">环境如何反馈：</strong>${hex.feedback}</p>
+  `;
+}
+
+// Build scenarios
+function buildScenarios() {
+  const scenarios = [
+    {
+      icon: '⭐', title: '场景一：盘庚迁殷', sub: '一个人的「止→行」如何扭转文明走向',
+      steps: [
+        {type:'env',text:'九世之乱——商朝处于否卦（52循环·闭塞），贵族争权，诸侯不朝。'},
+        {type:'c10',text:'盘庚处于「艮·止」——先止住自己的欲望和冲动，观察局势。'},
+        {type:'c10',text:'然后进入「履·谨行」——谨慎地规划迁都方案，说服反对势力。'},
+        {type:'c52',text:'盘庚的个人行动驱动文明从否→蛊（整治弊病），打破了闭塞。'},
+        {type:'env',text:'迁殷成功后，新环境稳定了273年——这个新环境让下一代人（武丁）能够从「大有·丰盛」起步，而不是从「艮·止」起步。'},
+        {type:'c10',text:'武丁在新环境中走到「同人·联合」（重用傅说），再到「井·输出」（持续治理），推动文明到达贲（文化顶峰）。'},
+      ]
+    },
+    {
+      icon: '🔒', title: '场景二：文王被囚羑里', sub: '环境把人压回「止」，但止中蓄力',
+      steps: [
+        {type:'env',text:'商朝处于坎卦（52循环·重重险难），纣王暴虐，杀文王之父季历。'},
+        {type:'c10',text:'文王被环境强制压回「艮·止」——被囚禁，物理上无法行动。'},
+        {type:'c10',text:'但他在止中没有停止思考——他走了整个10卦内循环：止→履（整理思路）→旅（精神远行）→大有（积累洞见）→……→中孚（内在确信）。'},
+        {type:'c10',text:'七年时间，他在精神层面完成了一整轮个人循环，产出了64卦排列和384条爻辞。'},
+        {type:'c52',text:'出狱后，他积蓄的能量注入52卦主循环：从遁（退隐）→大壮（壮大）→夬（决裂）。'},
+        {type:'env',text:'文王之子武王继承了这份能量，推动文明走到革（变革）→鼎（新制），完成了周代商。'},
+      ]
+    },
+    {
+      icon: '⚡', title: '场景三：信任崩塌（通用模型）', sub: '当「中孚」消失时，文明开始否',
+      steps: [
+        {type:'c10',text:'10卦循环中最后一站是「中孚·诚信」——如果这一站崩塌（人们不再信任彼此）……'},
+        {type:'c10',text:'循环无法回到「艮·止」的起点——因为止需要内心的安定，而信任崩塌让人不安。'},
+        {type:'c10',text:'个人状态卡在「大壮·强盛」到「中孚·诚信」之间——有力量但无方向，有能力但无信任。'},
+        {type:'c52',text:'缺乏信任的「大壮」驱动的文明走向 = 穷兵黩武。52循环被推向否（闭塞）、坎（险难）。'},
+        {type:'env',text:'否/坎的环境进一步摧毁信任——恶性循环。这就是九世之乱、商末、以及所有王朝末期的模式。'},
+        {type:'c10',text:'要打破这个恶性循环，必须有人主动回到「艮·止」——在混乱中停下来，重建信任。盘庚做到了，文王做到了。'},
+      ]
+    },
+  ];
+
+  const container = document.getElementById('scenarios');
+  scenarios.forEach((sc, si) => {
+    const el = document.createElement('div');
+    el.className = 'scenario';
+    let stepsHtml = sc.steps.map(s =>
+      `<div class="sc-step"><div class="sc-step-num ${s.type}">${s.type==='c10'?'人':s.type==='c52'?'史':'境'}</div><div>${s.text}</div></div>`
+    ).join('');
+    el.innerHTML = `
+      <div class="sc-header">
+        <div class="sc-icon">${sc.icon}</div>
+        <div><div class="sc-title">${sc.title}</div><div class="sc-sub">${sc.sub}</div></div>
+        <div class="sc-toggle">▼</div>
+      </div>
+      <div class="sc-body">${stepsHtml}</div>
+    `;
+    el.onclick = () => el.classList.toggle('open');
+    container.appendChild(el);
+  });
+}
+
+// Init
+drawRing10();
+buildCards();
+buildScenarios();
+
+const obs = new IntersectionObserver(entries => {
+  entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+}, {threshold: 0.1});
+document.querySelectorAll('.reveal').forEach(el => obs.observe(el));
+</script>
+</body>
+</html>

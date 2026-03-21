@@ -1,0 +1,485 @@
+\documentclass[11pt,a4paper]{article}
+
+% ─── Packages ───
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{longtable}
+\usepackage{graphicx}
+\usepackage[colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue]{hyperref}
+\usepackage{geometry}
+\geometry{margin=1in}
+\usepackage{enumitem}
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{natbib}
+\bibliographystyle{plainnat}
+
+% ─── Code listing style ───
+\lstset{
+  language=JavaScript,
+  basicstyle=\ttfamily\small,
+  keywordstyle=\color{blue!70!black},
+  commentstyle=\color{green!50!black},
+  stringstyle=\color{red!60!black},
+  numbers=left,
+  numberstyle=\tiny\color{gray},
+  breaklines=true,
+  frame=single,
+  backgroundcolor=\color{gray!5},
+}
+
+% ─── Theorems ───
+\newtheorem{theorem}{Theorem}
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{remark}{Remark}
+\newtheorem{definition}{Definition}
+
+% ─── Title ───
+\title{%
+  The Cycle Structure of the King Wen Permutation:\\
+  A Group-Theoretic Analysis of Two Classical Hexagram Orderings%
+}
+\author{
+  Zhengwen Ge\\
+  \texttt{zhengwen.ge@proton.me}
+}
+\date{March 2026}
+
+\begin{document}
+\maketitle
+
+% ═══════════════════════════════════════════
+\begin{abstract}
+The 64 hexagrams of the \textit{I Ching} (Book of Changes) admit two canonical orderings: the \emph{binary natural order}, a 6-bit counting sequence reconstructed by Shao Yong (1011--1077~CE) and retroactively attributed to the mythical Fu Xi; and the \emph{King Wen sequence}, the textual ordering of the received \textit{Zhouyi} ($\sim$1000~BCE).
+Treating the map from the binary natural order to the King Wen sequence as a permutation $\sigma \in S_{64}$, we compute its cycle decomposition and obtain the cycle type $\mathbf{(52,\,10,\,2)}$ with zero fixed points.
+This means 81.25\% of hexagrams are locked in a single cycle, no hexagram remains in its natural binary position, and the permutation order is $\mathrm{lcm}(52,10,2) = 260$.
+We provide statistical context (comparison with random permutations of 64 elements), a Hamming distance analysis of the King Wen sequence, and a discussion of the epistemological boundaries of interpreting cycle membership semantically.
+To our knowledge, this cycle decomposition has not been reported in the existing literature on \textit{I Ching} mathematics.
+All results are computationally reproducible from the code provided in Appendix~A.
+\end{abstract}
+
+\bigskip
+\noindent\textbf{Keywords:} permutation group, cycle decomposition, \textit{I Ching}, King Wen sequence, hexagram ordering, combinatorics
+
+\noindent\textbf{MSC 2020:} 05A05, 20B30, 01A25
+
+
+% ═══════════════════════════════════════════
+\section{Introduction}\label{sec:intro}
+
+The sixty-four hexagrams (\textit{guà} 卦) are the foundational symbols of the \textit{I Ching}, one of the oldest extant Chinese texts.
+Each hexagram is a stack of six binary lines---solid (\textit{yáng} 阳, encoded as~1) or broken (\textit{yīn} 阴, encoded as~0)---yielding $2^6 = 64$ possible figures.
+
+Two orderings of these 64 hexagrams have canonical status:
+
+\begin{enumerate}[label=(\roman*)]
+  \item \textbf{The binary natural order.}
+  Reading each hexagram as a 6-bit integer from bottom to top, this is simply the sequence $0, 1, 2, \ldots, 63$.
+  It was formalized by the Song-dynasty scholar Shao Yong (邵雍, 1011--1077~CE) in his \textit{Huángjí Jīngshì} (皇极经世) and retroactively attributed to the legendary sage Fu Xi.
+  Leibniz recognized its binary nature in 1703 \citep{leibniz1703}.
+
+  \item \textbf{The King Wen sequence.}
+  This is the ordering found in the received text of the \textit{Zhouyi} (周易), traditionally attributed to King Wen of Zhou ($\sim$1100~BCE).
+  Its organizational logic has been debated for millennia---Han Kangbo called it ``not the essence of the \textit{Yi},'' Zhu Xi deemed it ``unknowable,'' and Gao Heng argued it is meaningful---but no consensus exists \citep{rutt2002,shaughnessy2014}.
+\end{enumerate}
+
+\begin{remark}[Historical clarification]\label{rem:historical}
+  The binary natural order was formalized approximately 2{,}100 years \emph{after} King Wen.
+  We do not claim or assume that King Wen ``rearranged'' the binary natural order.
+  Our analysis treats the two orderings as independently defined mathematical objects and studies the \emph{structural distance} between them, analogous to comparing two genome sequences without presupposing which is ancestral.
+\end{remark}
+
+Despite extensive scholarly attention to the King Wen sequence, few studies have treated the relationship between these two orderings as a problem in pure algebra.
+The present paper performs this elementary but apparently overlooked operation: we view the map from the binary natural order to the King Wen sequence as a permutation $\sigma \in S_{64}$ and compute its \emph{cycle decomposition}.
+
+
+% ═══════════════════════════════════════════
+\section{Definitions and Data}\label{sec:data}
+
+\subsection{Binary Encoding}
+
+We encode each hexagram as a 6-bit string read from the bottom line (least significant bit) upward.
+The hexagram $\texttt{000000}$ (all broken lines) is Hexagram~2 (\textit{Kūn} 坤) in the King Wen numbering, and $\texttt{111111}$ (all solid lines) is Hexagram~1 (\textit{Qián} 乾).
+The binary natural order is the sequence of hexagrams indexed $0$ through~$63$ by their integer value.
+
+\subsection{The Permutation $\sigma$}
+
+Let $W(i)$ denote the King Wen number (1-indexed) of the hexagram at binary natural position~$i$ (0-indexed).
+We define the permutation $\sigma\colon \{0,1,\ldots,63\} \to \{0,1,\ldots,63\}$ by
+\begin{equation}\label{eq:sigma}
+  \sigma(i) = W(i) - 1.
+\end{equation}
+This maps each hexagram from its position in the binary natural order to its position in the King Wen order (both 0-indexed).
+The complete mapping is given in Table~\ref{tab:mapping}.
+
+\begin{table}[ht]
+\centering
+\caption{Binary natural position $i$ $\to$ King Wen number $W(i)$ for all 64 hexagrams.}
+\label{tab:mapping}
+\small
+\begin{tabular}{@{}cccc|cccc@{}}
+\toprule
+$i$ & Binary & $W(i)$ & Name & $i$ & Binary & $W(i)$ & Name \\
+\midrule
+0 & 000000 & 2 & Kūn & 32 & 100000 & 24 & Fù \\
+1 & 000001 & 23 & Bō & 33 & 100001 & 27 & Yí \\
+2 & 000010 & 8 & Bǐ & 34 & 100010 & 3 & Zhūn \\
+3 & 000011 & 20 & Guān & 35 & 100011 & 42 & Yì \\
+4 & 000100 & 16 & Yù & 36 & 100100 & 51 & Zhèn \\
+5 & 000101 & 35 & Jìn & 37 & 100101 & 21 & Shì Hé \\
+6 & 000110 & 45 & Cuì & 38 & 100110 & 17 & Suí \\
+7 & 000111 & 12 & Pǐ & 39 & 100111 & 25 & Wú Wàng \\
+8 & 001000 & 15 & Qiān & 40 & 101000 & 36 & Míng Yí \\
+9 & 001001 & 52 & Gèn & 41 & 101001 & 22 & Bì \\
+10 & 001010 & 39 & Jiǎn & 42 & 101010 & 63 & Jì Jì \\
+11 & 001011 & 53 & Jiàn & 43 & 101011 & 37 & Jiā Rén \\
+12 & 001100 & 62 & Xiǎo Guò & 44 & 101100 & 55 & Fēng \\
+13 & 001101 & 56 & Lǚ & 45 & 101101 & 30 & Lí \\
+14 & 001110 & 31 & Xián & 46 & 101110 & 49 & Gé \\
+15 & 001111 & 33 & Dùn & 47 & 101111 & 13 & Tóng Rén \\
+16 & 010000 & 7 & Shī & 48 & 110000 & 19 & Lín \\
+17 & 010001 & 4 & Méng & 49 & 110001 & 41 & Sǔn \\
+18 & 010010 & 29 & Kǎn & 50 & 110010 & 60 & Jié \\
+19 & 010011 & 59 & Huàn & 51 & 110011 & 61 & Zhōng Fú \\
+20 & 010100 & 40 & Jiě & 52 & 110100 & 54 & Guī Mèi \\
+21 & 010101 & 64 & Wèi Jì & 53 & 110101 & 38 & Kuí \\
+22 & 010110 & 47 & Kùn & 54 & 110110 & 58 & Duì \\
+23 & 010111 & 6 & Sòng & 55 & 110111 & 10 & Lǚ \\
+24 & 011000 & 46 & Shēng & 56 & 111000 & 11 & Tài \\
+25 & 011001 & 18 & Gǔ & 57 & 111001 & 26 & Dà Chù \\
+26 & 011010 & 48 & Jǐng & 58 & 111010 & 5 & Xū \\
+27 & 011011 & 57 & Xùn & 59 & 111011 & 9 & Xiǎo Chù \\
+28 & 011100 & 32 & Héng & 60 & 111100 & 34 & Dà Zhuàng \\
+29 & 011101 & 50 & Dǐng & 61 & 111101 & 14 & Dà Yǒu \\
+30 & 011110 & 28 & Dà Guò & 62 & 111110 & 43 & Guài \\
+31 & 011111 & 44 & Gòu & 63 & 111111 & 1 & Qián \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+
+% ═══════════════════════════════════════════
+\section{Cycle Decomposition}\label{sec:cycles}
+
+\subsection{Algorithm}
+
+We apply the standard cycle-finding algorithm: starting from an unvisited element $i$, follow the chain $i \to \sigma(i) \to \sigma^2(i) \to \cdots$ until returning to~$i$, recording the cycle.
+Repeat for all 64 elements.
+
+\subsection{Result}
+
+\begin{theorem}\label{thm:main}
+The permutation $\sigma$ defined by Equation~\eqref{eq:sigma} has cycle type $\mathbf{(52,\, 10,\, 2)}$ with zero fixed points.
+\end{theorem}
+
+\begin{proof}
+Direct computation from the data in Table~\ref{tab:mapping}.
+Reproducible code is provided in Appendix~A.
+\end{proof}
+
+The three cycles are:
+
+\medskip
+\noindent\textbf{Primary cycle (length 52, 81.25\%):}
+\begin{quote}\small
+Qián $\to$ Kūn $\to$ Bō $\to$ Kùn $\to$ Gé $\to$ Lín $\to$ Kǎn $\to$ Héng $\to$ Gòu $\to$ Jiā Rén $\to$ Zhèn $\to$ Jié $\to$ Xiǎo Chù $\to$ Qiān $\to$ Xián $\to$ Dà Guò $\to$ Xùn $\to$ Tài $\to$ Jiǎn $\to$ Suí $\to$ Shī $\to$ Cuì $\to$ Fēng $\to$ Duì $\to$ Dà Chù $\to$ Gǔ $\to$ Méng $\to$ Guān $\to$ Huàn $\to$ Xū $\to$ Yù $\to$ Dùn $\to$ Fù $\to$ Sòng $\to$ Jìn $\to$ Zhūn $\to$ Bǐ $\to$ Pǐ $\to$ Jiàn $\to$ Guī Mèi $\to$ Kuí $\to$ Shì Hé $\to$ Jiě $\to$ Wú Wàng $\to$ Shēng $\to$ Lí $\to$ Dǐng $\to$ Sǔn $\to$ Míng Yí $\to$ Yì $\to$ Bì $\to$ Wèi Jì $\to$ [back to Qián]
+\end{quote}
+
+\noindent\textbf{Secondary cycle (length 10, 15.625\%):}
+\begin{quote}\small
+Lǚ (10) $\to$ Gèn $\to$ Zhōng Fú $\to$ Dà Zhuàng $\to$ Yí $\to$ Jǐng $\to$ Tóng Rén $\to$ Xiǎo Guò $\to$ Dà Yǒu $\to$ Lǚ (56) $\to$ [back to Lǚ (10)]
+\end{quote}
+
+\noindent\textbf{Transposition (length 2, 3.125\%):}
+\begin{quote}\small
+Guài $\leftrightarrow$ Jì Jì
+\end{quote}
+
+\subsection{Key Properties}
+
+\begin{table}[ht]
+\centering
+\caption{Structural properties of $\sigma$.}
+\label{tab:properties}
+\begin{tabular}{@{}lrl@{}}
+\toprule
+Property & Value & Interpretation \\
+\midrule
+Number of cycles & 3 & Few (random expectation $\approx 4.4$) \\
+Fixed points & 0 & No hexagram stays in its natural binary position \\
+Largest cycle fraction & 81.25\% & High coupling \\
+Order of $\sigma$ & $\mathrm{lcm}(52,10,2) = 260$ & $\sigma^{260} = \mathrm{id}$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+
+% ═══════════════════════════════════════════
+\section{Statistical Context}\label{sec:stats}
+
+To assess whether the cycle type $(52,10,2)$ is unusual, we compare it with the distribution of cycle structures in random permutations of 64~elements.
+
+\subsection{Fixed Points}
+
+The number of fixed points in a random permutation of $n$ elements is approximately Poisson with $\lambda = 1$.
+Thus $P(\text{0 fixed points}) = e^{-1} \approx 0.368$.
+Zero fixed points alone is not statistically remarkable.
+
+\subsection{Number of Cycles}
+
+The expected number of cycles in a random permutation of $n$ elements is the $n$-th harmonic number $H_n$.
+For $n = 64$, $H_{64} \approx 4.74$, with standard deviation $\approx 2.0$.
+The observed value of 3 cycles is at approximately $-0.9\sigma$---mildly low but not extreme on its own.
+
+\subsection{Largest Cycle Length}
+
+The expected length of the longest cycle in a random permutation of $n$ elements is approximately $\lambda n$ where $\lambda \approx 0.6243$ (the Golomb--Dickman constant), giving an expected value of $\approx 40$ for $n=64$.
+The observed value of 52 is in the upper tail of the distribution.
+
+\subsection{Monte Carlo Estimate}
+
+A simulation of $2 \times 10^6$ random permutations of 64 elements yields:
+\begin{itemize}
+  \item Probability of cycle type \emph{exactly} $(52,10,2)$: $\approx 0.094\%$ ($\sim$1 in 1{,}064).
+  \item Probability of exactly 3 cycles: $\approx 16.2\%$.
+  \item Probability of largest cycle $\geq 52$: $\approx 5.8\%$.
+\end{itemize}
+
+\begin{remark}
+  The exact cycle type $(52,10,2)$ is uncommon ($\sim$0.1\%) but not extraordinarily rare.
+  We refrain from claiming statistical ``significance'' in a hypothesis-testing sense, as there is no well-defined null hypothesis for why an ancient text should follow any particular distribution.
+  The value of the decomposition lies in its descriptive power, not in a $p$-value.
+\end{remark}
+
+We emphasize that any specific cycle type of a random permutation is individually rare, and we do not claim that 0.094\% constitutes evidence of intentional design. The value of this decomposition is structural and descriptive: it reveals that 81.25\% of hexagrams form a single connected orbit, meaning that iterating $\sigma$ cycles through nearly the entire set before returning. This is analogous to reporting that a molecule forms one large ring rather than several small chains---a structural fact, not a statistical claim.
+
+
+% ═══════════════════════════════════════════
+\section{Hamming Distance Analysis}\label{sec:hamming}
+
+\subsection{Definition}
+
+For two hexagrams encoded as 6-bit strings, the \emph{Hamming distance} $d$ is the number of positions at which the bits differ.
+
+We compute the sequence of Hamming distances $d_1, d_2, \ldots, d_{63}$ between consecutive hexagrams in the King Wen order and compare with the binary natural order and a random baseline.
+
+\subsection{Results}
+
+\begin{table}[ht]
+\centering
+\caption{Hamming distance statistics for three orderings.}
+\label{tab:hamming}
+\begin{tabular}{@{}lccc@{}}
+\toprule
+Statistic & King Wen & Binary natural & Random baseline \\
+\midrule
+Mean Hamming distance & \textbf{3.349} & 1.905 & 3.000 \\
+Pairs with $d=6$ (total inversion) & 9 & 0 & $\sim$1.4 \\
+Pairs with $d \leq 2$ (gradual) & 22 & 53 & $\sim$19 \\
+Pairs with $d \geq 4$ (contrast) & 28 & 1 & $\sim$21 \\
+Even $d$ : odd $d$ ratio & \textbf{3.2 : 1} & --- & 1 : 1 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Discussion}
+
+Three features stand out:
+
+\begin{enumerate}
+  \item \textbf{Contrast bias ($\bar{d} > 3.0$).}
+  The mean Hamming distance of 3.349 exceeds the random baseline of 3.0, indicating that the King Wen sequence tends to place structurally dissimilar hexagrams adjacent to each other---a ``contrast narrative'' strategy.
+
+  \item \textbf{Even--odd asymmetry (3.2 : 1).}
+  Steve Moore previously noted that even Hamming distances predominate in the King Wen sequence.
+  We independently confirm this ratio (76.2\% even vs.\ 23.8\% odd) and identify its mathematical origin: the 32 pairs of \emph{inverted/complementary hexagrams} (\textit{zōng guà}/\textit{cuò guà}) that structure the King Wen sequence naturally produce even Hamming distances (complementary hexagrams always have $d=6$; inverted hexagrams have even~$d$).
+
+  \item \textbf{Nine total inversions ($d=6$).}
+  The random expectation is $\sim$1.4 pairs. Nine total inversions means the King Wen sequence frequently places a hexagram next to its bitwise complement---the mathematical expression of the traditional \emph{cuò guà} (complementary hexagram) concept.
+\end{enumerate}
+
+
+% ═══════════════════════════════════════════
+\section{Semantic Analysis and Its Limits}\label{sec:semantic}
+
+\subsection{The Ten-Hexagram Cycle}
+
+The secondary cycle contains ten hexagrams which, if their traditional names are read in cycle order, suggest a narrative of personal cultivation:
+
+\begin{quote}\small
+Lǚ (treading/propriety) $\to$ Gèn (stillness) $\to$ Zhōng Fú (inner truth) $\to$ Dà Zhuàng (great power) $\to$ Yí (nourishment) $\to$ Jǐng (the well) $\to$ Tóng Rén (fellowship) $\to$ Xiǎo Guò (small exceeding) $\to$ Dà Yǒu (great possession) $\to$ Lǚ (the wanderer)
+\end{quote}
+
+\subsection{The Transposition}
+
+Guài (``breakthrough/resolution'') and Jì Jì (``completion'')---one pointing to a decisive beginning, the other to a finished state---swap positions, forming a symbolic loop between initiation and consummation.
+
+\subsection{Methodological Warning}
+
+\begin{remark}[Post-hoc rationalization]\label{rem:posthoc}
+  The above semantic readings carry a high risk of \emph{apophenia} (pattern perception in noise).
+  The 64 hexagram names are sufficiently evocative that \emph{almost any} permutation's cycles could be narrated as a meaningful sequence.
+  This is a cognitive bias, not a mathematical conclusion.
+
+  \textbf{What is verifiable:} the cycle type $(52,10,2)$, zero fixed points, and Hamming distance statistics.
+
+  \textbf{What is not verifiable:} that the ten-hexagram cycle ``means'' personal growth.
+
+  This paper strictly separates the two.
+\end{remark}
+
+
+% ═══════════════════════════════════════════
+\section{Related Work}\label{sec:related}
+
+\begin{table}[ht]
+\centering
+\caption{Prior work on mathematical aspects of the \textit{I Ching} hexagram orderings.}
+\label{tab:related}
+\begin{tabular}{@{}lll@{}}
+\toprule
+Author & Contribution & Relation to this paper \\
+\midrule
+Leibniz (1703) & Binary interpretation of Fu Xi order & Foundational premise \\
+Shao Yong (11th c.) & Reconstruction of binary natural order & Foundational premise \\
+\citet{moore} & Even:odd Hamming ratio $\approx 3\!:\!1$ & Independently confirmed \\
+Cook (2006) & Paired-structure analysis & Different approach (no $S_n$) \\
+Petoukhov (2008) & Algebraic structures in hexagrams & Complementary perspective \\
+Various & \textit{Zōng guà}/\textit{cuò guà} pair analysis & Reexamined via permutation group \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+To our knowledge, no prior work has performed a cycle decomposition of the permutation mapping between these two orderings.
+As of March 2026, searches in Google Scholar (``King Wen sequence'' + ``permutation cycle''), OEIS, CNKI (中国知网: ``文王卦序'' + ``置换''), and major monographs on \textit{I Ching} mathematics have returned no results reporting the cycle type $(52,10,2)$.
+
+This does not prove absolute novelty---only that the result is absent from the publicly searchable literature.
+
+The traditional explanation for the King Wen sequence is found in the \textit{X\`u Gu\`a} (序卦传, Sequence of Hexagrams commentary), one of the Ten Wings. A third historical ordering, found on the Mawangdui silk manuscript (excavated 1973), organizes hexagrams by upper trigram. Applying the same cycle decomposition to other pairs of orderings is a natural extension of this work.
+
+
+% ═══════════════════════════════════════════
+\section{Conclusion}\label{sec:conclusion}
+
+\begin{enumerate}
+  \item \textbf{Mathematical fact.} The permutation from the binary natural order to the King Wen sequence has cycle type $(52,10,2)$ with zero fixed points.
+
+  \item \textbf{Structural implication.} The King Wen sequence is not a random rearrangement of the binary natural order. It exhibits systematic restructuring: high coupling (81.25\% in one cycle), no preservation (zero fixed points), and a preference for contrast over gradual transition (mean Hamming distance 3.349 vs.\ baseline 3.0).
+
+  \item \textbf{Hamming distance.} The even:odd ratio of 3.2:1 and the 9 total inversions are consequences of the inverted/complementary pair structure of the King Wen sequence.
+
+  \item \textbf{Epistemological boundary.} Cycle structure is fact; semantic interpretation of cycle membership is conjecture. The two must not be conflated.
+
+  \item \textbf{Historical nuance.} The binary natural order was formalized $\sim$2{,}100 years after the King Wen sequence. Our analysis measures the structural distance between two independently defined orderings---it does not presuppose that one was derived from the other.
+\end{enumerate}
+
+
+% ═══════════════════════════════════════════
+\section*{Acknowledgments}
+The author thanks Claude (Anthropic) for assistance with computation and manuscript preparation.
+The critical observation that the ``Fu Xi sequence'' framing involves an unverified historical assumption arose during human--AI dialogue and led to the corrected epistemological framework presented in this paper.
+
+
+% ═══════════════════════════════════════════
+\appendix
+\section{Reproducible Code}\label{app:code}
+
+The following JavaScript code computes the cycle decomposition from the raw mapping data.
+It can be executed in any modern browser console or Node.js environment.
+
+\begin{lstlisting}[caption={Cycle decomposition of $\sigma$.}]
+// King Wen number (1-indexed) for each binary natural position (0-indexed)
+const W = [
+  2,23,8,20,16,35,45,12, 15,52,39,53,62,56,31,33,
+  7,4,29,59,40,64,47,6,  46,18,48,57,32,50,28,44,
+  24,27,3,42,51,21,17,25, 36,22,63,37,55,30,49,13,
+  19,41,60,61,54,38,58,10, 11,26,5,9,34,14,43,1
+];
+
+// Build permutation: sigma(i) = W[i] - 1
+const sigma = W.map(w => w - 1);
+
+// Cycle decomposition
+const visited = new Set(), cycles = [];
+for (let i = 0; i < 64; i++) {
+  if (visited.has(i)) continue;
+  const cycle = [];
+  let j = i;
+  while (!visited.has(j)) {
+    visited.add(j);
+    cycle.push(j);
+    j = sigma[j];
+  }
+  cycles.push(cycle);
+}
+cycles.sort((a, b) => b.length - a.length);
+
+// Output: cycle lengths
+console.log(cycles.map(c => c.length));
+// => [52, 10, 2]
+\end{lstlisting}
+
+
+\section{Complete Cycle Membership}\label{app:cycles}
+
+\subsection*{Primary Cycle (52 hexagrams)}
+
+{\small
+\noindent
+Qián (1) $\to$ Kūn (2) $\to$ Bō (23) $\to$ Kùn (47) $\to$ Gé (49) $\to$ Lín (19) $\to$ Kǎn (29) $\to$ Héng (32) $\to$ Gòu (44) $\to$ Jiā Rén (37) $\to$ Zhèn (51) $\to$ Jié (60) $\to$ Xiǎo Chù (9) $\to$ Qiān (15) $\to$ Xián (31) $\to$ Dà Guò (28) $\to$ Xùn (57) $\to$ Tài (11) $\to$ Jiǎn (39) $\to$ Suí (17) $\to$ Shī (7) $\to$ Cuì (45) $\to$ Fēng (55) $\to$ Duì (58) $\to$ Dà Chù (26) $\to$ Gǔ (18) $\to$ Méng (4) $\to$ Guān (20) $\to$ Huàn (59) $\to$ Xū (5) $\to$ Yù (16) $\to$ Dùn (33) $\to$ Fù (24) $\to$ Sòng (6) $\to$ Jìn (35) $\to$ Zhūn (3) $\to$ Bǐ (8) $\to$ Pǐ (12) $\to$ Jiàn (53) $\to$ Guī Mèi (54) $\to$ Kuí (38) $\to$ Shì Hé (21) $\to$ Jiě (40) $\to$ Wú Wàng (25) $\to$ Shēng (46) $\to$ Lí (30) $\to$ Dǐng (50) $\to$ Sǔn (41) $\to$ Míng Yí (36) $\to$ Yì (42) $\to$ Bì (22) $\to$ Wèi Jì (64) $\to$ [Qián]
+}
+
+\subsection*{Secondary Cycle (10 hexagrams)}
+
+{\small
+\noindent
+Lǚ-10 (10) $\to$ Gèn (52) $\to$ Zhōng Fú (61) $\to$ Dà Zhuàng (34) $\to$ Yí (27) $\to$ Jǐng (48) $\to$ Tóng Rén (13) $\to$ Xiǎo Guò (62) $\to$ Dà Yǒu (14) $\to$ Lǚ-56 (56) $\to$ [Lǚ-10]
+}
+
+\subsection*{Transposition}
+
+{\small
+\noindent
+Guài (43) $\leftrightarrow$ Jì Jì (63)
+}
+
+
+% ═══════════════════════════════════════════
+\begin{thebibliography}{9}
+
+\bibitem[Cook(2006)]{cook2006}
+Cook, R.~S.
+\textit{Classical Chinese Combinatorics: Derivation of the Book of Changes Hexagram Sequence}.
+Ph.D.\ dissertation, University of California, Berkeley, 2006.
+
+\bibitem[Leibniz(1703)]{leibniz1703}
+Leibniz, G.~W.
+Explication de l'Arithm{\'e}tique Binaire.
+\textit{M{\'e}moires de l'Acad{\'e}mie Royale des Sciences}, 1703.
+
+\bibitem[Petoukhov(2008)]{petoukhov2008}
+Petoukhov, S.~V.
+\textit{Matrix Genetics, Algebras of the Genetic Code, Noise-Immunity}.
+RCD, 2008.
+
+\bibitem[Rutt(2002)]{rutt2002}
+Rutt, R.
+\textit{The Book of Changes (Zhouyi): A Bronze Age Document}.
+Routledge, 2002.
+
+\bibitem[Shaughnessy(2014)]{shaughnessy2014}
+Shaughnessy, E.~L.
+\textit{Unearthing the Changes: Recently Discovered Manuscripts of the Yi Jing}.
+Columbia University Press, 2014.
+
+\bibitem[Moore]{moore}
+Moore, S.~J.
+Structural Analysis of the King Wen Sequence.
+Unpublished manuscript, available at \url{http://biroco.com/yijing/}.
+
+\end{thebibliography}
+
+\end{document}

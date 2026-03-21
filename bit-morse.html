@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>64卦的摩尔斯电码</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;700;900&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#0f0f23;--bg2:#1a1a2e;--bronze:#d4a574;--gold:#f0c080;--cream:#e8d5b7;--text:#e0d6c8;--text2:#8a7f6f;--border:#2a2a3d}
+body{background:var(--bg);color:var(--text);font-family:'Noto Serif SC',serif;line-height:1.8}
+.container{max-width:900px;margin:0 auto;padding:24px}
+h1{font-size:clamp(22px,4vw,32px);font-weight:900;text-align:center;margin-bottom:8px;color:var(--gold)}
+.sub{font-size:14px;color:var(--text2);text-align:center;max-width:640px;margin:0 auto 32px}
+
+/* Controls */
+.controls{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:16px}
+.play-btn{padding:10px 28px;border:2px solid var(--gold);background:none;color:var(--gold);border-radius:8px;cursor:pointer;font-family:inherit;font-size:15px;font-weight:700;transition:all 0.2s}
+.play-btn:hover{background:rgba(240,192,128,0.1)}
+.play-btn.playing{background:var(--gold);color:var(--bg)}
+.order-btn{padding:6px 14px;border:1px solid var(--border);border-radius:6px;background:none;color:var(--text2);cursor:pointer;font-family:inherit;font-size:12px;transition:all 0.2s}
+.order-btn:hover,.order-btn.active{border-color:var(--bronze);color:var(--bronze)}
+.slider-row{display:flex;align-items:center;gap:10px;font-size:12px;color:var(--text2);margin:8px 0}
+.slider-row input{flex:1;accent-color:var(--bronze)}
+
+/* Current display */
+.current-hex{text-align:center;margin:20px 0}
+.cur-num{font-size:14px;color:var(--text2)}
+.cur-name{font-size:48px;font-weight:900;color:var(--gold);margin:4px 0}
+.cur-binary{font-family:'Courier New',monospace;font-size:28px;letter-spacing:6px;margin:8px 0}
+.cur-morse{font-family:'Courier New',monospace;font-size:32px;color:var(--cream);letter-spacing:4px;margin:8px 0}
+.cur-bit{display:inline-block;width:32px;height:32px;line-height:32px;text-align:center;border-radius:4px;margin:0 2px;font-weight:700;transition:all 0.15s}
+.cur-bit.yang{background:rgba(232,213,183,0.2);color:var(--cream)}
+.cur-bit.yin{background:rgba(42,42,61,0.6);color:var(--text2)}
+.cur-bit.active{transform:scale(1.3);box-shadow:0 0 12px var(--gold)}
+.cur-morse-char{display:inline-block;margin:0 3px;font-size:36px;transition:all 0.15s}
+.cur-morse-char.active{color:var(--gold);transform:scale(1.4)}
+
+/* Signal lamp */
+.lamp-wrap{display:flex;justify-content:center;margin:24px 0}
+.lamp{width:80px;height:80px;border-radius:50%;border:3px solid var(--border);transition:all 0.08s;background:rgba(42,42,61,0.3)}
+.lamp.on{background:var(--gold);box-shadow:0 0 40px var(--gold),0 0 80px rgba(240,192,128,0.3);border-color:var(--gold)}
+
+/* Timeline strip */
+.timeline-strip{height:40px;border:1px solid var(--border);border-radius:6px;background:var(--bg2);margin:16px 0;position:relative;overflow:hidden}
+.ts-inner{display:flex;height:100%;align-items:center;padding:0 4px;transition:transform 0.3s}
+.ts-block{height:24px;border-radius:3px;margin:0 1px;flex-shrink:0;transition:all 0.15s}
+.ts-dash{background:var(--cream)}
+.ts-dot{background:var(--cream)}
+.ts-gap{background:transparent}
+.ts-hex-gap{background:transparent;border-right:1px solid rgba(212,165,116,0.15)}
+.ts-block.past{opacity:0.3}
+.ts-block.current{box-shadow:0 0 8px var(--gold)}
+
+/* Hex list */
+.hex-list{display:flex;flex-wrap:wrap;gap:4px;margin:16px 0}
+.hex-chip{padding:4px 8px;border:1px solid var(--border);border-radius:4px;font-size:11px;background:var(--bg2);cursor:pointer;transition:all 0.15s}
+.hex-chip:hover{border-color:var(--bronze)}
+.hex-chip.done{opacity:0.3}
+.hex-chip.current{border-color:var(--gold);background:rgba(240,192,128,0.1);color:var(--gold)}
+.hex-chip .hc-morse{font-family:'Courier New',monospace;color:var(--text2);margin-left:4px}
+
+.insight{padding:12px;border-left:3px solid var(--gold);background:rgba(212,165,116,0.04);border-radius:0 8px 8px 0;font-size:13px;color:var(--cream);margin:16px 0}
+.insight strong{color:var(--gold)}
+.back-link{display:inline-block;margin-bottom:20px;color:var(--text2);text-decoration:none;font-size:13px}
+.back-link:hover{color:var(--bronze)}
+</style>
+</head>
+<body>
+<div class="container">
+<a class="back-link" href="index.html">&larr; 返回</a>
+<h1>64卦的摩尔斯电码</h1>
+<div class="sub">阳(1)=长信号（━ 哒），阴(0)=短信号（· 嘀）。每个卦变成一段6符号的摩尔斯电码。<br>乾=━━━━━━（全长），坤=······（全短），其他卦是各种嘀哒组合。</div>
+
+<!-- Controls -->
+<div class="controls">
+  <button class="play-btn" id="play-btn" onclick="togglePlay()">&#9654; 发报</button>
+  <button class="order-btn active" data-order="wen" onclick="setOrder('wen',this)">文王序</button>
+  <button class="order-btn" data-order="nat" onclick="setOrder('nat',this)">自然序</button>
+  <button class="order-btn" data-order="gray" onclick="setOrder('gray',this)">格雷码</button>
+  <button class="order-btn" data-order="yang" onclick="setOrder('yang',this)">阳爻递增</button>
+</div>
+<div class="slider-row">
+  <label>发报速度</label>
+  <input type="range" id="wpm-slider" min="5" max="40" value="15">
+  <span id="wpm-val">15</span> WPM
+</div>
+
+<!-- Signal lamp -->
+<div class="lamp-wrap"><div class="lamp" id="lamp"></div></div>
+
+<!-- Current hexagram -->
+<div class="current-hex">
+  <div class="cur-num" id="cur-num">准备发报</div>
+  <div class="cur-name" id="cur-name">—</div>
+  <div class="cur-binary" id="cur-binary"></div>
+  <div class="cur-morse" id="cur-morse"></div>
+</div>
+
+<!-- Timeline -->
+<div class="timeline-strip"><div class="ts-inner" id="ts-inner"></div></div>
+
+<!-- Hex chip list -->
+<div class="hex-list" id="hex-list"></div>
+
+<div class="insight">
+  <strong>摩尔斯电码的映射：</strong>阳爻(━━)=长信号(dah)，持续3个时间单位。阴爻(·)=短信号(dit)，持续1个时间单位。
+  爻间隔=1个单位。卦间隔=7个单位（标准摩尔斯的字间隔）。<br><br>
+  <strong>听的时候注意：</strong>乾卦（全阳）听起来像一段沉稳的长音"哒哒哒哒哒哒"。坤卦（全阴）像急促的短音"嘀嘀嘀嘀嘀嘀"。
+  泰卦(111000)是"哒哒哒嘀嘀嘀"——前半长后半短，像一次深呼吸然后快速吐气。
+  否卦(000111)正好反过来："嘀嘀嘀哒哒哒"——急促开始然后拉长，像憋了一口气终于吐出来。
+</div>
+
+</div>
+
+<script>
+const HEXAGRAM_MAP={'111111':1,'000000':2,'100010':3,'010001':4,'111010':5,'010111':6,'010000':7,'000010':8,'111011':9,'110111':10,'111000':11,'000111':12,'101111':13,'111101':14,'001000':15,'000100':16,'100110':17,'011001':18,'110000':19,'000011':20,'100101':21,'101001':22,'000001':23,'100000':24,'100111':25,'111001':26,'100001':27,'011110':28,'010010':29,'101101':30,'001110':31,'011100':32,'001111':33,'111100':34,'000101':35,'101000':36,'101011':37,'110101':38,'001010':39,'010100':40,'110001':41,'100011':42,'111110':43,'011111':44,'000110':45,'011000':46,'010110':47,'011010':48,'101110':49,'011101':50,'100100':51,'001001':52,'001011':53,'110100':54,'101100':55,'001101':56,'011011':57,'110110':58,'010011':59,'110010':60,'110011':61,'001100':62,'101010':63,'010101':64};
+const HN={1:'乾',2:'坤',3:'屯',4:'蒙',5:'需',6:'讼',7:'师',8:'比',9:'小畜',10:'履',11:'泰',12:'否',13:'同人',14:'大有',15:'谦',16:'豫',17:'随',18:'蛊',19:'临',20:'观',21:'噬嗑',22:'贲',23:'剥',24:'复',25:'无妄',26:'大畜',27:'颐',28:'大过',29:'坎',30:'离',31:'咸',32:'恒',33:'遁',34:'大壮',35:'晋',36:'明夷',37:'家人',38:'睽',39:'蹇',40:'解',41:'损',42:'益',43:'夬',44:'姤',45:'萃',46:'升',47:'困',48:'井',49:'革',50:'鼎',51:'震',52:'艮',53:'渐',54:'归妹',55:'丰',56:'旅',57:'巽',58:'兑',59:'涣',60:'节',61:'中孚',62:'小过',63:'既济',64:'未济'};
+const n2b={};for(const[b,n]of Object.entries(HEXAGRAM_MAP))n2b[n]=b;
+const ALL=[];for(let i=0;i<64;i++)ALL.push(i.toString(2).padStart(6,'0'));
+
+function wenOrder(){const r=[];for(let n=1;n<=64;n++)r.push(n2b[n]);return r;}
+function natOrder(){return ALL.slice().sort((a,b)=>parseInt(a,2)-parseInt(b,2));}
+function yangOrder(){return ALL.slice().sort((a,b)=>{const ya=a.split('').filter(c=>c==='1').length;const yb=b.split('').filter(c=>c==='1').length;return ya-yb||parseInt(a,2)-parseInt(b,2);});}
+function grayOrder(){const g=[];for(let i=0;i<64;i++){const v=i^(i>>1);g.push(v.toString(2).padStart(6,'0'));}return g;}
+
+function bin2morse(b){return b.split('').map(c=>c==='1'?'━':'·').join('');}
+
+// State
+let order = wenOrder();
+let playing = false;
+let playTimer = null;
+let audioCtx = null;
+let hexIdx = 0;
+let bitIdx = 0;
+
+function getAudio(){
+  if(!audioCtx)audioCtx=new(window.AudioContext||window.webkitAudioContext)();
+  return audioCtx;
+}
+
+function setOrder(key, btn){
+  const fns={wen:wenOrder,nat:natOrder,gray:grayOrder,yang:yangOrder};
+  order=fns[key]();
+  hexIdx=0;bitIdx=0;
+  document.querySelectorAll('.order-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  buildHexList();
+  resetDisplay();
+  if(playing){stopPlay();startPlay();}
+}
+
+// Speed
+const wpmSlider=document.getElementById('wpm-slider');
+const wpmVal=document.getElementById('wpm-val');
+wpmSlider.addEventListener('input',()=>{wpmVal.textContent=wpmSlider.value;});
+
+function getUnit(){
+  // 1 unit = 1200ms / WPM (standard Morse timing)
+  return 1200/parseInt(wpmSlider.value);
+}
+
+// Build hex chip list
+function buildHexList(){
+  const list=document.getElementById('hex-list');
+  list.innerHTML='';
+  order.forEach((bin,i)=>{
+    const num=HEXAGRAM_MAP[bin]||0;
+    const name=num?HN[num]:'?';
+    const chip=document.createElement('div');
+    chip.className='hex-chip';
+    chip.dataset.idx=i;
+    chip.innerHTML=`${name}<span class="hc-morse">${bin2morse(bin)}</span>`;
+    chip.onclick=()=>{
+      if(playing)stopPlay();
+      hexIdx=i;bitIdx=0;
+      playSingleHex(i);
+    };
+    list.appendChild(chip);
+  });
+}
+
+function updateHexChips(){
+  document.querySelectorAll('.hex-chip').forEach((chip,i)=>{
+    chip.classList.toggle('done',i<hexIdx);
+    chip.classList.toggle('current',i===hexIdx);
+  });
+}
+
+function resetDisplay(){
+  document.getElementById('cur-num').textContent='准备发报';
+  document.getElementById('cur-name').textContent='—';
+  document.getElementById('cur-binary').innerHTML='';
+  document.getElementById('cur-morse').innerHTML='';
+  document.getElementById('lamp').classList.remove('on');
+  updateHexChips();
+}
+
+// Display current hexagram
+function showHex(idx, activeBit){
+  const bin=order[idx];
+  const num=HEXAGRAM_MAP[bin]||0;
+  const name=num?HN[num]:'?';
+
+  document.getElementById('cur-num').textContent=`第 ${num} 卦 (${idx+1}/64)`;
+  document.getElementById('cur-name').textContent=name;
+
+  // Binary with active highlight
+  let binHtml='';
+  for(let i=0;i<6;i++){
+    const cls=bin[i]==='1'?'yang':'yin';
+    const act=i===activeBit?' active':'';
+    binHtml+=`<span class="cur-bit ${cls}${act}">${bin[i]}</span>`;
+  }
+  document.getElementById('cur-binary').innerHTML=binHtml;
+
+  // Morse with active highlight
+  let morseHtml='';
+  for(let i=0;i<6;i++){
+    const ch=bin[i]==='1'?'━':'·';
+    const act=i===activeBit?' active':'';
+    morseHtml+=`<span class="cur-morse-char${act}">${ch}</span>`;
+  }
+  document.getElementById('cur-morse').innerHTML=morseHtml;
+
+  updateHexChips();
+}
+
+// Play Morse tone
+function playTone(duration, freq=600){
+  const ctx=getAudio();
+  const osc=ctx.createOscillator();
+  const gain=ctx.createGain();
+  osc.type='sine';
+  osc.frequency.value=freq;
+  gain.gain.value=0.15;
+  gain.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+duration/1000);
+  osc.connect(gain);
+  gain.connect(ctx.destination);
+  osc.start();
+  osc.stop(ctx.currentTime+duration/1000+0.05);
+}
+
+// Toggle play
+function togglePlay(){
+  if(playing)stopPlay();
+  else startPlay();
+}
+
+function stopPlay(){
+  playing=false;
+  clearTimeout(playTimer);
+  document.getElementById('play-btn').classList.remove('playing');
+  document.getElementById('play-btn').innerHTML='&#9654; 发报';
+  document.getElementById('lamp').classList.remove('on');
+}
+
+function startPlay(){
+  playing=true;
+  hexIdx=0;bitIdx=0;
+  document.getElementById('play-btn').classList.add('playing');
+  document.getElementById('play-btn').innerHTML='&#9724; 停止';
+  tickBit();
+}
+
+function playSingleHex(idx){
+  hexIdx=idx;bitIdx=0;
+  playing=true;
+  document.getElementById('play-btn').classList.add('playing');
+  document.getElementById('play-btn').innerHTML='&#9724; 停止';
+
+  function tick(){
+    if(!playing||hexIdx!==idx)return;
+    if(bitIdx>=6){
+      stopPlay();
+      return;
+    }
+    const bin=order[hexIdx];
+    const isYang=bin[bitIdx]==='1';
+    const unit=getUnit();
+    const dur=isYang?unit*3:unit;
+
+    showHex(hexIdx,bitIdx);
+    document.getElementById('lamp').classList.add('on');
+    playTone(dur);
+
+    setTimeout(()=>{
+      if(!playing)return;
+      document.getElementById('lamp').classList.remove('on');
+      bitIdx++;
+      // Inter-element gap
+      playTimer=setTimeout(tick,unit);
+    },dur);
+  }
+  tick();
+}
+
+function tickBit(){
+  if(!playing)return;
+  if(hexIdx>=order.length){stopPlay();return;}
+
+  const bin=order[hexIdx];
+
+  if(bitIdx>=6){
+    // Move to next hexagram
+    hexIdx++;
+    bitIdx=0;
+    if(hexIdx>=order.length){stopPlay();return;}
+    // Inter-word gap = 7 units
+    document.getElementById('lamp').classList.remove('on');
+    showHex(hexIdx,-1);
+    playTimer=setTimeout(tickBit,getUnit()*7);
+    return;
+  }
+
+  const isYang=bin[bitIdx]==='1';
+  const unit=getUnit();
+  const dur=isYang?unit*3:unit; // dash=3units, dot=1unit
+
+  showHex(hexIdx,bitIdx);
+
+  // Lamp on + tone
+  document.getElementById('lamp').classList.add('on');
+  playTone(dur);
+
+  // After tone: lamp off, then gap
+  setTimeout(()=>{
+    if(!playing)return;
+    document.getElementById('lamp').classList.remove('on');
+    bitIdx++;
+    // Inter-element gap = 1 unit
+    playTimer=setTimeout(tickBit,unit);
+  },dur);
+}
+
+// Init
+buildHexList();
+resetDisplay();
+</script>
+</body>
+</html>

@@ -1,0 +1,838 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>循环分解算法 · 一步步看它怎么走</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;700;900&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0f0f23;--bg2:#1a1a2e;--bg3:#16162b;
+  --bronze:#d4a574;--gold:#f0c080;--cream:#e8d5b7;
+  --text:#e0d6c8;--text2:#8a7f6f;--border:#2a2a3d;
+  --c52:#f0c080;--c10:#a8d8ea;--c2:#e07070;--green:#7ecba1;
+}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:'Noto Serif SC',serif;line-height:1.8;overflow-x:hidden}
+code,.mono{font-family:'JetBrains Mono',monospace}
+
+/* Layout */
+.page{display:flex;flex-direction:column;align-items:center;min-height:100vh}
+
+/* Hero */
+.hero{text-align:center;padding:48px 20px 32px;max-width:720px}
+.hero h1{
+  font-size:clamp(24px,5vw,42px);font-weight:900;
+  background:linear-gradient(135deg,var(--c52),var(--c10),var(--c2));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+  margin-bottom:8px;
+}
+.hero p{font-size:clamp(13px,2vw,16px);color:var(--text2)}
+
+/* Main canvas area */
+.canvas-area{position:relative;width:100%;max-width:760px;aspect-ratio:1;margin:0 auto}
+#mainCanvas{width:100%;height:100%;display:block}
+
+/* Controls */
+.controls{
+  display:flex;gap:10px;align-items:center;justify-content:center;
+  padding:16px 20px;flex-wrap:wrap;position:sticky;top:0;z-index:50;
+  background:rgba(15,15,35,0.95);backdrop-filter:blur(8px);
+  border-bottom:1px solid var(--border);width:100%;max-width:800px;
+  border-radius:0 0 12px 12px;
+}
+.btn{
+  padding:8px 20px;border:1px solid var(--bronze);border-radius:8px;
+  background:transparent;color:var(--bronze);font-family:'Noto Serif SC',serif;
+  font-size:13px;cursor:pointer;transition:all .2s;font-weight:700;
+}
+.btn:hover{background:rgba(212,165,116,0.1)}
+.btn:active{transform:scale(0.97)}
+.btn.primary{background:rgba(212,165,116,0.15)}
+.btn:disabled{opacity:.3;cursor:not-allowed}
+.speed-wrap{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text2)}
+.speed-wrap input{width:80px;accent-color:var(--bronze)}
+
+/* Narration */
+.narration{
+  width:100%;max-width:760px;padding:0 20px;margin:16px auto;
+}
+.narr-box{
+  padding:20px 24px;border:1px solid var(--border);border-radius:12px;
+  background:var(--bg2);min-height:80px;transition:all .3s;
+}
+.narr-step{font-size:11px;color:var(--text2);font-family:'JetBrains Mono',monospace;margin-bottom:6px}
+.narr-main{font-size:15px;color:var(--cream);font-weight:700;margin-bottom:4px}
+.narr-detail{font-size:13px;color:var(--text);line-height:1.7}
+.narr-detail strong{color:var(--gold)}
+.narr-detail .c52{color:var(--c52)}.narr-detail .c10{color:var(--c10)}.narr-detail .c2{color:var(--c2)}
+
+/* Chain display */
+.chain-area{width:100%;max-width:760px;padding:0 20px;margin:12px auto}
+.chain-box{
+  padding:16px 20px;border:1px solid var(--border);border-radius:12px;
+  background:var(--bg2);font-family:'JetBrains Mono',monospace;font-size:12px;
+  display:flex;flex-wrap:wrap;gap:4px;align-items:center;min-height:48px;
+  line-height:2;justify-content:center;
+}
+.ch-node{padding:3px 8px;border-radius:5px;border:1px solid;transition:all .3s}
+.ch-node.c52{border-color:rgba(240,192,128,0.3);background:rgba(240,192,128,0.08);color:var(--c52)}
+.ch-node.c10{border-color:rgba(168,216,234,0.3);background:rgba(168,216,234,0.08);color:var(--c10)}
+.ch-node.c2{border-color:rgba(224,112,112,0.3);background:rgba(224,112,112,0.08);color:var(--c2)}
+.ch-node.active{box-shadow:0 0 12px rgba(240,192,128,0.4);transform:scale(1.1)}
+.ch-arrow{color:var(--text2);font-size:10px}
+.ch-return{color:var(--gold);font-weight:700}
+
+/* Result cards */
+.result-area{
+  width:100%;max-width:760px;padding:20px;margin:0 auto;
+  display:flex;gap:16px;justify-content:center;flex-wrap:wrap;
+  opacity:0;transition:all .6s;
+}
+.result-area.show{opacity:1}
+.res-card{
+  padding:16px 28px;border-radius:12px;text-align:center;
+  border:2px solid;min-width:120px;
+}
+.res-card.c52{border-color:var(--c52);background:rgba(240,192,128,0.06)}
+.res-card.c10{border-color:var(--c10);background:rgba(168,216,234,0.06)}
+.res-card.c2{border-color:var(--c2);background:rgba(224,112,112,0.06)}
+.res-val{font-size:36px;font-weight:900;font-family:'JetBrains Mono',monospace}
+.res-card.c52 .res-val{color:var(--c52)}.res-card.c10 .res-val{color:var(--c10)}.res-card.c2 .res-val{color:var(--c2)}
+.res-label{font-size:11px;color:var(--text2)}
+
+/* Mapping table toggle */
+.table-toggle{
+  margin:20px auto;text-align:center;
+}
+.table-toggle button{
+  padding:6px 16px;border:1px solid var(--border);border-radius:6px;
+  background:var(--bg2);color:var(--text2);font-size:12px;cursor:pointer;
+  font-family:'Noto Serif SC',serif;transition:all .2s;
+}
+.table-toggle button:hover{border-color:var(--bronze);color:var(--bronze)}
+.mapping-table{
+  max-height:0;overflow:hidden;transition:max-height .5s;
+  width:100%;max-width:760px;margin:0 auto;padding:0 20px;
+}
+.mapping-table.open{max-height:2000px}
+.mapping-table table{
+  width:100%;border-collapse:collapse;font-size:12px;
+  font-family:'JetBrains Mono',monospace;
+}
+.mapping-table th{color:var(--bronze);text-align:left;padding:6px 8px;border-bottom:1px solid var(--border);font-size:11px}
+.mapping-table td{padding:4px 8px;border-bottom:1px solid rgba(42,42,61,0.4);color:var(--text)}
+.mapping-table tr:hover td{background:rgba(212,165,116,0.04)}
+.mapping-table .arr{color:var(--text2)}
+
+@media(max-width:600px){
+  .controls{gap:6px;padding:10px}
+  .btn{padding:6px 12px;font-size:11px}
+  .narr-box{padding:14px 16px}
+  .chain-box{font-size:10px;padding:10px 12px}
+}
+</style>
+</head>
+<body>
+
+<div class="page">
+
+<div class="hero">
+  <h1>沿着箭头走，直到走回来</h1>
+  <p>这就是循环分解算法的全部。<br>不需要高深数学——只需要耐心跟着看每一步。</p>
+</div>
+
+<!-- Controls -->
+<div class="controls">
+  <button class="btn primary" id="btnStart" onclick="start()">▶ 开始</button>
+  <button class="btn" id="btnStep" onclick="step()" disabled>→ 下一步</button>
+  <button class="btn" id="btnAuto" onclick="toggleAuto()" disabled>⟫ 自动</button>
+  <button class="btn" id="btnReset" onclick="reset()">↺ 重置</button>
+  <div class="speed-wrap">
+    <span>慢</span>
+    <input type="range" id="speed" min="100" max="1500" value="600">
+    <span>快</span>
+  </div>
+</div>
+
+<!-- Canvas -->
+<div class="canvas-area">
+  <canvas id="mainCanvas"></canvas>
+</div>
+
+<!-- Narration -->
+<div class="narration">
+  <div class="narr-box" id="narrBox">
+    <div class="narr-step" id="narrStep"></div>
+    <div class="narr-main" id="narrMain">准备好了吗？</div>
+    <div class="narr-detail" id="narrDetail">64个卦排成一个圆。每个卦都有一个箭头指向它在文王序中被移到的位置。<br>我们要做的就是：<strong>从一个卦出发，沿箭头走，直到走回起点。</strong></div>
+  </div>
+</div>
+
+<!-- Chain -->
+<div class="chain-area">
+  <div class="chain-box" id="chainBox"></div>
+</div>
+
+<!-- Result -->
+<div class="result-area" id="resultArea">
+  <div class="res-card c52"><div class="res-val">52</div><div class="res-label">主循环 · 81.25%</div></div>
+  <div class="res-card c10"><div class="res-val">10</div><div class="res-label">次循环 · 15.6%</div></div>
+  <div class="res-card c2"><div class="res-val">2</div><div class="res-label">对换 · 3.1%</div></div>
+</div>
+
+<!-- Mapping table -->
+<div class="table-toggle">
+  <button onclick="toggleTable()">📋 查看完整映射表（σ 的定义）</button>
+</div>
+<div class="mapping-table" id="mappingTable"></div>
+
+<div style="height:80px"></div>
+</div>
+
+<script>
+// ══════════════════════════════════════════
+// DATA
+// ══════════════════════════════════════════
+const NAMES = [
+  '坤','剥','比','观','豫','晋','萃','否',
+  '谦','艮','蹇','渐','小过','旅','咸','遁',
+  '师','蒙','坎','涣','解','未济','困','讼',
+  '升','蛊','井','巽','恒','鼎','大过','姤',
+  '复','颐','屯','益','震','噬嗑','随','无妄',
+  '明夷','贲','既济','家人','丰','离','革','同人',
+  '临','损','节','中孚','归妹','睽','兑','履',
+  '泰','大畜','需','小畜','大壮','大有','夬','乾'
+];
+
+const FUXI_TO_WEN = [
+  2,23,8,20,16,35,45,12, 15,52,39,53,62,56,31,33,
+  7,4,29,59,40,64,47,6,  46,18,48,57,32,50,28,44,
+  24,27,3,42,51,21,17,25, 36,22,63,37,55,30,49,13,
+  19,41,60,61,54,38,58,10, 11,26,5,9,34,14,43,1
+];
+const PERM = FUXI_TO_WEN.map(w => w - 1);
+
+// Precompute actual cycles for reference
+function decompose(perm) {
+  const vis = new Set(), out = [];
+  for (let i = 0; i < perm.length; i++) {
+    if (vis.has(i)) continue;
+    const c = []; let j = i;
+    while (!vis.has(j)) { vis.add(j); c.push(j); j = perm[j]; }
+    out.push(c);
+  }
+  return out.sort((a, b) => b.length - a.length);
+}
+const CYCLES = decompose(PERM);
+const CYCLE_IDX = {};
+CYCLES.forEach((c, ci) => c.forEach(p => CYCLE_IDX[p] = ci));
+
+// ══════════════════════════════════════════
+// CANVAS SETUP
+// ══════════════════════════════════════════
+const canvas = document.getElementById('mainCanvas');
+const ctx = canvas.getContext('2d');
+let W, H, CX, CY, R;
+let nodePositions = []; // {x, y, fuxi}
+const NODE_R_BASE = 16;
+let NODE_R = NODE_R_BASE;
+
+function resize() {
+  const dpr = window.devicePixelRatio || 1;
+  const rect = canvas.parentElement.getBoundingClientRect();
+  W = rect.width; H = rect.height;
+  canvas.width = W * dpr; canvas.height = H * dpr;
+  canvas.style.width = W + 'px'; canvas.style.height = H + 'px';
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  CX = W / 2; CY = H / 2;
+  R = Math.min(W, H) * 0.40;
+  NODE_R = Math.min(NODE_R_BASE, R * 0.08);
+
+  // Position nodes in circle (Fuxi order 0-63)
+  nodePositions = [];
+  for (let i = 0; i < 64; i++) {
+    const a = -Math.PI / 2 + (2 * Math.PI * i) / 64;
+    nodePositions.push({ x: CX + R * Math.cos(a), y: CY + R * Math.sin(a), fuxi: i });
+  }
+  draw();
+}
+
+window.addEventListener('resize', resize);
+
+// ══════════════════════════════════════════
+// STATE
+// ══════════════════════════════════════════
+let state = {
+  phase: 'idle', // idle | tracing | done
+  visited: new Set(),
+  currentCycleNodes: [],  // fuxi positions in current cycle so far
+  currentPos: -1,
+  startPos: -1,
+  completedCycles: [],    // [{nodes:[], color:str}]
+  autoTimer: null,
+  totalSteps: 0,
+  animProgress: 0,        // 0-1 for arrow animation
+  animFrom: -1,
+  animTo: -1,
+  animating: false,
+};
+
+const COLORS = ['#f0c080', '#a8d8ea', '#e07070', '#c792ea', '#7ecba1'];
+const COLORS_BG = ['rgba(240,192,128,0.12)', 'rgba(168,216,234,0.12)', 'rgba(224,112,112,0.12)', 'rgba(199,146,234,0.12)', 'rgba(126,203,161,0.12)'];
+const CLASS_NAMES = ['c52', 'c10', 'c2'];
+
+function cycleColor(idx) { return COLORS[idx % COLORS.length]; }
+function cycleBg(idx) { return COLORS_BG[idx % COLORS_BG.length]; }
+
+// ══════════════════════════════════════════
+// DRAWING
+// ══════════════════════════════════════════
+function draw() {
+  ctx.clearRect(0, 0, W, H);
+
+  // Background circle
+  ctx.beginPath();
+  ctx.arc(CX, CY, R, 0, Math.PI * 2);
+  ctx.strokeStyle = 'rgba(255,255,255,0.03)';
+  ctx.lineWidth = 1;
+  ctx.stroke();
+
+  // Draw completed cycle arrows
+  state.completedCycles.forEach((cyc, ci) => {
+    drawCycleArrows(cyc.nodes, cyc.color, 0.25);
+  });
+
+  // Draw current partial cycle arrows
+  if (state.currentCycleNodes.length > 1) {
+    const color = cycleColor(state.completedCycles.length);
+    for (let i = 0; i < state.currentCycleNodes.length - 1; i++) {
+      drawArrow(state.currentCycleNodes[i], state.currentCycleNodes[i + 1], color, 0.6);
+    }
+  }
+
+  // Animated arrow
+  if (state.animating && state.animFrom >= 0 && state.animTo >= 0) {
+    drawAnimatedArrow(state.animFrom, state.animTo, cycleColor(state.completedCycles.length), state.animProgress);
+  }
+
+  // Draw nodes
+  for (let i = 0; i < 64; i++) {
+    const pos = nodePositions[i];
+    const isVisited = state.visited.has(i);
+    const isCurrent = state.currentPos === i;
+    const isStart = state.currentCycleNodes.length > 0 && state.currentCycleNodes[0] === i;
+    const cycIdx = findCompletedCycleIdx(i);
+
+    let fillColor = 'rgba(255,255,255,0.02)';
+    let strokeColor = 'rgba(255,255,255,0.1)';
+    let textColor = '#555';
+    let r = NODE_R;
+
+    if (cycIdx >= 0) {
+      // In a completed cycle
+      fillColor = cycleBg(cycIdx);
+      strokeColor = state.completedCycles[cycIdx].color + '60';
+      textColor = state.completedCycles[cycIdx].color;
+    }
+
+    if (state.currentCycleNodes.includes(i)) {
+      const cc = cycleColor(state.completedCycles.length);
+      fillColor = cycleBg(state.completedCycles.length);
+      strokeColor = cc + '80';
+      textColor = cc;
+    }
+
+    if (isCurrent) {
+      r = NODE_R * 1.4;
+      const cc = cycleColor(state.completedCycles.length);
+      fillColor = cc + '30';
+      strokeColor = cc;
+      textColor = '#fff';
+    }
+
+    if (isStart && state.currentCycleNodes.length > 0 && !isCurrent) {
+      // Highlight start with pulsing border
+      strokeColor = cycleColor(state.completedCycles.length);
+    }
+
+    // Node circle
+    ctx.beginPath();
+    ctx.arc(pos.x, pos.y, r, 0, Math.PI * 2);
+    ctx.fillStyle = fillColor;
+    ctx.fill();
+    ctx.strokeStyle = strokeColor;
+    ctx.lineWidth = isCurrent ? 2.5 : 1;
+    ctx.stroke();
+
+    // Text
+    const fontSize = Math.max(8, NODE_R * 0.7);
+    ctx.font = `${isCurrent ? '900' : '400'} ${fontSize}px "Noto Serif SC", serif`;
+    ctx.fillStyle = textColor;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(NAMES[i], pos.x, pos.y);
+  }
+
+  // Center info
+  if (state.phase === 'done') {
+    ctx.font = '900 24px "JetBrains Mono", monospace';
+    ctx.fillStyle = var_gold;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('[52, 10, 2]', CX, CY - 10);
+    ctx.font = '400 13px "Noto Serif SC", serif';
+    ctx.fillStyle = '#8a7f6f';
+    ctx.fillText('固定点 = 0', CX, CY + 14);
+  } else if (state.phase === 'tracing') {
+    ctx.font = '700 14px "JetBrains Mono", monospace';
+    ctx.fillStyle = '#8a7f6f';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(`已访问 ${state.visited.size}/64`, CX, CY - 8);
+    ctx.font = '400 12px "Noto Serif SC", serif';
+    ctx.fillText(`循环 #${state.completedCycles.length + 1}`, CX, CY + 10);
+  }
+}
+
+const var_gold = '#f0c080';
+
+function findCompletedCycleIdx(fuxi) {
+  for (let ci = 0; ci < state.completedCycles.length; ci++) {
+    if (state.completedCycles[ci].nodes.includes(fuxi)) return ci;
+  }
+  return -1;
+}
+
+function drawCycleArrows(nodes, color, alpha) {
+  for (let i = 0; i < nodes.length; i++) {
+    const from = nodes[i];
+    const to = nodes[(i + 1) % nodes.length];
+    drawArrow(from, to, color, alpha);
+  }
+}
+
+function drawArrow(fromFuxi, toFuxi, color, alpha) {
+  const f = nodePositions[fromFuxi];
+  const t = nodePositions[toFuxi];
+
+  // Offset start/end to node edge
+  const dx = t.x - f.x, dy = t.y - f.y;
+  const dist = Math.hypot(dx, dy);
+  if (dist < 1) return;
+  const nx = dx / dist, ny = dy / dist;
+  const sx = f.x + nx * NODE_R, sy = f.y + ny * NODE_R;
+  const ex = t.x - nx * (NODE_R + 4), ey = t.y - ny * (NODE_R + 4);
+
+  // Curved arrow via control point
+  const mx = (sx + ex) / 2, my = (sy + ey) / 2;
+  // Perpendicular offset for curve
+  const px = -(ey - sy), py = (ex - sx);
+  const curvature = 0.1;
+  const cpx = mx + px * curvature, cpy = my + py * curvature;
+
+  ctx.beginPath();
+  ctx.moveTo(sx, sy);
+  ctx.quadraticCurveTo(cpx, cpy, ex, ey);
+  ctx.strokeStyle = color;
+  ctx.globalAlpha = alpha;
+  ctx.lineWidth = 1.5;
+  ctx.stroke();
+
+  // Arrowhead
+  const angle = Math.atan2(ey - cpy, ex - cpx);
+  const headLen = 6;
+  ctx.beginPath();
+  ctx.moveTo(ex, ey);
+  ctx.lineTo(ex - headLen * Math.cos(angle - 0.4), ey - headLen * Math.sin(angle - 0.4));
+  ctx.lineTo(ex - headLen * Math.cos(angle + 0.4), ey - headLen * Math.sin(angle + 0.4));
+  ctx.closePath();
+  ctx.fillStyle = color;
+  ctx.fill();
+
+  ctx.globalAlpha = 1;
+}
+
+function drawAnimatedArrow(fromFuxi, toFuxi, color, progress) {
+  const f = nodePositions[fromFuxi];
+  const t = nodePositions[toFuxi];
+  const dx = t.x - f.x, dy = t.y - f.y;
+  const dist = Math.hypot(dx, dy);
+  if (dist < 1) return;
+  const nx = dx / dist, ny = dy / dist;
+  const sx = f.x + nx * NODE_R, sy = f.y + ny * NODE_R;
+  const ex = t.x - nx * (NODE_R + 4), ey = t.y - ny * (NODE_R + 4);
+
+  const mx = (sx + ex) / 2, my = (sy + ey) / 2;
+  const px = -(ey - sy), py = (ex - sx);
+  const curvature = 0.1;
+  const cpx = mx + px * curvature, cpy = my + py * curvature;
+
+  // Draw partial curve up to progress
+  ctx.beginPath();
+  ctx.moveTo(sx, sy);
+
+  // Sample quadratic bezier up to t=progress
+  const steps = Math.floor(progress * 30);
+  for (let i = 1; i <= steps; i++) {
+    const t = i / 30;
+    const x = (1-t)*(1-t)*sx + 2*(1-t)*t*cpx + t*t*ex;
+    const y = (1-t)*(1-t)*sy + 2*(1-t)*t*cpy + t*t*ey;
+    ctx.lineTo(x, y);
+  }
+  ctx.strokeStyle = color;
+  ctx.lineWidth = 2.5;
+  ctx.globalAlpha = 0.9;
+  ctx.stroke();
+  ctx.globalAlpha = 1;
+
+  // Glowing dot at tip
+  const tp = progress;
+  const tipX = (1-tp)*(1-tp)*sx + 2*(1-tp)*tp*cpx + tp*tp*ex;
+  const tipY = (1-tp)*(1-tp)*sy + 2*(1-tp)*tp*cpy + tp*tp*ey;
+  ctx.beginPath();
+  ctx.arc(tipX, tipY, 4, 0, Math.PI * 2);
+  ctx.fillStyle = color;
+  ctx.fill();
+  ctx.beginPath();
+  ctx.arc(tipX, tipY, 8, 0, Math.PI * 2);
+  ctx.fillStyle = color + '30';
+  ctx.fill();
+}
+
+// ══════════════════════════════════════════
+// ANIMATION LOOP
+// ══════════════════════════════════════════
+let animResolve = null;
+
+function animateArrow(from, to) {
+  return new Promise(resolve => {
+    state.animating = true;
+    state.animFrom = from;
+    state.animTo = to;
+    state.animProgress = 0;
+    animResolve = resolve;
+
+    const duration = 400; // ms
+    const startTime = performance.now();
+
+    function tick(now) {
+      const elapsed = now - startTime;
+      state.animProgress = Math.min(1, elapsed / duration);
+      draw();
+      if (state.animProgress < 1) {
+        requestAnimationFrame(tick);
+      } else {
+        state.animating = false;
+        draw();
+        resolve();
+      }
+    }
+    requestAnimationFrame(tick);
+  });
+}
+
+// ══════════════════════════════════════════
+// STEP LOGIC
+// ══════════════════════════════════════════
+let stepping = false;
+
+async function doStep() {
+  if (stepping) return;
+  stepping = true;
+
+  if (state.currentPos < 0) {
+    // Need to start a new cycle — find first unvisited
+    let startNode = -1;
+    // Use same order as actual algorithm for deterministic result
+    // Start with 63 (乾) first, then sequential
+    if (!state.visited.has(63) && state.completedCycles.length === 0) {
+      startNode = 63;
+    } else {
+      for (let i = 0; i < 64; i++) {
+        if (!state.visited.has(i)) { startNode = i; break; }
+      }
+    }
+
+    if (startNode < 0) {
+      // All visited — done!
+      finishAll();
+      stepping = false;
+      return;
+    }
+
+    state.startPos = startNode;
+    state.currentPos = startNode;
+    state.currentCycleNodes = [startNode];
+    state.visited.add(startNode);
+    state.totalSteps++;
+
+    // Narrate
+    const cycNum = state.completedCycles.length + 1;
+    const cClass = CLASS_NAMES[state.completedCycles.length] || 'c52';
+    setNarration(
+      `循环 #${cycNum} · 步骤 ${state.totalSteps}`,
+      `从 ${NAMES[startNode]} 出发`,
+      `在未访问清单中取出 <strong>${NAMES[startNode]}</strong>（自然序#${startNode}）作为新循环的起点。<br>现在问：σ(${startNode}) = ？即 <strong>${NAMES[startNode]}在文王序中对应哪个位置？</strong>`
+    );
+    updateChain();
+    draw();
+    stepping = false;
+    return;
+  }
+
+  const next = PERM[state.currentPos];
+  state.totalSteps++;
+
+  if (next === state.startPos) {
+    // Cycle closes!
+    await animateArrow(state.currentPos, next);
+
+    const cycNum = state.completedCycles.length;
+    const color = cycleColor(cycNum);
+    const nodes = [...state.currentCycleNodes];
+
+    state.completedCycles.push({ nodes, color });
+
+    const len = nodes.length;
+    setNarration(
+      `循环 #${cycNum + 1} 闭合！`,
+      `${NAMES[state.currentPos]} → ${NAMES[next]} = 回到起点！`,
+      `走了 <strong>${len} 步</strong>回到 <strong>${NAMES[next]}</strong>。这就是一个长度为 <strong class="${CLASS_NAMES[cycNum] || ''}">${len}</strong> 的循环。<br>已访问 ${state.visited.size}/64 卦${state.visited.size < 64 ? '，还有 ' + (64 - state.visited.size) + ' 卦未访问。' : '。'}`
+    );
+
+    // Add return marker to chain
+    addChainReturn(next);
+
+    state.currentCycleNodes = [];
+    state.currentPos = -1;
+    state.startPos = -1;
+
+    draw();
+
+    if (state.visited.size >= 64) {
+      setTimeout(finishAll, 600);
+    }
+
+    stepping = false;
+    return;
+  }
+
+  // Normal step
+  await animateArrow(state.currentPos, next);
+
+  state.visited.add(next);
+  state.currentCycleNodes.push(next);
+  state.currentPos = next;
+
+  const cycNum = state.completedCycles.length + 1;
+  const nextNext = PERM[next];
+  const isReturn = nextNext === state.startPos;
+  setNarration(
+    `循环 #${cycNum} · 步骤 ${state.totalSteps}`,
+    `${NAMES[state.currentCycleNodes[state.currentCycleNodes.length - 2]]} → ${NAMES[next]}`,
+    `σ(${state.currentCycleNodes[state.currentCycleNodes.length - 2]}) = ${next}，到了 <strong>${NAMES[next]}</strong>（自然序#${next}，文王#${FUXI_TO_WEN[next]}）。` +
+    `<br>链上已有 ${state.currentCycleNodes.length} 卦。` +
+    (isReturn ? `<br>⚡ 下一步 σ(${next}) = ${nextNext}，就是起点 <strong>${NAMES[state.startPos]}</strong>——即将闭合！` : `下一步：σ(${next}) = ${nextNext} → <strong>${NAMES[nextNext]}</strong>`)
+  );
+
+  updateChain();
+  draw();
+  stepping = false;
+}
+
+function finishAll() {
+  state.phase = 'done';
+  document.getElementById('btnStep').disabled = true;
+  document.getElementById('btnAuto').disabled = true;
+  if (state.autoTimer) { clearInterval(state.autoTimer); state.autoTimer = null; }
+  document.getElementById('btnAuto').textContent = '⟫ 自动';
+
+  const lens = state.completedCycles.map(c => c.nodes.length).sort((a, b) => b - a);
+  setNarration(
+    `✓ 全部完成`,
+    `循环型：[${lens.join(', ')}]`,
+    `64卦全部追踪完毕。分解为 <strong>${state.completedCycles.length} 个循环</strong>，<strong>0 个固定点</strong>。<br><br>` +
+    `<strong class="c52">52卦</strong>锁在一条主链上（81.25%），<strong class="c10">10卦</strong>构成次循环，<strong class="c2">2卦</strong>互换。<br>` +
+    `两种排序之间存在<strong>彻底的结构性距离</strong>——没有任何一卦留在原来的位置。`
+  );
+
+  document.getElementById('resultArea').classList.add('show');
+  draw();
+}
+
+// ══════════════════════════════════════════
+// UI HELPERS
+// ══════════════════════════════════════════
+function setNarration(step, main, detail) {
+  document.getElementById('narrStep').textContent = step;
+  document.getElementById('narrMain').textContent = main;
+  document.getElementById('narrDetail').innerHTML = detail;
+}
+
+function updateChain() {
+  const box = document.getElementById('chainBox');
+  box.innerHTML = '';
+
+  // Show completed cycles
+  state.completedCycles.forEach((cyc, ci) => {
+    const cls = CLASS_NAMES[ci] || 'c52';
+    cyc.nodes.forEach((n, i) => {
+      if (i > 0) { const a = document.createElement('span'); a.className = 'ch-arrow'; a.textContent = '→'; box.appendChild(a); }
+      const nd = document.createElement('span');
+      nd.className = `ch-node ${cls}`;
+      nd.textContent = NAMES[n];
+      box.appendChild(nd);
+    });
+    const ret = document.createElement('span');
+    ret.className = 'ch-return';
+    ret.textContent = ` ↩${NAMES[cyc.nodes[0]]}`;
+    box.appendChild(ret);
+
+    if (ci < state.completedCycles.length - 1 || state.currentCycleNodes.length > 0) {
+      const sep = document.createElement('div');
+      sep.style.cssText = 'width:100%;height:1px;background:var(--border);margin:4px 0';
+      box.appendChild(sep);
+    }
+  });
+
+  // Show current partial chain
+  const cls = CLASS_NAMES[state.completedCycles.length] || 'c52';
+  state.currentCycleNodes.forEach((n, i) => {
+    if (i > 0) { const a = document.createElement('span'); a.className = 'ch-arrow'; a.textContent = '→'; box.appendChild(a); }
+    const nd = document.createElement('span');
+    nd.className = `ch-node ${cls}`;
+    if (i === state.currentCycleNodes.length - 1) nd.classList.add('active');
+    nd.textContent = NAMES[n];
+    box.appendChild(nd);
+  });
+
+  box.scrollTop = box.scrollHeight;
+}
+
+function addChainReturn(fuxi) {
+  const box = document.getElementById('chainBox');
+  const ret = document.createElement('span');
+  ret.className = 'ch-return';
+  ret.textContent = ` ↩${NAMES[fuxi]}`;
+  box.appendChild(ret);
+}
+
+// ══════════════════════════════════════════
+// CONTROLS
+// ══════════════════════════════════════════
+function start() {
+  if (state.phase !== 'idle') reset();
+  state.phase = 'tracing';
+  document.getElementById('btnStart').disabled = true;
+  document.getElementById('btnStep').disabled = false;
+  document.getElementById('btnAuto').disabled = false;
+
+  setNarration(
+    '算法开始',
+    '准备未访问清单：0 到 63',
+    '清单里有64个数字，代表64卦的二进制自然序位置。<br>我们从 <strong>乾（自然序#63）</strong> 开始——点击「下一步」跟着走。'
+  );
+  draw();
+}
+
+async function step() {
+  if (state.phase !== 'tracing') return;
+  await doStep();
+}
+
+function toggleAuto() {
+  if (state.autoTimer) {
+    clearInterval(state.autoTimer);
+    state.autoTimer = null;
+    document.getElementById('btnAuto').textContent = '⟫ 自动';
+    return;
+  }
+  document.getElementById('btnAuto').textContent = '⏸ 暂停';
+  runAutoStep();
+}
+
+async function runAutoStep() {
+  if (!state.autoTimer && state.phase === 'tracing') {
+    state.autoTimer = true; // flag
+    const doNext = async () => {
+      if (state.phase !== 'tracing' || state.autoTimer !== true) return;
+      await doStep();
+      if (state.phase === 'tracing' && state.autoTimer === true) {
+        const delay = 1600 - parseInt(document.getElementById('speed').value);
+        setTimeout(doNext, Math.max(50, delay));
+      }
+    };
+    doNext();
+  }
+}
+
+function reset() {
+  if (state.autoTimer) { state.autoTimer = null; }
+  state = {
+    phase: 'idle',
+    visited: new Set(),
+    currentCycleNodes: [],
+    currentPos: -1,
+    startPos: -1,
+    completedCycles: [],
+    autoTimer: null,
+    totalSteps: 0,
+    animProgress: 0,
+    animFrom: -1,
+    animTo: -1,
+    animating: false,
+  };
+  document.getElementById('btnStart').disabled = false;
+  document.getElementById('btnStep').disabled = true;
+  document.getElementById('btnAuto').disabled = true;
+  document.getElementById('btnAuto').textContent = '⟫ 自动';
+  document.getElementById('chainBox').innerHTML = '';
+  document.getElementById('resultArea').classList.remove('show');
+  setNarration('', '准备好了吗？', '64个卦排成一个圆。每个卦都有一个箭头指向它在文王序中被移到的位置。<br>我们要做的就是：<strong>从一个卦出发，沿箭头走，直到走回起点。</strong>');
+  draw();
+}
+
+// ══════════════════════════════════════════
+// MAPPING TABLE
+// ══════════════════════════════════════════
+function toggleTable() {
+  document.getElementById('mappingTable').classList.toggle('open');
+}
+
+(function buildTable() {
+  let html = '<table><tr><th>自然序#</th><th>卦名</th><th>二进制</th><th></th><th>文王#</th><th>σ到</th></tr>';
+  for (let i = 0; i < 64; i++) {
+    const bin = i.toString(2).padStart(6, '0');
+    html += `<tr><td>${i}</td><td style="color:var(--cream)">${NAMES[i]}</td><td style="color:var(--text2)">${bin}</td><td class="arr">→</td><td style="color:var(--gold)">${FUXI_TO_WEN[i]}</td><td style="color:var(--text2)">${NAMES[PERM[i]]}</td></tr>`;
+  }
+  html += '</table>';
+  document.getElementById('mappingTable').innerHTML = html;
+})();
+
+// ══════════════════════════════════════════
+// HOVER
+// ══════════════════════════════════════════
+canvas.addEventListener('mousemove', function(e) {
+  const rect = canvas.getBoundingClientRect();
+  const mx = e.clientX - rect.left, my = e.clientY - rect.top;
+  let found = false;
+  for (const pos of nodePositions) {
+    if (Math.hypot(mx - pos.x, my - pos.y) < NODE_R + 4) {
+      canvas.style.cursor = 'pointer';
+      canvas.title = `${NAMES[pos.fuxi]}  自然序#${pos.fuxi}  文王#${FUXI_TO_WEN[pos.fuxi]}  → ${NAMES[PERM[pos.fuxi]]}`;
+      found = true;
+      break;
+    }
+  }
+  if (!found) { canvas.style.cursor = 'default'; canvas.title = ''; }
+});
+
+// ══════════════════════════════════════════
+// INIT
+// ══════════════════════════════════════════
+resize();
+</script>
+</body>
+</html>
