@@ -17,7 +17,7 @@ The 64 hexagrams of the I Ching admit two classical orderings: the binary natura
 
 ## Live Demo
 
-**[https://[username].github.io/iching-math/](https://[username].github.io/iching-math/)**
+**[https://gzw1987-bit.github.io/iching-math/](https://gzw1987-bit.github.io/iching-math/)**
 
 - [Verify it yourself](verify-permutation.html) — interactive cycle decomposition tool
 - [Watch the algorithm](algorithm-animation.html) — step-by-step animation
