@@ -132,10 +132,10 @@
 <!-- S0: HERO -->
 <section class="hero-section" data-nav="Origin">
   <div>
-    <div class="hero-badge">Original Mathematical Discovery &middot; 2026</div>
+    <div class="hero-badge">Mathematical Observation &middot; 2026</div>
     <div class="hero-num">52 &middot; 10 &middot; 2</div>
     <h1 style="font-size:clamp(16px,2.5vw,24px);letter-spacing:6px;font-weight:200">Cycle Decomposition of the King Wen Permutation</h1>
-    <p class="hero-sub" style="margin-top:16px">A hidden structure in a 3,000-year-old sequence</p>
+    <p class="hero-sub" style="margin-top:16px">A mathematical observation on a 3,000-year-old sequence</p>
     <p class="dim" style="margin-top:40px">Zhengwen Ge &middot; March 2026</p>
   </div>
   <div class="scroll-hint">&darr; SCROLL</div>
@@ -148,9 +148,9 @@
     <h2>The Problem</h2>
     <p>The 64 hexagrams admit two canonical orderings. The <span class="highlight">binary natural order</span> (commonly called the "Fu Xi sequence," reconstructed by Shao Yong in the 11th century) is the 6-bit counting sequence (000000 &rarr; 111111) &mdash; mathematically fully ordered. The <span class="highlight">King Wen sequence</span> is the textual ordering of the received <em>Zhouyi</em> (~1000 BCE) &mdash; its organizational logic has been debated for millennia. Han Kangbo called it "not the essence of the <em>Yi</em>"; Zhu Xi deemed it "unknowable."</p>
     <div class="divider"></div>
-    <p class="dim" style="margin-bottom:20px"><strong>Historical clarification (Remark 1):</strong> The binary natural order was formalized approximately 2,100 years <em>after</em> King Wen. We do not claim or assume that King Wen "rearranged" the binary natural order. Our analysis treats the two orderings as independently defined mathematical objects and studies the <em>structural distance</em> between them &mdash; analogous to comparing two genome sequences without presupposing which is ancestral.</p>
-    <p>We reframe the question:</p>
-    <p style="font-size:18px;color:var(--white);margin:20px 0">Transform the question "what is the structural distance between two orderings"<br>into the mathematical problem "what is the cycle structure of a specific permutation in S&#x2086;&#x2084;?"</p>
+    <p class="dim" style="margin-bottom:20px"><strong>Historical clarification (Remark 1):</strong> The binary natural order was formalized approximately 2,100 years <em>after</em> King Wen. We do not claim or assume that King Wen "rearranged" the binary natural order. Our analysis treats the two orderings as independently defined mathematical objects and characterizes the permutation between them &mdash; analogous to comparing two genome sequences without presupposing which is ancestral.</p>
+    <p>We ask:</p>
+    <p style="font-size:18px;color:var(--white);margin:20px 0">What is the cycle structure of the permutation mapping one ordering to the other in S&#x2086;&#x2084;?</p>
     <p class="dim">S&#x2086;&#x2084; = the symmetric group on 64 elements, containing 64! (&asymp; 1.27 &times; 10&#x2078;&#x2079;) possible permutations. The King Wen sequence is one of them.</p>
   </div>
 </section>
@@ -191,9 +191,9 @@
         <div class="stat-label">Order of &sigma;</div>
       </div>
     </div>
-    <p style="margin-top:20px"><span class="highlight">Zero fixed points</span> &mdash; not a single hexagram occupies the same position in both orderings. The structural difference is total.</p>
-    <p><span class="highlight">3 cycles</span> &mdash; a random permutation of 64 elements has an expected ~4.74 cycles. The King Wen count is low, indicating high coupling.</p>
-    <p><span class="highlight">Primary cycle of 52</span> &mdash; 81.25% of hexagrams are locked in one chain. This is not fine-tuning; it is systematic restructuring.</p>
+    <p style="margin-top:20px"><span class="highlight">Zero fixed points</span> &mdash; no hexagram occupies the same position in both orderings. (Note: zero fixed points alone is not statistically remarkable; P &asymp; 0.37 for random permutations.)</p>
+    <p><span class="highlight">3 cycles</span> &mdash; a random permutation of 64 elements has an expected ~4.74 cycles. Fewer cycles means larger orbits.</p>
+    <p><span class="highlight">Primary cycle of 52</span> &mdash; 81.25% of hexagrams are in one orbit, meaning the reordering is highly coupled rather than a collection of small local swaps.</p>
   </div>
 </section>
 
@@ -242,7 +242,7 @@
     <p>A simulation of 2 &times; 10&#x2076; random permutations yields: P(cycle type exactly (52,10,2)) &asymp; <span class="num">0.094%</span> (~1 in 1,064).</p>
 
     <div class="divider"></div>
-    <p style="color:var(--white)">Combined assessment: the King Wen sequence relative to the binary natural order is <span class="highlight">not a random rearrangement</span>. The structural distance exhibits characteristics of systematic restructuring &mdash; high coupling, no preservation, and a preference for contrast narrative.</p>
+    <p style="color:var(--white)">Combined assessment: the cycle type (52, 10, 2) is uncommon (~0.1%) but not extraordinarily rare. We do not claim statistical significance. The observation of interest is that 81% of elements form a single orbit, indicating high coupling in the reordering.</p>
     <div class="divider"></div>
     <p class="dim">We emphasize that any specific cycle type of a random permutation is individually rare, and we do not claim that 0.094% constitutes evidence of intentional design. The value of this decomposition is structural and descriptive: it reveals that 81.25% of hexagrams form a single connected orbit, meaning that iterating &sigma; cycles through nearly the entire set before returning. This is analogous to reporting that a molecule forms one large ring rather than several small chains &mdash; a structural fact, not a statistical claim.</p>
   </div>
