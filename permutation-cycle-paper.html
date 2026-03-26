@@ -132,7 +132,7 @@
 <!-- S0: HERO -->
 <section class="hero-section" data-nav="起点">
   <div>
-    <div class="hero-badge">原创数学发现 · 2026</div>
+    <div class="hero-badge">数学观察 · 2026</div>
     <div class="hero-num">52 · 10 · 2</div>
     <h1 style="font-size:clamp(16px,2.5vw,24px);letter-spacing:6px;font-weight:200">二进制自然序 → 文王序的置换循环分解</h1>
     <p class="hero-sub" style="margin-top:16px">一个被忽略了三千年的数学结构</p>
@@ -159,8 +159,8 @@
     <h2>完整映射</h2>
     <p>二进制自然序位置（0-63）→ 文王序编号（1-64）。点击任意格子查看详情。</p>
     <div class="toggle-group">
-      <button class="toggle-btn active" onclick="colorMap('none')">无着色</button>
-      <button class="toggle-btn" onclick="colorMap('cycle')">按循环着色</button>
+      <button class="toggle-btn active" onclick="colorMap('none',event)">无着色</button>
+      <button class="toggle-btn" onclick="colorMap('cycle',event)">按循环着色</button>
     </div>
     <div class="map-grid" id="mapGrid"></div>
     <p class="dim">上→下、左→右为二进制自然序0→63。左上角000000=坤(文王#2)，右下角111111=乾(文王#1)。</p>
@@ -400,9 +400,9 @@ for (let i = 0; i < 64; i++) {
   mapGrid.appendChild(div);
 }
 
-function colorMap(mode) {
+function colorMap(mode, e) {
   document.querySelectorAll('.toggle-btn').forEach(b => b.classList.remove('active'));
-  event.target.classList.add('active');
+  e.target.classList.add('active');
   document.querySelectorAll('.map-cell').forEach(cell => {
     cell.classList.remove('cycle1','cycle2','cycle3');
     if (mode === 'cycle') {

@@ -161,8 +161,8 @@
     <h2>Complete Mapping</h2>
     <p>Binary natural position (0&ndash;63) &rarr; King Wen number (1&ndash;64). Click any cell for details.</p>
     <div class="toggle-group">
-      <button class="toggle-btn active" onclick="colorMap('none')">No color</button>
-      <button class="toggle-btn" onclick="colorMap('cycle')">Color by cycle</button>
+      <button class="toggle-btn active" onclick="colorMap('none',event)">No color</button>
+      <button class="toggle-btn" onclick="colorMap('cycle',event)">Color by cycle</button>
     </div>
     <div class="map-grid" id="mapGrid"></div>
     <p class="dim">Top-left to bottom-right = binary natural order 0&rarr;63. Top-left 000000 = K&#x16B;n (Wen #2), bottom-right 111111 = Qi&aacute;n (Wen #1).</p>
@@ -320,7 +320,7 @@
       <tbody>
         <tr><td style="color:var(--gold2)">Leibniz (1703)</td><td>Binary interpretation of Fu Xi order</td><td>Foundational premise</td></tr>
         <tr><td style="color:var(--gold2)">Shao Yong (11th c.)</td><td>Reconstruction of binary natural order</td><td>Foundational premise</td></tr>
-        <tr><td style="color:var(--gold2)">Moore, S.J.</td><td>Even:odd Hamming ratio &asymp; 3:1</td><td>Independently confirmed &amp; explained</td></tr>
+        <tr><td style="color:var(--gold2)">Moore, S.</td><td>Even:odd Hamming ratio &asymp; 3:1</td><td>Independently confirmed &amp; explained</td></tr>
         <tr><td style="color:var(--gold2)">Cook (2006)</td><td>Paired-structure analysis</td><td>Different approach (no S&#x2099;)</td></tr>
         <tr><td style="color:var(--gold2)">Petoukhov (2008)</td><td>Algebraic structures in hexagrams</td><td>Complementary perspective</td></tr>
         <tr><td style="color:var(--gold2)">Various</td><td><em>Z&#x14D;ng gu&agrave;</em> / <em>cu&ograve; gu&agrave;</em> pair analysis</td><td>Reexamined via permutation group</td></tr>
@@ -416,9 +416,9 @@ for (let i = 0; i < 64; i++) {
   mapGrid.appendChild(div);
 }
 
-function colorMap(mode) {
+function colorMap(mode, e) {
   document.querySelectorAll('.toggle-btn').forEach(b => b.classList.remove('active'));
-  event.target.classList.add('active');
+  e.target.classList.add('active');
   document.querySelectorAll('.map-cell').forEach(cell => {
     cell.classList.remove('cycle1','cycle2','cycle3');
     if (mode === 'cycle') {

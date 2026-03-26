@@ -160,7 +160,7 @@ print()
 print("   标准化对比 (距离/元素数):")
 print("   %-24s %-8s %-10s %-12s %s" % ("系统", "距离", "元素数", "距离/元素", "彻底度"))
 print("   " + "-" * 70)
-print("   %-24s %-8d %-10d %-12.4f %.1f%%" % ("文王序(伏羲->文王)", cycle_distance, 64, cycle_distance/64, cycle_distance/63*100))
+print("   %-24s %-8d %-10d %-12.4f %.1f%%" % ("二进制自然序→文王序", cycle_distance, 64, cycle_distance/64, cycle_distance/63*100))
 for name, dist, genes, time in bio_data:
     norm = dist/genes
     pct = dist/(genes-1)*100
