@@ -14,3 +14,7 @@ paper/launch-posts.md
 strategy-debate.html
 paper/king-wen-permutation.zip
 视频号*.md
+# 私密内容，禁止入库
+npd-*
+视频号*
+deep-diagnostic*
