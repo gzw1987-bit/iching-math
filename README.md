@@ -4,7 +4,7 @@
 
 ## The Discovery
 
-The 64 hexagrams of the I Ching admit two classical orderings: the binary natural order (Shao Yong / Fu Xi sequence) and the received King Wen sequence. Treating the King Wen sequence as a permutation in S₆₄, its cycle decomposition yields the type **(52, 10, 2)** — a single dominant cycle containing 52 of 64 hexagrams (81.25%), a secondary 10-cycle, and one transposition. There are zero fixed points. This cycle structure has not been previously reported in the mathematical or sinological literature.
+The 64 hexagrams of the I Ching admit two classical orderings: the binary natural order (Shao Yong / Fu Xi sequence) and the received King Wen sequence. Treating the King Wen sequence as a permutation in S₆₄, its cycle decomposition yields the type **(52, 10, 2)** — a single dominant cycle containing 52 of 64 hexagrams (81.25%), a secondary 10-cycle, and one transposition. There are zero fixed points. We have not found this cycle type in the publicly searchable literature surveyed.
 
 ## Key Results
 
@@ -13,7 +13,15 @@ The 64 hexagrams of the I Ching admit two classical orderings: the binary natura
 - **Largest cycle:** 52 (81.25% of all hexagrams)
 - **Order:** lcm(52, 10, 2) = 260
 - **Mean Hamming distance:** 3.349 (random baseline: 3.0)
-- **Even:odd permutation ratio:** 3.2:1
+- **Even:odd adjacent Hamming steps:** 48:15 (3.2:1)
+
+## Methodological Boundaries
+
+- The binary natural order (Shao Yong / Fu Xi sequence) is later than the received King Wen sequence. This project does not claim that King Wen rearranged a pre-existing binary natural order.
+- The cycle decomposition of the map between the two orderings is a mathematical fact once the two orderings and bit encoding are fixed.
+- Semantic readings of the cycles are conjectural. They may be useful as interpretive hypotheses, but they are not implied by the cycle decomposition itself.
+- The rarity of the exact cycle type in random permutations is not evidence of intentional design. It is a descriptive structural observation, not a design-intent proof.
+- Cross-disciplinary pages are analogies or exploratory visualizations unless they explicitly define and justify a structure-preserving map.
 
 ## Live Demo
 
@@ -38,7 +46,8 @@ The 64 hexagrams of the I Ching admit two classical orderings: the binary natura
 node -e "const W=[2,23,8,20,16,35,45,12,15,52,39,53,62,56,31,33,7,4,29,59,40,64,47,6,46,18,48,57,32,50,28,44,24,27,3,42,51,21,17,25,36,22,63,37,55,30,49,13,19,41,60,61,54,38,58,10,11,26,5,9,34,14,43,1];const p=W.map(w=>w-1),v=new Set,c=[];for(let i=0;i<64;i++){if(v.has(i))continue;const y=[];let j=i;while(!v.has(j)){v.add(j);y.push(j);j=p[j]}c.push(y)}console.log(c.map(x=>x.length).sort((a,b)=>b-a))"
 # Output: [ 52, 10, 2 ]
 
-# Run Monte Carlo simulation (Python 3)
+# Run core verification and Monte Carlo simulation (Python 3)
+python3 verify_core.py
 python3 monte_carlo.py
 ```
 

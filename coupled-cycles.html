@@ -148,7 +148,7 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Serif SC',serif;li
 
 <div class="hero">
   <h1>耦合双循环：个人状态 × 文明走向</h1>
-  <div class="sub">置换循环分解[52,10,2]不只是一个数学事实。<br>52卦是文明史的叙事轨道，10卦是驱动文明的个人状态引擎。<br>两者构成一个耦合动力系统——文明不会自动发生，是人在推动。</div>
+  <div class="sub">置换循环分解[52,10,2]是数学事实；下面是对10循环与52循环的一种叙事化读法。<br>52卦可被解释为文明史的叙事轨道，10卦可被解释为个人状态环。<br>这种耦合模型是解释性假说，不由循环分解本身推出。</div>
 </div>
 
 <!-- Core thesis -->
@@ -169,7 +169,7 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Serif SC',serif;li
 <!-- 10-cycle ring -->
 <div class="cycle-section reveal">
   <h2 style="color:var(--green)">10卦·个人成长循环</h2>
-  <div class="vis-section desc">这10个卦在置换分析中独立于52卦主循环，形成一个封闭的个人状态环。每一步都是上一步的自然延伸。</div>
+  <div class="vis-section desc">这10个卦在置换分析中独立于52卦主循环，形成一个封闭环。把它读成个人状态环是一种语义解释，每一步的含义需要与文本传统分开评估。</div>
   <div class="cycle-ring"><canvas class="cycle-ring-canvas" id="ring10"></canvas></div>
   <div class="hex-cards" id="hex-cards-10"></div>
 </div>
@@ -209,8 +209,8 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Serif SC',serif;li
 <!-- Final insight -->
 <div class="final-insight reveal">
   <h2>为什么这10个卦独立于52卦？</h2>
-  <p>在置换循环分析中，这10个卦与52卦主循环<span class="highlight">数学上完全独立</span>——它们形成自己的封闭环，不与主循环交叉。</p>
-  <p>这可能不是巧合。如果文王确实是有意把"个人修养"和"文明叙事"分开编排，那这个数学独立性就是<span class="highlight">他设计意图的证据</span>：</p>
+  <p>在置换循环分析中，这10个卦与52卦主循环<span class="highlight">数学上互不交叉</span>——它们形成自己的封闭环。</p>
+  <p>一种可能的解释是把它读作"个人修养"与"文明叙事"的分层模型。但这只是解释性读法，不能从数学分解直接推出作者意图：</p>
   <div class="code">// 文王的系统架构
 class YiJing {
   personalCycle = [艮,履,旅,大有,小过,同人,井,颐,大壮,中孚]; // 独立模块
@@ -225,8 +225,8 @@ class YiJing {
     return { person: newPersonState, civilization: newCivState };
   }
 }</div>
-  <p><span class="highlight">52卦是操作系统，10卦是驱动程序，2卦是接口。</span>操作系统定义了文明可以走的所有路径，驱动程序决定了实际走哪条路，接口（既济↔夬）是两者之间的转换层。</p>
-  <p>文明不会自动运行——它需要人来驱动。而人的状态不是固定的——它被文明的环境反馈所塑造。这个耦合循环，就是历史的引擎。</p>
+  <p><span class="highlight">如果采用这个隐喻，52卦像操作系统，10卦像驱动程序，2卦像接口。</span>它可以帮助组织阅读，但不是数学结论。</p>
+  <p>文明、个人与环境之间的反馈关系适合被画成耦合循环；本页把这种模型作为探索性解释，而不是历史因果结论。</p>
 </div>
 
 </div>

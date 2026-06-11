@@ -1143,8 +1143,8 @@ body {
 
 <!-- Stage 9.8: 同构对照 -->
 <section id="stage-iso" class="stage">
-  <div class="stage-title">同构对照：古今共享的数学骨架</div>
-  <div class="stage-sub">左侧是我们从易经中推导出的数学结构，右侧是现代科学中独立发现的同构系统。<br>它们不是类比，是同一套数学的不同实例。</div>
+  <div class="stage-title">形式类比：古今共享的数学语言</div>
+  <div class="stage-sub">左侧是从卦象编码中得到的数学结构，右侧是现代科学中的相关结构。<br>除非明确定义保持结构的映射，这些对照应读作形式类比，而不是严格同构结论。</div>
   <div class="iso-wrap" id="iso-wrap"></div>
 </section>
 
@@ -2544,7 +2544,7 @@ function buildIsoComparison() {
       </div>`,
       leftFormula: '64顶点 = 2⁶, 192条边 = 64×6/2',
       rightTitle: 'DNA密码子超立方体',
-      rightDesc: '64个密码子也被映射到六维超立方体上（学术论文已证明）。碱基之间的汉明距离与氨基酸的理化性质高度相关。',
+      rightDesc: '64个密码子也可被映射到六维超立方体上。碱基之间的汉明距离与氨基酸的理化性质相关。',
       rightVisual: `<div class="iso-cube-sketch">
         <div class="iso-cube-item"><div class="iso-cube-dot" style="border:2px solid #7ecba1">A</div>腺嘌呤<br>二进制00</div>
         <div class="iso-cube-item"><div class="iso-cube-dot" style="border:2px solid #7ecba1">C</div>胞嘧啶<br>二进制01</div>
@@ -2552,7 +2552,7 @@ function buildIsoComparison() {
         <div class="iso-cube-item"><div class="iso-cube-dot" style="border:2px solid #7ecba1">T</div>胸腺嘧啶<br>二进制11</div>
       </div>`,
       rightFormula: '4碱基³ = 64密码子 = 2⁶ 同一空间',
-      footer: '<strong>同构本质：</strong>两者都是6个二元选择的全排列，生成2⁶=64个状态，拓扑结构完全相同——六维超立方体。汉明距离在两个系统中都有物理意义。',
+      footer: '<strong>形式类比：</strong>两者都可编码为6个二元选择，生成2⁶=64个状态，并可放入六维超立方体中讨论。汉明距离在两个系统中都可作为结构距离，但具体物理含义不同。',
     },
     {
       leftTitle: '64卦 · 8×8矩阵',
@@ -2563,7 +2563,7 @@ function buildIsoComparison() {
       rightDesc: '4种碱基组成三联体，4×4×4=64种密码子，编码20种氨基酸。终止密码子=停止信号，起始密码子(AUG)=启动信号。',
       rightVisual: codonGrid,
       rightFormula: '',
-      footer: '<strong>惊人对应：</strong>终止密码子(UAA/UAG/UGA)对应的二进制位置，与既济卦（第63卦，"已完成"）的结构位同区。起始密码子(AUG)对应未济卦区（"尚未完成"）——完成=停止，未完成=启动。生命的逻辑和文王的逻辑在此交汇。',
+      footer: '<strong>解释性观察：</strong>终止密码子与起始密码子的二进制位置可与既济/未济附近区域作对照。这种对应有启发性，但不构成生命逻辑与文王序共享来源的证据。',
     },
     {
       leftTitle: '汉明距离分析',
@@ -2571,10 +2571,10 @@ function buildIsoComparison() {
       leftVisual: '<div class="iso-formula">hamming(卦A, 卦B) = 不同爻的数量<br>例: 乾(111111) vs 坤(000000) = 距离6（最大对立）</div>',
       leftFormula: '',
       rightTitle: '纠错编码 · 通信理论',
-      rightDesc: 'Petoukhov（ScienceDirect）证明：遗传密码本质上是一种代数纠错码，与现代通信中的噪声免疫编码共享代数结构。',
+      rightDesc: 'Petoukhov 等研究把遗传密码解释为一种代数纠错码，并与现代通信中的噪声免疫编码进行比较。',
       rightVisual: '<div class="iso-formula">遗传密码 = 代数纠错码<br>密码子汉明距离 ↔ 氨基酸理化差异<br>距离越大 → 蛋白质功能差异越大</div>',
       rightFormula: '',
-      footer: '<strong>同构本质：</strong>汉明距离是二进制空间中的"几何距离"。文王用它编排叙事张力，自然用它编码蛋白质功能差异，通信工程用它检测和纠正错误——三者用的是同一把尺。',
+      footer: '<strong>形式类比：</strong>汉明距离是二进制空间中的结构距离。它可用于描述文王序相邻卦差异，也可用于遗传密码和通信编码分析；各领域的因果机制不能直接互相推出。',
     },
     {
       leftTitle: '二元群代数（XOR）',
@@ -2582,21 +2582,21 @@ function buildIsoComparison() {
       leftVisual: '<div class="iso-formula">乾 XOR 坤 = 乾 (111111⊕000000=111111)<br>泰 XOR 否 = 乾 (111000⊕000111=111111)<br>任意卦 XOR 自身 = 坤（零元）</div>',
       leftFormula: '',
       rightTitle: '八元数 · E8李代数',
-      rightDesc: '伏羲八卦与八元数（Octonions）基元存在保持乘法运算的1-1同构。E8李代数（248维）以8为基数的对称结构与八卦系统平行。',
-      rightVisual: '<div class="iso-formula">伏羲八卦 ≅ 八元数基元（同构映射）<br>8维根系统 → 240个根 + 8个生成元 = 248<br>二进制根格点 ↔ 阴阳选择</div>',
+      rightDesc: '八元数与E8李代数都以8维或8重结构为核心，可与八卦的二元三位结构进行形式比较；严格同构需要另行定义运算和映射。',
+      rightVisual: '<div class="iso-formula">八卦结构 ↔ 8重代数结构（形式对照）<br>8维根系统 → 240个根 + 8个生成元 = 248<br>二进制选择 ↔ 代数基元（需定义映射）</div>',
       rightFormula: '',
-      footer: '<strong>同构本质：</strong>都是以2和8为基础构建的代数系统。伏羲用3个二元选择得到8种类型，E8用8个维度生成最复杂的对称群。底层的群论结构是同一个。',
+      footer: '<strong>形式类比：</strong>这些系统都出现2与8的结构，但这不足以说明底层群论结构相同。这里保留为代数想象的对照，而非结论。',
     },
     {
       leftTitle: '置换循环（3个循环，0固定点）',
-      leftDesc: '二进制自然序（习称"伏羲序"）→文王序的置换分解为[52,10,2]三个循环，零固定点。52卦锁在一条链上，两种卦序的结构差异是系统性的，非随机微调。',
-      leftVisual: '<div class="iso-formula">置换σ: S₆₄ → S₆₄<br>循环类型: (52)(10)(2)<br>固定点: 0 | 随机期望~4.2个循环</div>',
+      leftDesc: '二进制自然序（习称"伏羲序"）→文王序的置换分解为[52,10,2]三个循环，零固定点。52卦锁在一条链上，说明两种卦序的结构差异不是少量局部交换。',
+      leftVisual: '<div class="iso-formula">置换σ: S₆₄ → S₆₄<br>循环类型: (52)(10)(2)<br>固定点: 0 | 随机期望约4.74个循环</div>',
       leftFormula: '',
       rightTitle: '量子统计 · 粒子交换',
       rightDesc: '量子力学中，全同粒子的交换性质由置换群的表示论决定。2循环（交换两个粒子）引入相位因子——这是泡利不相容原理的数学起源。',
       rightVisual: '<div class="iso-formula">玻色子: 交换 → 波函数不变 (+1)<br>费米子: 交换 → 波函数反号 (-1)<br>2循环的特征值 = ±1 → 决定物质形态</div>',
       rightFormula: '',
-      footer: '<strong>同构本质：</strong>置换群S_n是理解任何有限系统对称性的终极工具。两种卦序之间的映射是S₆₄中的一个特定元素，它的循环结构编码了映射的全部代数信息——和粒子物理用的是同一套数学。',
+      footer: '<strong>形式类比：</strong>置换群S_n可描述有限集合上的重排。文王序映射是S₆₄中的一个具体元素；量子统计也使用置换群工具，但两者讨论的是不同对象。',
     },
   ];
 
@@ -2613,7 +2613,7 @@ function buildIsoComparison() {
         ${c.leftFormula ? `<div class="iso-formula">${c.leftFormula}</div>` : ''}
       </div>
       <div class="iso-side iso-side-right">
-        <div class="iso-side-tag">已知同构</div>
+        <div class="iso-side-tag">相关结构</div>
         <h4>${c.rightTitle}</h4>
         <div class="iso-desc">${c.rightDesc}</div>
         <div class="iso-visual">${c.rightVisual}</div>
