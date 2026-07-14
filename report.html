@@ -222,8 +222,8 @@ p { margin-bottom: 16px; font-size: 15px; }
       <div class="tl-content">比特矩阵、波形图、超立方体、环形卦序、汉明距离自相关、置换循环分解。</div>
     </div>
     <div class="tl-item">
-      <div class="tl-label">V6 · 同构与编译</div>
-      <div class="tl-content">DNA/E8/纠错码同构对照 + 现代语言编译易经（10层映射 + 10行代码概括三千年）。</div>
+      <div class="tl-label">V6 · 结构对照与编译</div>
+      <div class="tl-content">DNA/E8/纠错码形式对照 + 现代语言重述易经（10层映射 + 10行代码表达一个简化模型）。</div>
     </div>
   </div>
   <div class="metrics">
@@ -270,7 +270,7 @@ p { margin-bottom: 16px; font-size: 15px; }
   </div>
   <div class="card">
     <div class="card-title">超大循环（52卦 = 81%）</div>
-    <div class="card-body">随机置换平均产生~4.2个循环。文王只有3个，且52个卦锁在同一条链上——每个位置的安排都是被前一个「逼着」决定的。这是高度系统性的重构，不是随机打乱。</div>
+    <div class="card-body">64 元素随机置换的循环数期望约为 H₆₄≈4.74。这里观察到3个循环，其中最大循环含52个元素；这是可复现的结构描述，但仅凭该观察不能推出非随机生成或作者设计意图。</div>
   </div>
   <div class="card">
     <div class="card-title">独立10循环</div>
@@ -287,14 +287,14 @@ p { margin-bottom: 16px; font-size: 15px; }
     <div class="card-title">关键发现</div>
     <div class="card-body">
       <p>已有研究（Moore）发现了偶变:奇变=3:1的比例，但<strong>没有人把汉明距离当作时间序列做自相关分析</strong>，来量化文王的叙事策略是「渐变」还是「对比」。</p>
-      <p>我们的分析显示：文王序的平均汉明距离与随机期望值的关系，直接回答了这个问题。</p>
+      <p>我们的分析给出文王序相邻对汉明距离与随机基线的描述性比较；它不能单独回答历史生成机制或设计意图。</p>
     </div>
   </div>
 </section>
 
 <!-- Phase 7 -->
 <section id="ph7" class="reveal">
-  <div class="phase-tag discover">阶段七 · 跨学科同构</div>
+  <div class="phase-tag discover">阶段七 · 跨学科形式对照</div>
   <h2>同一套数学的不同实例</h2>
 
   <table class="cmp-table">
@@ -321,7 +321,7 @@ p { margin-bottom: 16px; font-size: 15px; }
     <tr><th>发现</th><th>全网状态</th><th>评价</th></tr>
     <tr><td>64卦=6位二进制</td><td>莱布尼茨1701年</td><td>常识</td></tr>
     <tr><td>64卦↔64密码子</td><td>多篇ScienceDirect论文</td><td>成熟领域</td></tr>
-    <tr><td>XOR二元群代数</td><td>Hu, Petoukhov &amp; Petukhova 2017</td><td>已证明</td></tr>
+    <tr><td>XOR二元群代数</td><td>Hu, Petoukhov &amp; Petukhova 2017</td><td>需按原文定义复核</td></tr>
     <tr><td>32对综卦/错卦结构</td><td>大量研究</td><td>已充分研究</td></tr>
     <tr><td style="color:var(--gold)">置换循环分解 [52,10,2]</td><td style="color:var(--gold)">零结果</td><td style="color:var(--gold)">未见先例</td></tr>
     <tr><td style="color:var(--gold)">汉明距离自相关分析</td><td style="color:var(--gold)">角度新</td><td style="color:var(--gold)">有价值的新角度</td></tr>
@@ -332,17 +332,17 @@ p { margin-bottom: 16px; font-size: 15px; }
 <!-- Phase 9 -->
 <section id="ph9" class="reveal">
   <div class="phase-tag think">阶段九 · 本质追问</div>
-  <h2>为什么会出现高度同构？</h2>
+  <h2>为什么会出现可比较的有限结构？</h2>
   <p>我们拒绝了「神秘共振」的解释，给出了严格回答：</p>
   <div class="card">
     <div class="card-title">底层原因</div>
     <div class="card-body">
-      <p><strong>二进制是信息编码的最优解。</strong>Shannon 1948年证明：任何信息都可以用二进制编码。自然界（DNA）和人类思维（易经）都在解同一道优化题：以最小的编码成本覆盖足够的状态空间。</p>
-      <p><strong>6层是复杂度的甜蜜点。</strong>4层=16种（太少），6层=64种（够用），8层=256种（太多）。两个系统独立地收敛到同一个数字。</p>
-      <p><strong>汉明距离、群结构等是自动推论。</strong>一旦有了2⁶个状态，超立方体、布尔格、二元群全部是免费送的——它们是同一个数学对象的不同侧面。</p>
+      <p><strong>二进制是通用编码方式之一。</strong>数字信息可用二进制表示；把 DNA 与六爻放在同一页面比较，是对有限状态编码的形式类比，不代表两者解决了同一个优化问题。</p>
+      <p><strong>六层产生64种状态。</strong>“够用”或“过多”取决于任务和编码目标；两个系统都出现64个符号，并不足以证明独立优化收敛。</p>
+      <p><strong>汉明距离、群结构取决于额外定义。</strong>六位二进制串自然嵌入六维超立方体，但具体群运算、语义映射和相邻关系仍须明确指定。</p>
     </div>
   </div>
-  <div class="quote">它们不是「互相同构」，而是都同构于同一个底层数学对象——有限维布尔代数。就像两条河流汇入同一片海，不是因为它们互相沟通，而是因为水往低处流。</div>
+  <div class="quote">更谨慎的结论是：当不同对象都被编码为有限二进制串时，会共享部分布尔结构；未进入编码的语义、机制和历史关系不会因此自动等价。</div>
 </section>
 
 <!-- Phase 10 -->

@@ -68,7 +68,7 @@ def t2s(text):
 def normalize(text):
     """Remove all punctuation and whitespace for pure character comparison"""
     # Remove common Chinese and Western punctuation
-    text = re.sub(r'[，。；：、！？「」『』（）\[\]【】""''…—\-,\.;:!\?\s\u3000]', '', text)
+    text = re.sub(r'''[，。；：、！？「」『』（）\[\]【】"'…—,.;!?\s\u3000-]''', '', text)
     return text
 
 def extract_yaoci_from_html(html_text, hex_num):

@@ -100,11 +100,24 @@ python3 monte_carlo.py
 
 | File | Description |
 |------|-------------|
-| [engine-architecture.html](engine-architecture.html) | Engine architecture visualization |
 | [four-minds.html](four-minds.html) | Four-minds framework |
-| [strategy-debate.html](strategy-debate.html) | Strategy debate simulation |
-| [deep-diagnostic.html](deep-diagnostic.html) | Deep diagnostic tool |
 | [shang-timeline.html](shang-timeline.html) | Shang dynasty timeline |
+
+## Publication Classes
+
+- **Verified computation:** `verify_core.py`, `verify-permutation.html`, and the cycle/Hamming results reproduced by them.
+- **Historical or methodological discussion:** the paper pages and historical notes; claims remain conditional on sources and dating assumptions.
+- **Speculative analogy:** genome, game-theory, coupled-system, coupled-cycles, four-minds, and wave-comparison pages. These are exploratory models, not evidence of causation, design intent, or strict isomorphism unless a structure-preserving map is explicitly defined.
+- **Artistic interaction:** music, Morse, voltage, and other representational experiments.
+
+Run `python3 verify_site.py` before publication to check local links and guardrail wording, then run `python3 verify_core.py` for the mathematical regression suite.
+
+## Premise Audit
+
+- Assumption: the selected six-bit encoding and the two orderings are fixed inputs; changing them changes the permutation.
+- Terminology: “Fu Xi sequence” is a conventional label for the later Shao Yong binary arrangement, not evidence that King Wen rearranged it.
+- Causality: rarity or structural regularity does not establish intentional design.
+- Counterpoint: cross-domain similarities may arise from shared small finite state spaces or chosen encodings; semantic transfer requires separate evidence.
 
 ## License
 
