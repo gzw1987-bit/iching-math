@@ -49,6 +49,10 @@ node -e "const W=[2,23,8,20,16,35,45,12,15,52,39,53,62,56,31,33,7,4,29,59,40,64,
 # Run core verification and Monte Carlo simulation (Python 3)
 python3 verify_core.py
 python3 monte_carlo.py
+
+# Verify the pair structure (非覆即变), nuclear-hexagram convergence,
+# and pairing/cycle interaction (Python 3, no dependencies)
+python3 pair_structure.py
 ```
 
 ## Historical Note
@@ -65,6 +69,7 @@ python3 monte_carlo.py
 | [algorithm-animation.html](algorithm-animation.html) | Step-by-step permutation algorithm animation |
 | [monte_carlo.py](monte_carlo.py) | Monte Carlo simulation for statistical baselines |
 | [verify.py](verify.py) | Python verification script |
+| [pair_structure.py](pair_structure.py) | Pair-structure verification: the classical 非覆即变 rule holds 32/32 (24 reversal + 4 complement + 4 double pairs); nuclear-hexagram iteration converges to {1, 2, 63, 64}; 24 of 32 pairs fall inside a single [52, 10, 2] cycle |
 
 ### Derivation Journey
 
@@ -105,7 +110,7 @@ python3 monte_carlo.py
 
 ## Publication Classes
 
-- **Verified computation:** `verify_core.py`, `verify-permutation.html`, and the cycle/Hamming results reproduced by them.
+- **Verified computation:** `verify_core.py`, `pair_structure.py`, `verify-permutation.html`, and the cycle/Hamming/pairing results reproduced by them. The pairing rule (非覆即变) is a classical observation; only its machine-checked quantification (4 double pairs, nuclear convergence set, pairing/cycle interaction) is contributed here.
 - **Historical or methodological discussion:** the paper pages and historical notes; claims remain conditional on sources and dating assumptions.
 - **Speculative analogy:** genome, game-theory, coupled-system, coupled-cycles, four-minds, and wave-comparison pages. These are exploratory models, not evidence of causation, design intent, or strict isomorphism unless a structure-preserving map is explicitly defined.
 - **Artistic interaction:** music, Morse, voltage, and other representational experiments.
