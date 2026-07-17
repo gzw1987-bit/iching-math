@@ -233,18 +233,18 @@
     <p class="dim">Zero fixed points alone is not significant (p &asymp; 0.37), but combined with the low cycle count, the overall structure is nontrivial.</p>
 
     <h3>Number of Cycles</h3>
-    <p>Expected number of cycles = H&#x2086;&#x2084; &asymp; <span class="num">4.74</span>, standard deviation &asymp; <span class="num">2.0</span>. Observed value: <span class="num">3</span>, approximately &minus;0.9&sigma;.</p>
+    <p>Expected number of cycles = H&#x2086;&#x2084; &asymp; <span class="num">4.74</span>, standard deviation = &radic;(H&#x2086;&#x2084; &minus; H&#x2086;&#x2084;&#x207D;&#xB2;&#x207E;) &asymp; <span class="num">1.76</span>. Observed value: <span class="num">3</span>, approximately &minus;1.0&sigma;.</p>
 
     <h3>Largest Cycle Length</h3>
-    <p>Expected longest cycle in a random permutation of 64 &asymp; 64 &times; 0.6243 &asymp; <span class="num">40</span>. Observed value: <span class="num">52</span>, in the upper tail of the distribution.</p>
+    <p>Expected longest cycle in a random permutation of 64 &asymp; 64 &times; 0.6243 &asymp; <span class="num">40</span>. Observed value: <span class="num">52</span> is above expectation, but the exact tail probability P(largest cycle &ge; 52) = H&#x2086;&#x2084; &minus; H&#x2085;&#x2081; &asymp; <span class="num">22.5%</span> &mdash; upper quartile, not an extreme event.</p>
 
-    <h3>Monte Carlo Estimate</h3>
-    <p>A simulation of 2 &times; 10&#x2076; random permutations yields: P(cycle type exactly (52,10,2)) &asymp; <span class="num">0.094%</span> (~1 in 1,064).</p>
+    <h3>Exact Probability</h3>
+    <p>For a cycle type with distinct part sizes, P = 1/&prod;c&#x1D62;. Here: P(cycle type exactly (52,10,2)) = 1/(52&middot;10&middot;2) = 1/1040 &asymp; <span class="num">0.096%</span>. (A simulation of 2 &times; 10&#x2076; random permutations agrees within sampling error: &asymp;0.094%.)</p>
 
     <div class="divider"></div>
-    <p style="color:var(--white)">Combined assessment: the cycle type (52, 10, 2) is uncommon (~0.1%) but not extraordinarily rare. We do not claim statistical significance. The observation of interest is that 81% of elements form a single orbit, indicating high coupling in the reordering.</p>
+    <p style="color:var(--white)">Combined assessment: the cycle type (52, 10, 2) is uncommon (~0.1%) but not extraordinarily rare. We do not claim statistical significance (zero fixed points p &asymp; 0.37; cycle count z &asymp; &minus;1.0; largest-cycle tail &asymp; 22.5%). The observation of interest is that 81% of elements form a single orbit, indicating high coupling in the reordering.</p>
     <div class="divider"></div>
-    <p class="dim">We emphasize that any specific cycle type of a random permutation is individually rare, and we do not claim that 0.094% constitutes evidence of intentional design. The value of this decomposition is structural and descriptive: it reveals that 81.25% of hexagrams form a single connected orbit, meaning that iterating &sigma; cycles through nearly the entire set before returning. This is analogous to reporting that a molecule forms one large ring rather than several small chains &mdash; a structural fact, not a statistical claim.</p>
+    <p class="dim">We emphasize that any specific cycle type of a random permutation is individually rare, and we do not claim that 0.096% constitutes evidence of intentional design. The value of this decomposition is structural and descriptive: it reveals that 81.25% of hexagrams form a single connected orbit, meaning that iterating &sigma; cycles through nearly the entire set before returning. This is analogous to reporting that a molecule forms one large ring rather than several small chains &mdash; a structural fact, not a statistical claim.</p>
   </div>
 </section>
 
@@ -265,8 +265,8 @@
         <div class="compare-label">Binary natural mean</div>
       </div>
       <div class="compare-col">
-        <div class="compare-val" style="color:var(--text3)">3.000</div>
-        <div class="compare-label">Random baseline</div>
+        <div class="compare-val" style="color:var(--text3)">3.048</div>
+        <div class="compare-label">Random permutation baseline</div>
       </div>
     </div>
 
@@ -277,7 +277,7 @@
     <div class="stat-grid" style="grid-template-columns:repeat(3,1fr)">
       <div class="stat-card">
         <div class="stat-val" style="font-size:24px">9 pairs</div>
-        <div class="stat-label">Total inversions d=6<br><span style="font-size:10px">Random expectation ~1.4 pairs</span></div>
+        <div class="stat-label">Total inversions d=6<br><span style="font-size:10px">Random permutation expects 1.0 pair; observed 9&times;</span></div>
       </div>
       <div class="stat-card">
         <div class="stat-val" style="font-size:24px">3.2 : 1</div>
@@ -297,7 +297,7 @@
     <h2>Key Insights</h2>
 
     <h3>1. Contrast Narrative Bias</h3>
-    <p>Mean Hamming distance <span class="num">3.349</span> > random baseline <span class="num">3.0</span>. The King Wen sequence tends to place structurally dissimilar hexagrams adjacent to each other &mdash; reinforcing cognition through contrast. The 9 total inversions (d=6) are the most extreme expression; random would produce only ~1.4 pairs.</p>
+    <p>Mean Hamming distance <span class="num">3.349</span> > random permutation baseline <span class="num">3.048</span>. The King Wen sequence tends to place structurally dissimilar hexagrams adjacent to each other &mdash; reinforcing cognition through contrast. The 9 total inversions (d=6) are the most extreme expression; a random permutation would produce only 1.0 pair in expectation.</p>
 
     <h3>2. Even&ndash;Odd Asymmetry from Z&#x14D;ng/Cu&ograve; Gu&agrave; Structure</h3>
     <p>The 32 pairs of inverted hexagrams (<em>z&#x14D;ng gu&agrave;</em>, flipped top-to-bottom) in the King Wen sequence naturally produce even Hamming distances. This is not coincidence &mdash; the inverted-pair structure is a known organizational principle of the King Wen sequence, and the even-change ratio is its mathematical consequence.</p>

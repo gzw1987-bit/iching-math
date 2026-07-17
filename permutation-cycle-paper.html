@@ -231,15 +231,15 @@
     <p class="dim">零固定点本身不显著（p≈0.37），但结合循环数偏少，整体结构非平凡。</p>
 
     <h3>循环数检验</h3>
-    <p>期望循环数 = H₆₄ ≈ <span class="num">4.74</span>，标准差 ≈ <span class="num">2.0</span>。实际值 <span class="num">3</span>，偏低约0.9σ。</p>
+    <p>期望循环数 = H₆₄ ≈ <span class="num">4.74</span>，标准差 = √(H₆₄−H₆₄⁽²⁾) ≈ <span class="num">1.76</span>。实际值 <span class="num">3</span>，偏低约1.0σ。</p>
 
     <h3>最大循环长度</h3>
-    <p>随机置换最大循环期望 ≈ 64 × 0.6243 ≈ <span class="num">40</span>。实际值 <span class="num">52</span>，位于分布高尾。</p>
+    <p>随机置换最大循环期望 ≈ 64 × 0.6243 ≈ <span class="num">40</span>。实际值 <span class="num">52</span> 偏高，但精确尾概率 P(最大循环≥52) = H₆₄−H₅₁ ≈ <span class="num">22.5%</span>——处于前四分之一，并非极端事件。</p>
 
     <div class="divider"></div>
-    <p style="color:var(--white)">综合判断：文王序相对二进制自然序<span class="highlight">不是随机重排</span>。两种卦序的结构距离表现出系统性重构的特征——高耦合、无保留、偏好对比叙事。</p>
+    <p style="color:var(--white)">综合判断：单项指标均<span class="highlight">未达到统计显著</span>（零固定点 p≈0.37、循环数 z≈-1.0、最大循环尾概率≈22.5%）。本文的贡献是结构性描述——高耦合、无保留、偏好对比叙事——而非"非随机"的统计判定。</p>
     <div class="divider"></div>
-    <p class="dim">需要强调的是，任何特定置换的循环型在随机置换中出现的概率都很低，我们不主张0.094%构成有意设计的证据。这一分解的价值在于结构性描述：它揭示了81.25%的卦被锁在一个连通轨道中，意味着迭代σ几乎遍历全集才能返回。这类似于报告一个分子形成一条大环而非多条小链——是一个结构事实，而非统计声明。</p>
+    <p class="dim">需要强调的是，任何特定置换的循环型在随机置换中出现的概率都很低（循环长度互异时精确值为 1/∏cᵢ；本例 1/(52·10·2) = 1/1040 ≈ 0.096%），我们不主张这一小概率构成有意设计的证据。这一分解的价值在于结构性描述：它揭示了81.25%的卦被锁在一个连通轨道中，意味着迭代σ几乎遍历全集才能返回。这类似于报告一个分子形成一条大环而非多条小链——是一个结构事实，而非统计声明。</p>
   </div>
 </section>
 
@@ -260,8 +260,8 @@
         <div class="compare-label">二进制自然序均值</div>
       </div>
       <div class="compare-col">
-        <div class="compare-val" style="color:var(--text3)">3.000</div>
-        <div class="compare-label">随机基线</div>
+        <div class="compare-val" style="color:var(--text3)">3.048</div>
+        <div class="compare-label">随机置换基线</div>
       </div>
     </div>
 
@@ -272,7 +272,7 @@
     <div class="stat-grid" style="grid-template-columns:repeat(3,1fr)">
       <div class="stat-card">
         <div class="stat-val" style="font-size:24px">9 对</div>
-        <div class="stat-label">完全翻转 d=6<br><span style="font-size:10px">随机期望~1.4对</span></div>
+        <div class="stat-label">完全翻转 d=6<br><span style="font-size:10px">随机置换期望1.0对，实际9倍</span></div>
       </div>
       <div class="stat-card">
         <div class="stat-val" style="font-size:24px">3.2 : 1</div>
@@ -292,7 +292,7 @@
     <h2>三条核心洞察</h2>
 
     <h3>一、文王偏好对比叙事</h3>
-    <p>均值 <span class="num">3.349</span> > 随机基线 <span class="num">3.0</span>。文王倾向于将结构差异大的卦放在相邻位置——通过反差强化认知。9对完全翻转（d=6）是最极端的表现，随机只会有~1.4对。</p>
+    <p>均值 <span class="num">3.349</span> > 随机置换基线 <span class="num">3.048</span>。文王倾向于将结构差异大的卦放在相邻位置——通过反差强化认知。9对完全翻转（d=6）是最极端的表现，随机置换期望仅1.0对。</p>
 
     <h3>二、偶变优势来自综/错卦结构</h3>
     <p>文王序的32对综卦（上下翻转）天然产生偶数汉明距离。这不是巧合——综卦配对是文王序已知的组织原则，偶变比率是其数学推论。</p>

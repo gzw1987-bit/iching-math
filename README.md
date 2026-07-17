@@ -100,10 +100,7 @@ python3 monte_carlo.py
 
 | File | Description |
 |------|-------------|
-| [engine-architecture.html](engine-architecture.html) | Engine architecture visualization |
 | [four-minds.html](four-minds.html) | Four-minds framework |
-| [strategy-debate.html](strategy-debate.html) | Strategy debate simulation |
-| [deep-diagnostic.html](deep-diagnostic.html) | Deep diagnostic tool |
 | [shang-timeline.html](shang-timeline.html) | Shang dynasty timeline |
 
 ## License
