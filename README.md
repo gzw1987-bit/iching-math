@@ -55,6 +55,9 @@ python3 monte_carlo.py
 python3 pair_structure.py
 ```
 
+Core regression fixtures can be run with `python3 -m unittest discover -s tests -v`.
+`verify.py` requires the external yijing skill datasets and access to ctext.org; it now returns a nonzero exit status for missing lines, failed requests, or text differences. A successful check requires all 386 lines, including 用九 and 用六. The regression fixtures exercise completeness and failure handling without making a live textual-verification claim.
+
 ## Historical Note
 
 > The binary natural order was formalized by Shao Yong (1011-1077 CE), approximately 2,000 years after King Wen (~1100 BCE). We do not claim King Wen "rearranged" the binary order. This analysis measures the structural distance between two independently defined orderings.

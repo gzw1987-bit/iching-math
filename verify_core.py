@@ -39,6 +39,8 @@ def lcm(a, b):
 
 
 def decompose(perm):
+    if any(type(value) is not int for value in perm) or sorted(perm) != list(range(len(perm))):
+        raise ValueError("expected a permutation of 0..n-1")
     visited = [False] * len(perm)
     cycles = []
     for i in range(len(perm)):
@@ -55,6 +57,8 @@ def decompose(perm):
 
 
 def hamming(a, b):
+    if len(a) != len(b):
+        raise ValueError("Hamming distance requires equal-length sequences")
     return sum(x != y for x, y in zip(a, b))
 
 
@@ -71,6 +75,12 @@ def main():
         "HEXAGRAM_MAP six-bit keys",
         all(len(k) == 6 and set(k) <= {"0", "1"} for k in HEXAGRAM_MAP),
         True,
+    )
+    check("HEXAGRAM_MAP values", sorted(HEXAGRAM_MAP.values()), list(range(1, 65)))
+    check(
+        "binary order matches hexagram map",
+        KING_WEN_FROM_BINARY,
+        [HEXAGRAM_MAP[format(index, "06b")] for index in range(64)],
     )
 
     perm = [n - 1 for n in KING_WEN_FROM_BINARY]
