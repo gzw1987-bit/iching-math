@@ -7,8 +7,6 @@ import urllib.request
 
 # NOTE: Requires cast_hexagram.py (HEXAGRAM_MAP, HEXAGRAMS) and yaoci_data.py (YAOCI)
 # from the yijing skill scripts. Place those files on your PYTHONPATH to run.
-from cast_hexagram import HEXAGRAM_MAP, HEXAGRAMS
-from yaoci_data import YAOCI
 
 # ─── ctext.org URL mapping ───
 HEX_SLUGS = {
@@ -146,133 +144,145 @@ def get_our_yao_key(pos, is_yang):
         return prefix + nums[pos]
 
 # ─── Main verification ───
-num_to_bin = {}
-for b, n in HEXAGRAM_MAP.items():
-    num_to_bin[n] = b
+def main():
+    from cast_hexagram import HEXAGRAM_MAP, HEXAGRAMS
+    from yaoci_data import YAOCI
 
-total_checked = 0
-total_match = 0
-total_mismatch = 0
-total_fetch_fail = 0
-mismatches = []
+    num_to_bin = {}
+    for b, n in HEXAGRAM_MAP.items():
+        num_to_bin[n] = b
 
-print("═══ 易经元数据库逐字验证 ═══")
-print(f"数据源A：识典古籍（简体） → yaoci_data.py")
-print(f"数据源B：ctext.org 中国哲学书电子化计划（繁体→简体）")
-print(f"方法：去标点后逐字比对")
-print("=" * 60)
-print()
+    total_checked = 0
+    total_match = 0
+    total_mismatch = 0
+    total_fetch_fail = 0
+    mismatches = []
 
-for n in range(1, 65):
-    hex_name = HEXAGRAMS[n]['name']
-    binary = num_to_bin[n]
-    our_yaoci = YAOCI.get(n, {}).get('yaoci', {})
+    print("═══ 易经元数据库逐字验证 ═══")
+    print(f"数据源A：识典古籍（简体） → yaoci_data.py")
+    print(f"数据源B：ctext.org 中国哲学书电子化计划（繁体→简体）")
+    print(f"方法：去标点后逐字比对")
+    print("=" * 60)
+    print()
 
-    # Fetch ctext page
-    html = fetch_page(n)
-    if not html:
-        print(f"  ✗ 第{n:02d}卦 {hex_name}: 抓取失败")
-        total_fetch_fail += 1
-        continue
+    for n in range(1, 65):
+        hex_name = HEXAGRAMS[n]['name']
+        binary = num_to_bin[n]
+        our_yaoci = YAOCI.get(n, {}).get('yaoci', {})
 
-    # Extract ctext yaoci
-    ctext_yaoci = extract_yaoci_from_html(html, n)
+        # Fetch ctext page
+        html = fetch_page(n)
+        if not html:
+            print(f"  ✗ 第{n:02d}卦 {hex_name}: 抓取失败")
+            total_fetch_fail += 1
+            continue
 
-    if not ctext_yaoci:
-        print(f"  ? 第{n:02d}卦 {hex_name}: 未能解析ctext页面")
-        total_fetch_fail += 1
-        continue
+        # Extract ctext yaoci
+        ctext_yaoci = extract_yaoci_from_html(html, n)
 
-    hex_ok = True
-    hex_details = []
+        if not ctext_yaoci:
+            print(f"  ? 第{n:02d}卦 {hex_name}: 未能解析ctext页面")
+            total_fetch_fail += 1
+            continue
 
-    # Compare each yao
-    for pos in range(1, 7):
-        is_yang = binary[pos-1] == '1'
-        key = get_our_yao_key(pos, is_yang)
+        hex_ok = True
+        hex_details = []
 
-        our_text = our_yaoci.get(key, '')
-        # Strip position prefix from our text
-        our_body = our_text
-        if our_text.startswith(key):
-            our_body = our_text[len(key):].lstrip('，,： ')
+        # Compare each yao
+        for pos in range(1, 7):
+            is_yang = binary[pos-1] == '1'
+            key = get_our_yao_key(pos, is_yang)
 
-        ctext_text = ctext_yaoci.get(key, '')
-        if ctext_text.startswith(key):
-            ctext_text = ctext_text[len(key):].lstrip('，,：: ')
+            our_text = our_yaoci.get(key, '')
+            # Strip position prefix from our text
+            our_body = our_text
+            if our_text.startswith(key):
+                our_body = our_text[len(key):].lstrip('，,： ')
 
-        # Convert traditional to simplified
-        ctext_simplified = t2s(ctext_text)
+            ctext_text = ctext_yaoci.get(key, '')
+            if ctext_text.startswith(key):
+                ctext_text = ctext_text[len(key):].lstrip('，,：: ')
 
-        # Normalize (remove punctuation) for comparison
-        our_norm = normalize(our_body)
-        ct_norm = normalize(ctext_simplified)
-
-        total_checked += 1
-
-        if our_norm == ct_norm:
-            total_match += 1
-        else:
-            total_mismatch += 1
-            hex_ok = False
-            hex_details.append(f"    {key}: 不一致")
-            hex_details.append(f"      我们: {our_norm}")
-            hex_details.append(f"      ctext: {ct_norm}")
-            # Find specific character differences
-            diffs = []
-            max_len = max(len(our_norm), len(ct_norm))
-            for i in range(max_len):
-                a = our_norm[i] if i < len(our_norm) else '∅'
-                b = ct_norm[i] if i < len(ct_norm) else '∅'
-                if a != b:
-                    diffs.append(f"第{i}字 '{a}'↔'{b}'")
-            if diffs:
-                hex_details.append(f"      差异: {', '.join(diffs[:5])}")
-
-    # Check specials
-    for skey in ['用九', '用六']:
-        if skey in our_yaoci:
-            our_text = our_yaoci[skey]
-            if our_text.startswith(skey):
-                our_text = our_text[len(skey):].lstrip('，,： ')
-            ctext_text = ctext_yaoci.get(skey, '')
-            if ctext_text.startswith(skey):
-                ctext_text = ctext_text[len(skey):].lstrip('，,：: ')
+            # Convert traditional to simplified
             ctext_simplified = t2s(ctext_text)
-            our_norm = normalize(our_text)
+
+            # Normalize (remove punctuation) for comparison
+            our_norm = normalize(our_body)
             ct_norm = normalize(ctext_simplified)
+
             total_checked += 1
-            if our_norm == ct_norm:
+
+            if our_norm and ct_norm and our_norm == ct_norm:
                 total_match += 1
             else:
                 total_mismatch += 1
                 hex_ok = False
-                hex_details.append(f"    {skey}: 不一致")
+                hex_details.append(f"    {key}: 不一致")
                 hex_details.append(f"      我们: {our_norm}")
                 hex_details.append(f"      ctext: {ct_norm}")
+                # Find specific character differences
+                diffs = []
+                max_len = max(len(our_norm), len(ct_norm))
+                for i in range(max_len):
+                    a = our_norm[i] if i < len(our_norm) else '∅'
+                    b = ct_norm[i] if i < len(ct_norm) else '∅'
+                    if a != b:
+                        diffs.append(f"第{i}字 '{a}'↔'{b}'")
+                if diffs:
+                    hex_details.append(f"      差异: {', '.join(diffs[:5])}")
 
-    if hex_ok:
-        print(f"  ✓ 第{n:02d}卦 {hex_name}: 全部一致 ({len(ctext_yaoci)}条)")
-    else:
-        print(f"  ✗ 第{n:02d}卦 {hex_name}: 有差异")
-        for d in hex_details:
-            print(d)
-        mismatches.append(n)
+        # Check specials
+        for skey in ['用九', '用六']:
+            if skey in our_yaoci:
+                our_text = our_yaoci[skey]
+                if our_text.startswith(skey):
+                    our_text = our_text[len(skey):].lstrip('，,： ')
+                ctext_text = ctext_yaoci.get(skey, '')
+                if ctext_text.startswith(skey):
+                    ctext_text = ctext_text[len(skey):].lstrip('，,：: ')
+                ctext_simplified = t2s(ctext_text)
+                our_norm = normalize(our_text)
+                ct_norm = normalize(ctext_simplified)
+                total_checked += 1
+                if our_norm and ct_norm and our_norm == ct_norm:
+                    total_match += 1
+                else:
+                    total_mismatch += 1
+                    hex_ok = False
+                    hex_details.append(f"    {skey}: 不一致")
+                    hex_details.append(f"      我们: {our_norm}")
+                    hex_details.append(f"      ctext: {ct_norm}")
 
-    time.sleep(0.3)  # Be nice to the server
+        if hex_ok:
+            print(f"  ✓ 第{n:02d}卦 {hex_name}: 全部一致 ({len(ctext_yaoci)}条)")
+        else:
+            print(f"  ✗ 第{n:02d}卦 {hex_name}: 有差异")
+            for d in hex_details:
+                print(d)
+            mismatches.append(n)
 
-print()
-print("═══ 验证结果 ═══")
-print(f"  检验条数: {total_checked}")
-print(f"  完全一致: {total_match}")
-print(f"  有差异:   {total_mismatch}")
-print(f"  抓取失败: {total_fetch_fail}")
-print(f"  一致率:   {total_match/total_checked*100:.1f}%" if total_checked > 0 else "")
-if mismatches:
-    print(f"  有差异的卦: {[HEXAGRAMS[n]['name'] for n in mismatches]}")
-print()
-if total_mismatch == 0 and total_fetch_fail == 0:
-    print("  ★ 结论：386条爻辞与ctext.org逐字完全一致（去标点后）")
-elif total_mismatch > 0:
-    print(f"  ★ 结论：{total_mismatch}条存在文字差异，需逐条核查")
-    print("    注意：差异可能来自版本不同（王弼注 vs 其他版本），不一定是错误")
+        time.sleep(0.3)  # Be nice to the server
+
+    print()
+    print("═══ 验证结果 ═══")
+    print(f"  检验条数: {total_checked}")
+    print(f"  完全一致: {total_match}")
+    print(f"  有差异:   {total_mismatch}")
+    print(f"  抓取失败: {total_fetch_fail}")
+    print(f"  一致率:   {total_match/total_checked*100:.1f}%" if total_checked > 0 else "")
+    if mismatches:
+        print(f"  有差异的卦: {[HEXAGRAMS[n]['name'] for n in mismatches]}")
+    print()
+    if total_checked == 386 and total_mismatch == 0 and total_fetch_fail == 0:
+        print("  ★ 结论：386条爻辞与ctext.org逐字完全一致（去标点后）")
+    elif total_mismatch > 0:
+        print(f"  ★ 结论：{total_mismatch}条存在文字差异，需逐条核查")
+        print("    注意：差异可能来自版本不同（王弼注 vs 其他版本），不一定是错误")
+
+    if total_checked != 386:
+        print(f"  ✗ 完整性失败：预期386条，实际检验{total_checked}条")
+    return int(total_checked != 386 or total_mismatch > 0 or total_fetch_fail > 0)
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
