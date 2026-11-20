@@ -1,6 +1,6 @@
 # 易经衍化之旅
 
-本文件由 `/home/gezhengewen/yijing-derivation/CLAUDE.md` 迁移而来，作为 Codex 项目规则。
+本文件由项目根目录 `CLAUDE.md` 迁移而来，作为 Codex 项目规则。
 
 ## 概述
 

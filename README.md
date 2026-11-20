@@ -12,7 +12,7 @@ The 64 hexagrams of the I Ching admit two classical orderings: the binary natura
 - **Fixed points:** 0
 - **Largest cycle:** 52 (81.25% of all hexagrams)
 - **Order:** lcm(52, 10, 2) = 260
-- **Mean Hamming distance:** 3.349 (random baseline: 3.0)
+- **Mean Hamming distance:** 3.349 (random permutation baseline: 3.048; independent pairs: 3.0)
 - **Even:odd adjacent Hamming steps:** 48:15 (3.2:1)
 
 ## Methodological Boundaries
@@ -46,9 +46,14 @@ The 64 hexagrams of the I Ching admit two classical orderings: the binary natura
 node -e "const W=[2,23,8,20,16,35,45,12,15,52,39,53,62,56,31,33,7,4,29,59,40,64,47,6,46,18,48,57,32,50,28,44,24,27,3,42,51,21,17,25,36,22,63,37,55,30,49,13,19,41,60,61,54,38,58,10,11,26,5,9,34,14,43,1];const p=W.map(w=>w-1),v=new Set,c=[];for(let i=0;i<64;i++){if(v.has(i))continue;const y=[];let j=i;while(!v.has(j)){v.add(j);y.push(j);j=p[j]}c.push(y)}console.log(c.map(x=>x.length).sort((a,b)=>b-a))"
 # Output: [ 52, 10, 2 ]
 
-# Run core verification and Monte Carlo simulation (Python 3)
+# Run core verification, exact closed-form statistics, and Monte Carlo simulation (Python 3)
 python3 verify_core.py
+python3 verify_stats.py
 python3 monte_carlo.py
+
+# Verify the pair structure (非覆即变), nuclear-hexagram convergence,
+# and pairing/cycle interaction (Python 3, no dependencies)
+python3 pair_structure.py
 ```
 
 ## Historical Note
@@ -65,6 +70,8 @@ python3 monte_carlo.py
 | [algorithm-animation.html](algorithm-animation.html) | Step-by-step permutation algorithm animation |
 | [monte_carlo.py](monte_carlo.py) | Monte Carlo simulation for statistical baselines |
 | [verify.py](verify.py) | Python verification script |
+| [verify_stats.py](verify_stats.py) | Exact closed-form statistical baselines (13 assertions, zero dependencies) |
+| [pair_structure.py](pair_structure.py) | Pair-structure verification: the classical 非覆即变 rule holds 32/32 (24 reversal + 4 complement + 4 double pairs); nuclear-hexagram iteration converges to {1, 2, 63, 64}; 24 of 32 pairs fall inside a single [52, 10, 2] cycle |
 
 ### Derivation Journey
 
@@ -102,6 +109,22 @@ python3 monte_carlo.py
 |------|-------------|
 | [four-minds.html](four-minds.html) | Four-minds framework |
 | [shang-timeline.html](shang-timeline.html) | Shang dynasty timeline |
+
+## Publication Classes
+
+- **Verified computation:** `verify_core.py`, `pair_structure.py`, `verify-permutation.html`, and the cycle/Hamming/pairing results reproduced by them. The pairing rule (非覆即变) is a classical observation; only its machine-checked quantification (4 double pairs, nuclear convergence set, pairing/cycle interaction) is contributed here.
+- **Historical or methodological discussion:** the paper pages and historical notes; claims remain conditional on sources and dating assumptions.
+- **Speculative analogy:** genome, game-theory, coupled-system, coupled-cycles, four-minds, and wave-comparison pages. These are exploratory models, not evidence of causation, design intent, or strict isomorphism unless a structure-preserving map is explicitly defined.
+- **Artistic interaction:** music, Morse, voltage, and other representational experiments.
+
+Run `python3 verify_site.py` before publication to check local links and guardrail wording, then run `python3 verify_core.py` for the mathematical regression suite.
+
+## Premise Audit
+
+- Assumption: the selected six-bit encoding and the two orderings are fixed inputs; changing them changes the permutation.
+- Terminology: “Fu Xi sequence” is a conventional label for the later Shao Yong binary arrangement, not evidence that King Wen rearranged it.
+- Causality: rarity or structural regularity does not establish intentional design.
+- Counterpoint: cross-domain similarities may arise from shared small finite state spaces or chosen encodings; semantic transfer requires separate evidence.
 
 ## License
 
